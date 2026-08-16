@@ -128,8 +128,8 @@ commitment).
 ## Last verified commit
 
 (update this line at each checkpoint push)
-`98ff272` — Phase C.0 gate round 2 complete (real checkpoint resume,
-bit-exact equivalence tests, online diagnostics, honest P.1b v2 result
-with a documented eps-sensitivity caveat for tau_cmd/moment-channel
-figures). Phase C (100s run) awaiting explicit user go-ahead — not yet
-launched.
+`771a618` — Phase C.0 gate round 3 complete (resume verified through the
+actual production wrapper with a same-target simulated crash, full
+history stitching, config-bound checkpoints, actuator-maxima carryover,
+P.1b v3 per-metric-group verdict). Phase C (100s run) awaiting explicit
+user go-ahead — not yet launched.

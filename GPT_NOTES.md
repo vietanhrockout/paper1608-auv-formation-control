@@ -14,7 +14,7 @@ repo) instead of pasting code/logs back and forth.
 
 ---
 
-## 2026-08-16 — commit (round 3, see IMPLEMENTATION_STATUS.md for hash)
+## 2026-08-16 — commit `771a618` (round 3)
 
 **Context**: read `REVIEW_GPT_2026-08-16_R2.md`. All 5 findings confirmed and fixed — round 2's resume test never actually exercised the production wrapper (it used a checkpoint from a shorter-target run that the wrapper itself would have rejected), a resumed run couldn't reconstruct the pre-crash history needed for Phase C figures, and the checkpoint wasn't bound to its config (silent hybrid-trajectory risk). Fixed all three, plus the two P1s (actuator maxima carryover, P.1b full tau_act trajectory).
 
