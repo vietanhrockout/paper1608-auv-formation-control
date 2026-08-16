@@ -73,4 +73,6 @@ pointer into it, updated at verified checkpoints, not every edit.
 ## Last verified commit
 
 (update this line at each checkpoint push)
-`b6a9d5e` — initial commit (Issue P fix + Phase B.3 pass, pre-Phase-C.0-gate)
+`5cc1b02` — Phase C.0 gate complete (entry-point unification, memory-safe
+integrator, P.1b epsilon audit, hardened B.3 checker). Phase C (100s run)
+is unblocked and awaiting explicit go-ahead — not yet launched.
