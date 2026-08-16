@@ -108,6 +108,8 @@ commitment).
 ## Last verified commit
 
 (update this line at each checkpoint push)
-`5cc1b02` — Phase C.0 gate complete (entry-point unification, memory-safe
-integrator, P.1b epsilon audit, hardened B.3 checker). Phase C (100s run)
-is unblocked and awaiting explicit go-ahead — not yet launched.
+`98ff272` — Phase C.0 gate round 2 complete (real checkpoint resume,
+bit-exact equivalence tests, online diagnostics, honest P.1b v2 result
+with a documented eps-sensitivity caveat for tau_cmd/moment-channel
+figures). Phase C (100s run) awaiting explicit user go-ahead — not yet
+launched.
