@@ -6,3 +6,10 @@
 page_8.png
 page_9.png
 page_10.png
+
+# Periodic safety-snapshot checkpoints written by projected_rk4_integrate.m
+# during long runs -- transient, regenerable, overwritten every run, no
+# standalone diagnostic value (unlike the p*_result.mat / phase_b*_result.mat
+# files, which ARE evidence cited in handoff.md and should stay tracked).
+projected_rk4_checkpoint.mat
+c0_checkpoint_test.mat

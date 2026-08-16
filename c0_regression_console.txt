@@ -1,0 +1,9 @@
+=== C.0 regression: exp4_rl_pts_mc_projected with new memory-safe integrator ===
+exp4_rl_pts_mc_projected: integrating [0, 0.5000]s at h=1.00e-04 (5000 steps, storing every 4-th step -> ~1251 samples) ...
+exp4_rl_pts_mc_projected: done, 5000 steps, 58.7s wall, max_retraction=3.824e+04, 1251 stored samples
+res.t size: [1251 1], res.X size: [1251 549]
+t(1)=0.000000 t(end)=0.500000
+AUV0 chi at t=0.5000: [5.050363  5.376568 15.423341  0.004426  0.011372 -0.008903]
+max ||Wc|| = 100.000000
+checkpoint file written: 0
+=== END C.0 regression ===

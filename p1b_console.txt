@@ -1,0 +1,31 @@
+=== eps=1.0e-08, t_final=1.00, h=1.0e-04 ===
+  10000 steps, 112.0s wall, max_retraction=3.917e+04
+  AUV0 chi(end) = [2.697800  4.240853 14.330666  0.003779  0.011772 -0.011002]
+  AUV0 s(end)   = [203.4861  427.0578 2930.4384    0.0132    0.0623   -0.0567]
+  AUV0 max|tau_cmd(end)| = 7.982342e+06
+=== eps=1.0e-07, t_final=1.00, h=1.0e-04 ===
+  10000 steps, 102.0s wall, max_retraction=3.908e+04
+  AUV0 chi(end) = [2.697800  4.240854 14.330666  0.003779  0.011772 -0.011002]
+  AUV0 s(end)   = [203.4861  427.0578 2930.4385    0.0132    0.0623   -0.0567]
+  AUV0 max|tau_cmd(end)| = 7.982342e+06
+=== eps=1.0e-06, t_final=1.00, h=1.0e-04 ===
+  10000 steps, 126.8s wall, max_retraction=3.824e+04
+  AUV0 chi(end) = [2.697800  4.240854 14.330667  0.003779  0.011772 -0.011003]
+  AUV0 s(end)   = [203.4861  427.0579 2930.4385    0.0132    0.0623   -0.0567]
+  AUV0 max|tau_cmd(end)| = 7.982343e+06
+=== eps=1.0e-05, t_final=1.00, h=1.0e-04 ===
+  10000 steps, 96.8s wall, max_retraction=3.240e+04
+  AUV0 chi(end) = [2.697798  4.240861 14.330670  0.003783  0.011778 -0.011007]
+  AUV0 s(end)   = [203.4858  427.0590 2930.4396    0.0133    0.0624   -0.0568]
+  AUV0 max|tau_cmd(end)| = 7.982348e+06
+
+=== COMPARISON (AUV0 chi_x at t=1.00 across eps) ===
+  eps=1.0e-08  chi0_x=2.697800
+  eps=1.0e-07  chi0_x=2.697800
+  eps=1.0e-06  chi0_x=2.697800
+  eps=1.0e-05  chi0_x=2.697798
+
+absolute spread across eps = 2.119422e-06, relative spread = 7.8561e-07
+RESULT: closed-loop trajectory is NOT meaningfully sensitive to eps in this range (<1% relative spread). Default eps=1e-6 is fine.
+
+=== END P.1b (result saved to p1b_result.mat) ===

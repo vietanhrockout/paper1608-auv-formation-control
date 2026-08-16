@@ -18,7 +18,11 @@ function run_all_experiments(t_final)
     res3 = exp3_sat_antiwindup(t_final);
     
     fprintf('Running Experiment 4: Proposed RL Predefined-Time SMC...\n');
-    res4 = exp4_rl_pts_mc(t_final);
+    % Uses the production Projected-RK4 integrator (Step K.7), NOT the plain
+    % ode45 exp4_rl_pts_mc.m -- that path is known-broken (Issue K/L: ode45
+    % stalls near t=0.017-0.019s at the critic-projection-boundary kink).
+    % h=1e-4 matches the validated production default (Step K.7/P.4).
+    res4 = exp4_rl_pts_mc_projected(t_final, 1e-4);
     
     fprintf('Running Experiment 5: Conventional SMC Baseline...\n');
     res5 = exp5_comparison_smc(t_final);

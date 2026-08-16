@@ -1,6 +1,31 @@
-function generate_all_paper_figures()
+function generate_all_paper_figures(i_acknowledge_this_is_stale)
     % GENERATE_ALL_PAPER_FIGURES Master script to render and save Figures 2-9
-    
+    %
+    % *** DO NOT RUN (Phase C.0 gate, GPT audit) ***
+    % This entire pipeline predates the detailed Issue I-P audit and its
+    % figure numbering does NOT match the actual paper (confirmed against
+    % the raw PDF via PyMuPDF page renders -- see handoff.md's Phase C
+    % section for the correct mapping):
+    %   this file's Fig.4 (attitude errors)   should be Fig.4 = cost-to-go
+    %   this file's Fig.5 (control inputs)    should be Fig.5 = actor NN output
+    %   this file's Fig.6 (anti-windup vars)  should be Fig.6 = position tracking
+    %   this file's Fig.7 (actor NN approx)   should be Fig.7 = formation distances (leader-relative)
+    %   this file's Fig.8 (critic weights)    should be Fig.8 = formation tracking error chi
+    %   this file's Fig.9 (SMC comparison)    should be Fig.9 = sliding surfaces s_i
+    % Only Fig.2 (3D trajectory) happens to already match.
+    % This needs a full rewrite against a real Phase C (100s) dataset, not
+    % a blind relabeling -- deferred to Phase C.2 (see handoff.md). Calling
+    % this function now requires i_acknowledge_this_is_stale=true so it
+    % can't be run by accident and mislabeled as the real paper figures.
+
+    if nargin < 1 || isempty(i_acknowledge_this_is_stale) || ~isequal(i_acknowledge_this_is_stale, true)
+        error(['generate_all_paper_figures: STALE, figure numbering does not match the ' ...
+               'actual paper (see comment block at the top of this file and handoff.md''s ' ...
+               'Phase C section). Do not use for real figure reproduction. If you understand ' ...
+               'this and want the old placeholder plots anyway, call with ' ...
+               'generate_all_paper_figures(true).']);
+    end
+
     project_root = fileparts(fileparts(mfilename('fullpath')));
     addpath(fullfile(project_root, 'config'));
     addpath(fullfile(project_root, 'model'));

@@ -1,4 +1,4 @@
-function res = exp4_rl_pts_mc_projected(t_final, h, params, sat_cfg, cfg)
+function res = exp4_rl_pts_mc_projected(t_final, h, params, sat_cfg, cfg, n_target)
 % EXP4_RL_PTS_MC_PROJECTED Production simulation entry point using the
 % fixed-step, per-stage-projected RK4 integrator for the ENTIRE horizon
 % (Step K.7).
@@ -13,12 +13,26 @@ function res = exp4_rl_pts_mc_projected(t_final, h, params, sat_cfg, cfg)
 % K.5, ~100-125 steps/s, infeasible for 15-100s horizons) to h=1e-4
 % (100x coarser) keeps the exact structural bound ||Wc||<=delta_c (the
 % per-stage retraction is O(1) and exact regardless of step size) while
-% running ~100x faster, with a convergence check (h=1e-4 vs h=1e-5 over
-% a 0.1s segment) showing negligible/small physical-state error
-% (max|d_eta|=4.4e-4, max|d_nu|=1.37e-2 -- acceptable for figure
-% reproduction).
+% running ~100x faster. Step P.4 re-validated h=1e-4 accuracy for the
+% physical states under the current (Issue P-fixed) dynamics: relative
+% max|d_eta|=3.2e-7, max|d_nu|=1.7e-5 vs h=1e-5 (far tighter than the
+% stale K.7-era numbers this comment used to cite, which were measured
+% under the old frozen/non-convergent dynamics and are no longer valid --
+% see handoff.md's Phase C.0 Gate section). Critic weights remain
+% step-size-sensitive (max|d_Wc|~11% of delta_c) -- expected, tied to the
+% still-open Issue M/K critic-projection-thrashing question.
 %
 % Default h=1e-4 gives ~22min for a 15s run, ~2.4hr for a 100s run.
+%
+% MEMORY SAFETY (Phase C.0 gate fix): the underlying integrator no longer
+% allocates a full per-step history. At h=1e-4/100s (1e6 steps x 549
+% states x 8 bytes ~= 4.4GB), storing every step would risk exhausting
+% RAM; n_target (default 1001) controls how many samples are actually
+% kept, computed as a store_stride passed into projected_rk4_integrate
+% BEFORE integration starts, so the oversized array is never allocated.
+% A periodic checkpoint (every 10s of simulated time, see
+% checkpoint_every_sec below) is also written for crash/kill recovery
+% diagnostics.
 
     if nargin < 1 || isempty(t_final)
         t_final = 15.0;
@@ -35,6 +49,9 @@ function res = exp4_rl_pts_mc_projected(t_final, h, params, sat_cfg, cfg)
     if nargin < 5 || isempty(cfg)
         cfg = nn_config();
     end
+    if nargin < 6 || isempty(n_target)
+        n_target = 1001;
+    end
 
     [eta_init, nu_init] = initial_conditions();
     omega_aw_mat = zeros(6, 3);
@@ -43,23 +60,25 @@ function res = exp4_rl_pts_mc_projected(t_final, h, params, sat_cfg, cfg)
 
     X0 = pack_states(eta_init, nu_init, omega_aw_mat, Wa_cell, Wc_mat, cfg);
 
-    fprintf('exp4_rl_pts_mc_projected: integrating [0, %.4f]s at h=%.2e (%d steps) ...\n', ...
-        t_final, h, ceil(t_final/h));
+    nsteps = ceil(t_final / h);
+    store_stride = max(1, floor(nsteps / n_target));
 
-    [t_full, X_full, stats] = projected_rk4_integrate(t_final, h, X0, params, sat_cfg, cfg);
+    fprintf('exp4_rl_pts_mc_projected: integrating [0, %.4f]s at h=%.2e (%d steps, storing every %d-th step -> ~%d samples) ...\n', ...
+        t_final, h, nsteps, store_stride, floor(nsteps/store_stride)+1);
 
-    fprintf('exp4_rl_pts_mc_projected: done, %d steps, %.1fs wall, max_retraction=%.3e\n', ...
-        stats.nsteps, stats.elapsed, stats.max_retraction);
+    opts = struct();
+    opts.store_stride = store_stride;
+    opts.checkpoint_every_sec = 10;
+    opts.checkpoint_path = 'projected_rk4_checkpoint.mat';
 
-    % Thin the output history to a manageable size (matches exp4_rl_pts_mc.m's
-    % ~301-point convention) while always keeping the first and last sample.
-    n_target = 601;
-    stride = max(1, floor(numel(t_full)/n_target));
-    idx = [1:stride:numel(t_full)-1, numel(t_full)];
+    [t_full, X_full, stats] = projected_rk4_integrate(t_final, h, X0, params, sat_cfg, cfg, opts);
+
+    fprintf('exp4_rl_pts_mc_projected: done, %d steps, %.1fs wall, max_retraction=%.3e, %d stored samples\n', ...
+        stats.nsteps, stats.elapsed, stats.max_retraction, numel(t_full));
 
     res = struct();
-    res.t = t_full(idx);
-    res.X = X_full(idx,:);
+    res.t = t_full;
+    res.X = X_full;
     res.params = params;
     res.name = 'Exp4_RL_PT_SMC_Projected';
     res.h = h;

@@ -30,14 +30,33 @@ function [tau_cmd, terms] = controller_rl(eta, eta_dot, t, i_auv, omega_aw_i, Wa
     if isfield(params, 'inverse_lambda_mode') && ~isempty(params.inverse_lambda_mode)
         inverse_lambda_mode = params.inverse_lambda_mode;
     end
+    % Issue P.1b (GPT audit, Phase C.0 gate): the exact P.1 algebra proves
+    % |v|^{1-alpha1} (no regularization) reduces this term's ds/dt
+    % contribution to exactly -F. The PRODUCTION code regularizes near
+    % v=0 to avoid a literal singularity, i.e. uses (|v|+eps)^{1-alpha1},
+    % which is NOT exactly -F for |v| within a few orders of magnitude of
+    % eps (the coefficient (|v|/(|v|+eps))^{alpha1-1} -> 0, not 1, as
+    % v->0). This is a standard/defensible numerical-safety regularization,
+    % but earlier comments overstated it as "exactly -F in all cases" --
+    % corrected here and in paper_params.m. eps is exposed via
+    % params.inverse_lambda_eps (default 1e-6, unchanged from the value
+    % used throughout Steps P.1-P.4/Phase B.3) so diagnose_stepP1b_*.m can
+    % sweep it without touching this file.
+    inv_lambda_eps = 1e-6;
+    if isfield(params, 'inverse_lambda_eps') && ~isempty(params.inverse_lambda_eps)
+        inv_lambda_eps = params.inverse_lambda_eps;
+    end
     if strcmp(inverse_lambda_mode, 'proof_consistent_unsigned')
         % Issue P: unsigned |v|^{1-alpha1} inverse of Eq.(23)'s Lambda1 =
         % diag{|v|^{alpha1-1}} -- algebraically reduces this term's ds/dt
-        % contribution to -F (see diagnose_stepP1_lambda1_inverse_sign.m),
-        % vs. the paper-literal sig^{1-alpha1}(v) which reduces to -sign(v)*F.
-        inv_lambda1 = (abs(vel_err) + 1e-6) .^ (1 - params.alpha1);
+        % contribution to -F away from v=0 (see
+        % diagnose_stepP1_lambda1_inverse_sign.m for the exact,
+        % unregularized proof; diagnose_stepP1b_epsilon_sensitivity.m for
+        % how close the regularized version gets), vs. the paper-literal
+        % sig^{1-alpha1}(v) which reduces to -sign(v)*F everywhere.
+        inv_lambda1 = (abs(vel_err) + inv_lambda_eps) .^ (1 - params.alpha1);
     else
-        inv_lambda1 = sigpow_negative(vel_err, 1 - params.alpha1, 'regularized', 1e-6);
+        inv_lambda1 = sigpow_negative(vel_err, 1 - params.alpha1, 'regularized', inv_lambda_eps);
     end
     term_reaching = -a1_inv * inv_lambda1 .* F_reach;
     

@@ -1,4 +1,4 @@
-function result = verify_phase_b3_projected_convergence(t_final, h)
+function result = verify_phase_b3_projected_convergence(t_final, h, require_neighborhood)
     % VERIFY_PHASE_B3_PROJECTED_CONVERGENCE
     % Proper assert-based Phase B checker for exp4_rl_pts_mc_projected.m
     % running under the NEW production default (Issue P fix,
@@ -16,7 +16,15 @@ function result = verify_phase_b3_projected_convergence(t_final, h)
     %      below a "small neighborhood of the origin" threshold, AND is
     %      meaningfully smaller than at t=0 (not just numerically finite).
     %      This is the assertion that was MISSING from run_phase_b2.m and
-    %      is exactly what would have caught Issue O/P earlier.
+    %      is exactly what would have caught Issue O/P earlier. A second
+    %      independent audit (GPT, via the public GitHub repo) caught that
+    %      THIS specific check was only ever fprintf'd, never actually
+    %      asserted -- a bad run could still be mislabeled "all structural
+    %      asserts PASSED". Fixed: now a real assert by default
+    %      (require_neighborhood=true). Pass false only when deliberately
+    %      testing a horizon shorter than the paper's own claimed
+    %      convergence time (e.g. t_final < T1*=5s), where partial
+    %      convergence is the expected, non-failing outcome.
 
     addpath(genpath('paper1608'));
 
@@ -25,6 +33,9 @@ function result = verify_phase_b3_projected_convergence(t_final, h)
     end
     if nargin < 2 || isempty(h)
         h = 1e-4;
+    end
+    if nargin < 3 || isempty(require_neighborhood)
+        require_neighborhood = true;
     end
 
     res = exp4_rl_pts_mc_projected(t_final, h);
@@ -96,10 +107,15 @@ function result = verify_phase_b3_projected_convergence(t_final, h)
     CONVERGENCE_NEIGHBORHOOD = 2.0; % "small neighborhood of origin" threshold, project-chosen
     assert(E_chi_end < E_chi_0, ...
         'FAIL: E_chi did not decrease at all (E_chi(0)=%.4f, E_chi(end)=%.4f) -- non-convergence', E_chi_0, E_chi_end);
-    if E_chi_end < CONVERGENCE_NEIGHBORHOOD
+    if require_neighborhood
+        assert(E_chi_end < CONVERGENCE_NEIGHBORHOOD, ...
+            'FAIL: E_chi(end)=%.4f has NOT reached the %.1f-unit convergence neighborhood (E_chi(0)=%.4f) -- run does not qualify as converged', ...
+            E_chi_end, CONVERGENCE_NEIGHBORHOOD, E_chi_0);
+        fprintf('PASS: E_chi(end)=%.4f is within the %.1f-unit convergence neighborhood.\n', E_chi_end, CONVERGENCE_NEIGHBORHOOD);
+    elseif E_chi_end < CONVERGENCE_NEIGHBORHOOD
         fprintf('PASS: E_chi(end)=%.4f is within the %.1f-unit convergence neighborhood.\n', E_chi_end, CONVERGENCE_NEIGHBORHOOD);
     else
-        fprintf('PARTIAL: E_chi decreased (%.4f -> %.4f) but has NOT yet reached the %.1f-unit neighborhood -- may need a longer horizon or further investigation.\n', ...
+        fprintf('PARTIAL (require_neighborhood=false, not a failure): E_chi decreased (%.4f -> %.4f) but has NOT yet reached the %.1f-unit neighborhood.\n', ...
             E_chi_0, E_chi_end, CONVERGENCE_NEIGHBORHOOD);
     end
 

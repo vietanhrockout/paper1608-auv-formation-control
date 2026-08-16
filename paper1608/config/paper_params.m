@@ -83,7 +83,20 @@ function params = paper_params()
     %                                which is the correct algebraic inverse of
     %                                Lambda1 and reduces the F-term's ds/dt
     %                                contribution to exactly -F in all cases
-    %                                (Step P.1, confirmed).
+    %                                FOR THE UNREGULARIZED ALGEBRA (Step P.1,
+    %                                confirmed via pure scalar test). The
+    %                                PRODUCTION implementation in
+    %                                controller_rl.m regularizes near v=0
+    %                                as (|v|+eps)^{1-alpha1} (eps =
+    %                                params.inverse_lambda_eps, default
+    %                                1e-6) to avoid a literal singularity --
+    %                                this is NOT exactly -F within a few
+    %                                orders of magnitude of eps (a second
+    %                                independent audit, GPT via the public
+    %                                GitHub repo, caught this overclaim;
+    %                                see diagnose_stepP1b_epsilon_sensitivity.m
+    %                                for how sensitive closed-loop results
+    %                                are to the exact eps value).
     % DEFAULT PROMOTED to 'proof_consistent_unsigned' (this session, third pass):
     % Step P.2's closed-loop A/B test (paper1608/verify/diagnose_stepP2_*.m) over
     % a 5s horizon (covering the paper's own claimed T1*=5s) showed AUV0's chi_x,
@@ -99,4 +112,11 @@ function params = paper_params()
     % promoting this to the default. 'paper_signed' remains available for
     % literal-reading comparison/ablation. See Issue P in handoff.md.
     params.inverse_lambda_mode = 'proof_consistent_unsigned';
+
+    % Issue P.1b: regularization epsilon for the above (both branches use
+    % (|v|+eps) inside their inverse-power terms near v=0). Swept over
+    % {1e-8,1e-7,1e-6,1e-5} in diagnose_stepP1b_epsilon_sensitivity.m;
+    % 1e-6 is the value used throughout Steps P.1-P.4 and Phase B.3 and is
+    % kept as the default unless that sweep shows a strong reason to change.
+    params.inverse_lambda_eps = 1e-6;
 end
