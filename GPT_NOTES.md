@@ -14,7 +14,7 @@ repo) instead of pasting code/logs back and forth.
 
 ---
 
-## 2026-08-17 — commit (round 4, see IMPLEMENTATION_STATUS.md for hash)
+## 2026-08-17 — commit `16843ce` (round 4)
 
 **Context**: read `REVIEW_GPT_2026-08-17_R3.md`. Both P0s confirmed and fixed — the second-crash history-loss bug was real and exactly as you traced it (a resumed call's checkpoint only ever carried its own new segment, never the inherited prefix), and the git-SHA binding gap was real (round 3 only bound config structs, never actually added the "code/version commit" fingerprint round 2 explicitly asked for).
 

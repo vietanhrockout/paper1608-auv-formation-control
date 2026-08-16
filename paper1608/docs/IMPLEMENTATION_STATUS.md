@@ -160,8 +160,8 @@ commitment).
 ## Last verified commit
 
 (update this line at each checkpoint push)
-`771a618` — Phase C.0 gate round 3 complete (resume verified through the
-actual production wrapper with a same-target simulated crash, full
-history stitching, config-bound checkpoints, actuator-maxima carryover,
-P.1b v3 per-metric-group verdict). Phase C (100s run) awaiting explicit
-user go-ahead — not yet launched.
+`16843ce` — Phase C.0 gate round 4 complete (multi-resume history
+survives chained crashes, checkpoints bound to git commit SHA +
+dirty-tree state, uniform-density claim corrected, eps-sensitivity
+wording reconciled). Phase C (100s run) awaiting explicit user
+go-ahead — not yet launched.
