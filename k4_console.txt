@@ -1,0 +1,133 @@
+
+============================================================
+ STEP K.4 -- PROJECTED RK4 FEASIBILITY AUDIT
+============================================================
+t_final  = 8.000000e-05 s
+delta_c  = 1.000000e+02
+delta_a  = 5.000000e+01
+
+------------------------------------------------------------
+RUN 1 / 4
+Nominal h = 1.000000e-05 s
+------------------------------------------------------------
+steps                  = 8
+elapsed                = 1.611 s
+
+Critic PRE-projection maxima:
+AUV0 = 1.044753796664e+02
+AUV1 = 3.953160350027e+02
+AUV2 = 6.673454631954e+02
+
+Critic POST-projection maxima:
+AUV0 = 1.000000000000e+02
+AUV1 = 1.000000000000e+02
+AUV2 = 1.000000000000e+02
+
+Actor max PRE  = 5.330968171047e-06
+Actor max POST = 5.330968171047e-06
+max state retraction norm = 5.673454631954e+02
+number of projected vectors = 62
+
+------------------------------------------------------------
+RUN 2 / 4
+Nominal h = 2.000000e-06 s
+------------------------------------------------------------
+steps                  = 41
+elapsed                = 2.078 s
+
+Critic PRE-projection maxima:
+AUV0 = 1.014868774840e+02
+AUV1 = 1.590691298618e+02
+AUV2 = 2.135363681899e+02
+
+Critic POST-projection maxima:
+AUV0 = 1.000000000000e+02
+AUV1 = 1.000000000000e+02
+AUV2 = 1.000000000000e+02
+
+Actor max PRE  = 5.662655020581e-06
+Actor max POST = 5.662655020581e-06
+max state retraction norm = 1.279830809302e+02
+number of projected vectors = 254
+
+------------------------------------------------------------
+RUN 3 / 4
+Nominal h = 5.000000e-07 s
+------------------------------------------------------------
+steps                  = 161
+elapsed                = 5.415 s
+
+Critic PRE-projection maxima:
+AUV0 = 1.007397816375e+02
+AUV1 = 1.031660278392e+02
+AUV2 = 1.134543381609e+02
+
+Critic POST-projection maxima:
+AUV0 = 1.000000000000e+02
+AUV1 = 1.000000000000e+02
+AUV2 = 1.000000000000e+02
+
+Actor max PRE  = 5.680424858461e-06
+Actor max POST = 5.680424858461e-06
+max state retraction norm = 1.345433816088e+01
+number of projected vectors = 364
+
+------------------------------------------------------------
+RUN 4 / 4
+Nominal h = 1.000000e-07 s
+------------------------------------------------------------
+steps                  = 800
+elapsed                = 16.922 s
+
+Critic PRE-projection maxima:
+AUV0 = 1.001421117720e+02
+AUV1 = 1.026747401859e+02
+AUV2 = 1.021088096610e+02
+
+Critic POST-projection maxima:
+AUV0 = 1.000000000000e+02
+AUV1 = 1.000000000000e+02
+AUV2 = 1.000000000000e+02
+
+Actor max PRE  = 5.685012784988e-06
+Actor max POST = 5.685012784988e-06
+max state retraction norm = 2.674740185896e+00
+number of projected vectors = 1603
+
+============================================================
+ ENDPOINT REFINEMENT DIFFERENCES
+============================================================
+
+h = 1.000e-05 -> 2.000e-06
+max |Delta eta| = 3.192809866759e-11
+max |Delta nu|  = 3.977956441469e-07
+max |Delta Wa|  = 1.866572170498e-07
+max |Delta Wc|  = 3.148722172833e-01
+
+h = 2.000e-06 -> 5.000e-07
+max |Delta eta| = 5.979337214434e-12
+max |Delta nu|  = 7.449276759656e-08
+max |Delta Wa|  = 9.999999974454e-09
+max |Delta Wc|  = 1.284074568204e-04
+
+h = 5.000e-07 -> 1.000e-07
+max |Delta eta| = 1.594011802154e-12
+max |Delta nu|  = 1.985872603258e-08
+max |Delta Wa|  = 2.581861773725e-09
+max |Delta Wc|  = 8.963041793209e-07
+
+============================================================
+ STEP K.4 SUMMARY
+============================================================
+h          steps    preWc0      postWc0     preWc1      postWc1     preWc2      postWc2     maxRetract
+1.000e-05        8  1.044754e+02 1.000000e+02  3.953160e+02 1.000000e+02  6.673455e+02 1.000000e+02  5.673455e+02
+2.000e-06       41  1.014869e+02 1.000000e+02  1.590691e+02 1.000000e+02  2.135364e+02 1.000000e+02  1.279831e+02
+5.000e-07      161  1.007398e+02 1.000000e+02  1.031660e+02 1.000000e+02  1.134543e+02 1.000000e+02  1.345434e+01
+1.000e-07      800  1.001421e+02 1.000000e+02  1.026747e+02 1.000000e+02  1.021088e+02 1.000000e+02  2.674740e+00
+
+Interpretation rule:
+1) POST norms must satisfy projection bounds structurally.
+2) PRE-projection excursions should shrink with h.
+3) Endpoint differences should shrink under refinement.
+4) No production solver decision is made in K.4.
+============================================================

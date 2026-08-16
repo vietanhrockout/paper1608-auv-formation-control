@@ -1,0 +1,18 @@
+params.inverse_lambda_mode = proof_consistent_unsigned
+=== Coarse run: h=1.0e-04, t_span=0.30 ===
+  3000 steps, 43.8s wall
+=== Fine run: h=1.0e-05, t_span=0.30 ===
+  30000 steps, 254.9s wall
+
+=== Endpoint comparison at t=0.30 ===
+max|d_eta| = 1.845989e-06
+max|d_nu|  = 3.782983e-05
+max|d_Wc|  = 1.096955e+01
+AUV0 eta_coarse = [5.665881  5.719733  5.718441  0.004901  0.005416 -0.001928]
+AUV0 eta_fine   = [5.665881  5.719733  5.718441  0.004901  0.005416 -0.001929]
+AUV0 nu_coarse  = [-2.172498 -1.694950 -1.694916 -0.002858  0.031312 -0.030506]
+AUV0 nu_fine    = [-2.172498 -1.694950 -1.694916 -0.002859  0.031310 -0.030509]
+
+relative max|d_eta| = 3.2274e-07, relative max|d_nu| = 1.7391e-05
+
+=== END P.4 (result saved to p4_result.mat) ===

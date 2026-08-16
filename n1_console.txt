@@ -1,0 +1,11 @@
+
+============================================================
+ STEP N.1 -- delta_c / delta_a PROJECTION BOUND SCALE SWEEP
+============================================================
+critic_reward_tau_mode = tau_cmd_raw (unchanged production default)
+t_horizon = 2.000 s, max_steps abort ceiling = 20000
+delta_c sweep = [1e+02 1e+04 1e+06 1e+08 ]
+
+------------------------------------------------------------
+delta_c = 1.000e+02, delta_a = 5.000e+01
+------------------------------------------------------------

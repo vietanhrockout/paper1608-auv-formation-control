@@ -1,0 +1,504 @@
+
+============================================================
+ ISSUE L / STEP L.1 -- INITIAL COMMAND DECOMPOSITION
+============================================================
+
+============================================================
+SIGMA MODE: paper_literal
+sigma1 = 4.545454545455e-01
+sigma2 = -2.222222222222e+00
+============================================================
+
+------------------------------------------------------------
+AUV 0
+------------------------------------------------------------
+||chi||_inf       = 1.600000000000e+01
+||vel_err||_inf   = 2.000000000000e-01
+||s||_inf         = 3.492047344230e+03
+
+REACHING INTERNALS
+||sig_v_neg||_inf = 1.584890022694e+00
+||q1||_inf        = 1.187980654306e+01
+||q2||_inf        = 2.969173392632e+02
+||q_inner||_inf   = 2.850375327202e+02
+||q(s)||_inf      = 8.124639505921e+04
+||k1*s||_inf      = 3.492047344230e+04
+
+VIRTUAL-ACCELERATION TERMS
+||surface||_inf   = 7.944338844136e+01
+||robust||_inf    = 3.000000000000e-01
+||q-term||_inf    = 9.341495754355e+04
+||k1s-term||_inf  = 4.015063734995e+04
+||AW-term||_inf   = 0.000000000000e+00
+||reference||_inf = 0.000000000000e+00
+||RL-term||_inf   = 0.000000000000e+00
+
+FORCE CONTRIBUTIONS
+max |tau_surface force| = 1.660366818424e+03 N
+max |tau_robust force|  = 6.270000000000e+00 N
+max |tau_q force|       = 1.952372612660e+06 N
+max |tau_k1 force|      = 8.391483206140e+05 N
+max |tau_AW force|      = 0.000000000000e+00 N
+max |tau_ref force|     = 0.000000000000e+00 N
+max |tau_RL force|      = 0.000000000000e+00 N
+
+TOTAL COMMAND
+dominant force DOF      = 3
+tau_cmd xyz = [-1.262246e+05   1.337329e+05   1.111558e+06] N
+max |tau_cmd force|     = 1.111557655228e+06 N
+max |tau_act force|     = 1.500000000000e+02 N
+max |Delta tau|         = 1.111407655228e+06
+force saturation ratio  = 7.410384368185e+03
+
+COST / CRITIC CONSEQUENCE
+r_cmd                    = 1.269380825518e+08
+r_act diagnostic         = 3.347500000000e+02
+r_cmd / r_act            = 3.792026364506e+05
+||Phi||                  = 1.930632298072e-04
+||v_c raw||              = 7.352122860896e+03 weight/s
+delta_c/||v_c||          = 1.360151372495e-02 s
+
+RECONSTRUCTION
+Eq31 reconstruction err  = 2.910383045673e-11
+reaching decomposition err= 0.000000000000e+00
+
+------------------------------------------------------------
+AUV 1
+------------------------------------------------------------
+||chi||_inf       = 1.200000000000e+01
+||vel_err||_inf   = 2.000000000000e-01
+||s||_inf         = 2.215353325858e+03
+
+REACHING INTERNALS
+||sig_v_neg||_inf = 1.584890022694e+00
+||q1||_inf        = 9.902720462297e+00
+||q2||_inf        = 2.259713015933e+02
+||q_inner||_inf   = 2.160685811310e+02
+||q(s)||_inf      = 4.668563175196e+04
+||k1*s||_inf      = 2.215353325858e+04
+
+VIRTUAL-ACCELERATION TERMS
+||surface||_inf   = 6.710903209975e+01
+||robust||_inf    = 3.000000000000e-01
+||q-term||_inf    = 5.367790539906e+04
+||k1s-term||_inf  = 2.547154698103e+04
+||AW-term||_inf   = 0.000000000000e+00
+||reference||_inf = 0.000000000000e+00
+||RL-term||_inf   = 0.000000000000e+00
+
+FORCE CONTRIBUTIONS
+max |tau_surface force| = 1.402578770885e+03 N
+max |tau_robust force|  = 6.270000000000e+00 N
+max |tau_q force|       = 1.121868222840e+06 N
+max |tau_k1 force|      = 5.323553319035e+05 N
+max |tau_AW force|      = 0.000000000000e+00 N
+max |tau_ref force|     = 0.000000000000e+00 N
+max |tau_RL force|      = 0.000000000000e+00 N
+
+TOTAL COMMAND
+dominant force DOF      = 3
+tau_cmd xyz = [ 4.348490e+03  -2.063549e+04   5.881040e+05] N
+max |tau_cmd force|     = 5.881040421660e+05 N
+max |tau_act force|     = 1.500000000000e+02 N
+max |Delta tau|         = 5.879540421660e+05
+force saturation ratio  = 3.920693614440e+03
+
+COST / CRITIC CONSEQUENCE
+r_cmd                    = 3.463126672984e+07
+r_act diagnostic         = 1.637500000000e+02
+r_cmd / r_act            = 2.114886517853e+05
+||Phi||                  = 1.153690281609e-02
+||v_c raw||              = 1.198612675981e+05 weight/s
+delta_c/||v_c||          = 8.342978678929e-04 s
+
+RECONSTRUCTION
+Eq31 reconstruction err  = 1.164153218269e-10
+reaching decomposition err= 1.989519660128e-13
+
+------------------------------------------------------------
+AUV 2
+------------------------------------------------------------
+||chi||_inf       = 8.000000000000e+00
+||vel_err||_inf   = 2.000000000000e-01
+||s||_inf         = 1.167807833176e+03
+
+REACHING INTERNALS
+||sig_v_neg||_inf = 1.584890022694e+00
+||q1||_inf        = 7.665242039201e+00
+||q2||_inf        = 1.538899705792e+02
+||q_inner||_inf   = 1.462247285400e+02
+||q(s)||_inf      = 2.138167123658e+04
+||k1*s||_inf      = 1.167807833176e+04
+
+VIRTUAL-ACCELERATION TERMS
+||surface||_inf   = 5.294909610595e+01
+||robust||_inf    = 3.000000000000e-01
+||q-term||_inf    = 2.458408042991e+04
+||k1s-term||_inf  = 1.342714579221e+04
+||AW-term||_inf   = 0.000000000000e+00
+||reference||_inf = 0.000000000000e+00
+||RL-term||_inf   = 0.000000000000e+00
+
+FORCE CONTRIBUTIONS
+max |tau_surface force| = 1.106636108614e+03 N
+max |tau_robust force|  = 6.270000000000e+00 N
+max |tau_q force|       = 5.138072809850e+05 N
+max |tau_k1 force|      = 2.806273470572e+05 N
+max |tau_AW force|      = 0.000000000000e+00 N
+max |tau_ref force|     = 0.000000000000e+00 N
+max |tau_RL force|      = 0.000000000000e+00 N
+
+TOTAL COMMAND
+dominant force DOF      = 3
+tau_cmd xyz = [ 1.272732e+05  -1.874036e+03   2.320670e+05] N
+max |tau_cmd force|     = 2.320670278193e+05 N
+max |tau_act force|     = 1.500000000000e+02 N
+max |Delta tau|         = 2.319170278193e+05
+force saturation ratio  = 1.547113518795e+03
+
+COST / CRITIC CONSEQUENCE
+r_cmd                    = 7.005810026150e+06
+r_act diagnostic         = 1.077500000000e+02
+r_cmd / r_act            = 6.501911857215e+04
+||Phi||                  = 6.875019908468e-02
+||v_c raw||              = 1.444952502142e+05 weight/s
+delta_c/||v_c||          = 6.920642709832e-04 s
+
+RECONSTRUCTION
+Eq31 reconstruction err  = 2.910383045673e-11
+reaching decomposition err= 1.421085471520e-14
+
+============================================================
+SIGMA MODE: sign_flip_candidate
+sigma1 = 4.545454545455e-01
+sigma2 = 2.222222222222e+00
+============================================================
+
+------------------------------------------------------------
+AUV 0
+------------------------------------------------------------
+||chi||_inf       = 1.600000000000e+01
+||vel_err||_inf   = 2.000000000000e-01
+||s||_inf         = 3.492047344230e+03
+
+REACHING INTERNALS
+||sig_v_neg||_inf = 1.584890022694e+00
+||q1||_inf        = 1.187980654306e+01
+||q2||_inf        = 2.969173392632e+02
+||q_inner||_inf   = 3.087971458063e+02
+||q(s)||_inf      = 9.535567725812e+04
+||k1*s||_inf      = 3.492047344230e+04
+
+VIRTUAL-ACCELERATION TERMS
+||surface||_inf   = 7.944338844136e+01
+||robust||_inf    = 3.000000000000e-01
+||q-term||_inf    = 1.096374372809e+05
+||k1s-term||_inf  = 4.015063734995e+04
+||AW-term||_inf   = 0.000000000000e+00
+||reference||_inf = 0.000000000000e+00
+||RL-term||_inf   = 0.000000000000e+00
+
+FORCE CONTRIBUTIONS
+max |tau_surface force| = 1.660366818424e+03 N
+max |tau_robust force|  = 6.270000000000e+00 N
+max |tau_q force|       = 2.291422439171e+06 N
+max |tau_k1 force|      = 8.391483206140e+05 N
+max |tau_AW force|      = 0.000000000000e+00 N
+max |tau_ref force|     = 0.000000000000e+00 N
+max |tau_RL force|      = 0.000000000000e+00 N
+
+TOTAL COMMAND
+dominant force DOF      = 3
+tau_cmd xyz = [ 5.919925e+05  -6.272299e+05  -3.132237e+06] N
+max |tau_cmd force|     = 3.132237396603e+06 N
+max |tau_act force|     = 1.500000000000e+02 N
+max |Delta tau|         = 3.132087396603e+06
+force saturation ratio  = 2.088158264402e+04
+
+COST / CRITIC CONSEQUENCE
+r_cmd                    = 1.055478687588e+09
+r_act diagnostic         = 3.347500000000e+02
+r_cmd / r_act            = 3.153035661205e+06
+||Phi||                  = 1.930632298072e-04
+||v_c raw||              = 6.113223732554e+04 weight/s
+delta_c/||v_c||          = 1.635798138182e-03 s
+
+RECONSTRUCTION
+Eq31 reconstruction err  = 0.000000000000e+00
+reaching decomposition err= 3.637978807092e-12
+
+------------------------------------------------------------
+AUV 1
+------------------------------------------------------------
+||chi||_inf       = 1.200000000000e+01
+||vel_err||_inf   = 2.000000000000e-01
+||s||_inf         = 2.215353325858e+03
+
+REACHING INTERNALS
+||sig_v_neg||_inf = 1.584890022694e+00
+||q1||_inf        = 9.902720462297e+00
+||q2||_inf        = 2.259713015933e+02
+||q_inner||_inf   = 2.358740220556e+02
+||q(s)||_inf      = 5.563655428068e+04
+||k1*s||_inf      = 2.215353325858e+04
+
+VIRTUAL-ACCELERATION TERMS
+||surface||_inf   = 6.710903209975e+01
+||robust||_inf    = 3.000000000000e-01
+||q-term||_inf    = 6.396943953281e+04
+||k1s-term||_inf  = 2.547154698103e+04
+||AW-term||_inf   = 0.000000000000e+00
+||reference||_inf = 0.000000000000e+00
+||RL-term||_inf   = 0.000000000000e+00
+
+FORCE CONTRIBUTIONS
+max |tau_surface force| = 1.402578770885e+03 N
+max |tau_robust force|  = 6.270000000000e+00 N
+max |tau_q force|       = 1.336961286236e+06 N
+max |tau_k1 force|      = 5.323553319035e+05 N
+max |tau_AW force|      = 0.000000000000e+00 N
+max |tau_ref force|     = 0.000000000000e+00 N
+max |tau_RL force|      = 0.000000000000e+00 N
+
+TOTAL COMMAND
+dominant force DOF      = 3
+tau_cmd xyz = [-8.679378e+04   1.855900e+05  -1.870725e+06] N
+max |tau_cmd force|     = 1.870725466910e+06 N
+max |tau_act force|     = 1.500000000000e+02 N
+max |Delta tau|         = 1.870575466910e+06
+force saturation ratio  = 1.247150311273e+04
+
+COST / CRITIC CONSEQUENCE
+r_cmd                    = 3.541592148784e+08
+r_act diagnostic         = 1.637500000000e+02
+r_cmd / r_act            = 2.162804365669e+06
+||Phi||                  = 1.153690281609e-02
+||v_c raw||              = 1.225770133042e+06 weight/s
+delta_c/||v_c||          = 8.158136448619e-05 s
+
+RECONSTRUCTION
+Eq31 reconstruction err  = 2.910383045673e-11
+reaching decomposition err= 0.000000000000e+00
+
+------------------------------------------------------------
+AUV 2
+------------------------------------------------------------
+||chi||_inf       = 8.000000000000e+00
+||vel_err||_inf   = 2.000000000000e-01
+||s||_inf         = 1.167807833176e+03
+
+REACHING INTERNALS
+||sig_v_neg||_inf = 1.584890022694e+00
+||q1||_inf        = 7.665242039201e+00
+||q2||_inf        = 1.538899705792e+02
+||q_inner||_inf   = 1.615552126184e+02
+||q(s)||_inf      = 2.610008672416e+04
+||k1*s||_inf      = 1.167807833176e+04
+
+VIRTUAL-ACCELERATION TERMS
+||surface||_inf   = 5.294909610595e+01
+||robust||_inf    = 3.000000000000e-01
+||q-term||_inf    = 3.000918984090e+04
+||k1s-term||_inf  = 1.342714579221e+04
+||AW-term||_inf   = 0.000000000000e+00
+||reference||_inf = 0.000000000000e+00
+||RL-term||_inf   = 0.000000000000e+00
+
+FORCE CONTRIBUTIONS
+max |tau_surface force| = 1.106636108614e+03 N
+max |tau_robust force|  = 6.270000000000e+00 N
+max |tau_q force|       = 6.271920676748e+05 N
+max |tau_k1 force|      = 2.806273470572e+05 N
+max |tau_AW force|      = 0.000000000000e+00 N
+max |tau_ref force|     = 0.000000000000e+00 N
+max |tau_RL force|      = 0.000000000000e+00 N
+
+TOTAL COMMAND
+dominant force DOF      = 3
+tau_cmd xyz = [-5.910903e+05  -2.845414e+04  -9.089323e+05] N
+max |tau_cmd force|     = 9.089323208406e+05 N
+max |tau_act force|     = 1.500000000000e+02 N
+max |Delta tau|         = 9.087823208406e+05
+force saturation ratio  = 6.059548805604e+03
+
+COST / CRITIC CONSEQUENCE
+r_cmd                    = 1.176356305185e+08
+r_act diagnostic         = 1.077500000000e+02
+r_cmd / r_act            = 1.091745990891e+06
+||Phi||                  = 6.875019908468e-02
+||v_c raw||              = 2.426241905279e+06 weight/s
+delta_c/||v_c||          = 4.121600561857e-05 s
+
+RECONSTRUCTION
+Eq31 reconstruction err  = 1.164153218269e-10
+reaching decomposition err= 0.000000000000e+00
+
+============================================================
+SIGMA MODE: eq29_consistent
+sigma1 = 2.835189758909e+00
+sigma2 = 5.290651164659e+00
+============================================================
+
+------------------------------------------------------------
+AUV 0
+------------------------------------------------------------
+||chi||_inf       = 1.600000000000e+01
+||vel_err||_inf   = 2.000000000000e-01
+||s||_inf         = 3.492047344230e+03
+
+REACHING INTERNALS
+||sig_v_neg||_inf = 1.584890022694e+00
+||q1||_inf        = 7.409931286715e+01
+||q2||_inf        = 7.068987300512e+02
+||q_inner||_inf   = 7.809980429183e+02
+||q(s)||_inf      = 6.099579430423e+05
+||k1*s||_inf      = 3.492047344230e+04
+
+VIRTUAL-ACCELERATION TERMS
+||surface||_inf   = 7.944338844136e+01
+||robust||_inf    = 3.000000000000e-01
+||q-term||_inf    = 7.013135205706e+05
+||k1s-term||_inf  = 4.015063734995e+04
+||AW-term||_inf   = 0.000000000000e+00
+||reference||_inf = 0.000000000000e+00
+||RL-term||_inf   = 0.000000000000e+00
+
+FORCE CONTRIBUTIONS
+max |tau_surface force| = 1.660366818424e+03 N
+max |tau_robust force|  = 6.270000000000e+00 N
+max |tau_q force|       = 1.465745257993e+07 N
+max |tau_k1 force|      = 8.391483206140e+05 N
+max |tau_AW force|      = 0.000000000000e+00 N
+max |tau_ref force|     = 0.000000000000e+00 N
+max |tau_RL force|      = 0.000000000000e+00 N
+
+TOTAL COMMAND
+dominant force DOF      = 3
+tau_cmd xyz = [ 2.844698e+06  -3.013986e+06  -1.549827e+07] N
+max |tau_cmd force|     = 1.549826753736e+07 N
+max |tau_act force|     = 1.500000000000e+02 N
+max |Delta tau|         = 1.549811753736e+07
+force saturation ratio  = 1.033217835824e+05
+
+COST / CRITIC CONSEQUENCE
+r_cmd                    = 2.573727181300e+10
+r_act diagnostic         = 3.347500000000e+02
+r_cmd / r_act            = 7.688505395967e+07
+||Phi||                  = 1.930632298072e-04
+||v_c raw||              = 1.490676246793e+06 weight/s
+delta_c/||v_c||          = 6.708364758287e-05 s
+
+RECONSTRUCTION
+Eq31 reconstruction err  = 4.656612873077e-10
+reaching decomposition err= 0.000000000000e+00
+
+------------------------------------------------------------
+AUV 1
+------------------------------------------------------------
+||chi||_inf       = 1.200000000000e+01
+||vel_err||_inf   = 2.000000000000e-01
+||s||_inf         = 2.215353325858e+03
+
+REACHING INTERNALS
+||sig_v_neg||_inf = 1.584890022694e+00
+||q1||_inf        = 6.176740160809e+01
+||q2||_inf        = 5.379908984793e+02
+||q_inner||_inf   = 5.997583000874e+02
+||q(s)||_inf      = 3.597100185237e+05
+||k1*s||_inf      = 2.215353325858e+04
+
+VIRTUAL-ACCELERATION TERMS
+||surface||_inf   = 6.710903209975e+01
+||robust||_inf    = 3.000000000000e-01
+||q-term||_inf    = 4.135850714840e+05
+||k1s-term||_inf  = 2.547154698103e+04
+||AW-term||_inf   = 0.000000000000e+00
+||reference||_inf = 0.000000000000e+00
+||RL-term||_inf   = 0.000000000000e+00
+
+FORCE CONTRIBUTIONS
+max |tau_surface force| = 1.402578770885e+03 N
+max |tau_robust force|  = 6.270000000000e+00 N
+max |tau_q force|       = 8.643927994016e+06 N
+max |tau_k1 force|      = 5.323553319035e+05 N
+max |tau_AW force|      = 0.000000000000e+00 N
+max |tau_ref force|     = 0.000000000000e+00 N
+max |tau_RL force|      = 0.000000000000e+00 N
+
+TOTAL COMMAND
+dominant force DOF      = 3
+tau_cmd xyz = [-4.050459e+05   8.754358e+05  -9.177692e+06] N
+max |tau_cmd force|     = 9.177692174690e+06 N
+max |tau_act force|     = 1.500000000000e+02 N
+max |Delta tau|         = 9.177542174690e+06
+force saturation ratio  = 6.118461449793e+04
+
+COST / CRITIC CONSEQUENCE
+r_cmd                    = 8.516048520899e+09
+r_act diagnostic         = 1.637500000000e+02
+r_cmd / r_act            = 5.200640318107e+07
+||Phi||                  = 1.153690281609e-02
+||v_c raw||              = 2.947464724881e+07 weight/s
+delta_c/||v_c||          = 3.392746286524e-06 s
+
+RECONSTRUCTION
+Eq31 reconstruction err  = 1.862645149231e-09
+reaching decomposition err= 7.275957614183e-12
+
+------------------------------------------------------------
+AUV 2
+------------------------------------------------------------
+||chi||_inf       = 8.000000000000e+00
+||vel_err||_inf   = 2.000000000000e-01
+||s||_inf         = 1.167807833176e+03
+
+REACHING INTERNALS
+||sig_v_neg||_inf = 1.584890022694e+00
+||q1||_inf        = 4.781131460402e+01
+||q2||_inf        = 3.663801684332e+02
+||q_inner||_inf   = 4.141914830373e+02
+||q(s)||_inf      = 1.715545846206e+05
+||k1*s||_inf      = 1.167807833176e+04
+
+VIRTUAL-ACCELERATION TERMS
+||surface||_inf   = 5.294909610595e+01
+||robust||_inf    = 3.000000000000e-01
+||q-term||_inf    = 1.972489268854e+05
+||k1s-term||_inf  = 1.342714579221e+04
+||AW-term||_inf   = 0.000000000000e+00
+||reference||_inf = 0.000000000000e+00
+||RL-term||_inf   = 0.000000000000e+00
+
+FORCE CONTRIBUTIONS
+max |tau_surface force| = 1.106636108614e+03 N
+max |tau_robust force|  = 6.270000000000e+00 N
+max |tau_q force|       = 4.122502571905e+06 N
+max |tau_k1 force|      = 2.806273470572e+05 N
+max |tau_AW force|      = 0.000000000000e+00 N
+max |tau_ref force|     = 0.000000000000e+00 N
+max |tau_RL force|      = 0.000000000000e+00 N
+
+TOTAL COMMAND
+dominant force DOF      = 3
+tau_cmd xyz = [-2.844234e+06  -1.293205e+05  -4.404243e+06] N
+max |tau_cmd force|     = 4.404242825070e+06 N
+max |tau_act force|     = 1.500000000000e+02 N
+max |Delta tau|         = 4.404092825070e+06
+force saturation ratio  = 2.936161883380e+04
+
+COST / CRITIC CONSEQUENCE
+r_cmd                    = 2.750374679627e+09
+r_act diagnostic         = 1.077500000000e+02
+r_cmd / r_act            = 2.552551906847e+07
+||Phi||                  = 6.875019908468e-02
+||v_c raw||              = 5.672664203455e+07 weight/s
+delta_c/||v_c||          = 1.762840112043e-06 s
+
+RECONSTRUCTION
+Eq31 reconstruction err  = 9.313225746155e-10
+reaching decomposition err= 0.000000000000e+00
+
+============================================================
+ STEP L.1 COMPLETE
+ No controller or parameter modification performed.
+============================================================

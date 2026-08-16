@@ -1,0 +1,26 @@
+=== Running mode=paper_signed, t_final=2.00, h=1.0e-04 ===
+  done: 20000 steps, 189.5s wall, max_retraction=1.521e+06, total_retracted=251055
+  AUV0 chi trajectory (t, chi_x, chi_y, chi_z):
+    t=0.0000  chi=[6.0000, 6.0000, 16.0000]
+    t=0.4000  chi=[5.9993, 6.0007, 16.0028]
+    t=0.8000  chi=[5.9993, 6.0008, 16.0029]
+    t=1.2000  chi=[5.9993, 6.0008, 16.0029]
+    t=1.6000  chi=[5.9992, 6.0008, 16.0029]
+    t=2.0000  chi=[5.9992, 6.0009, 16.0029]
+
+=== Running mode=proof_consistent_unsigned, t_final=2.00, h=1.0e-04 ===
+  done: 20000 steps, 162.5s wall, max_retraction=3.824e+04, total_retracted=249211
+  AUV0 chi trajectory (t, chi_x, chi_y, chi_z):
+    t=0.0000  chi=[6.0000, 6.0000, 16.0000]
+    t=0.4000  chi=[5.3744, 5.5754, 15.6132]
+    t=0.8000  chi=[3.7614, 4.7089, 14.7818]
+    t=1.2000  chi=[1.5206, 3.7677, 13.8744]
+    t=1.6000  chi=[-0.0585, 2.8067, 12.9472]
+    t=2.0000  chi=[-0.2588, 1.8302, 12.0036]
+
+=== COMPARISON ===
+paper_signed:              |chi0_x| start=6.0000 -> end=5.9992 (DECREASED)
+proof_consistent_unsigned: |chi0_x| start=6.0000 -> end=0.2588 (DECREASED)
+
+RESULT: proof_consistent_unsigned shows genuine leader chi convergence where paper_signed does not.
+Issue P hypothesis SUPPORTED by closed-loop micro-horizon evidence.

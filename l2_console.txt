@@ -1,0 +1,80 @@
+
+============================================================
+ STEP L.2 -- SIGMA THEORY CONSISTENCY AUDIT
+============================================================
+zeta1      = 2.000000000000
+rho1       = 0.450000000000
+rho2       = 0.550000000000
+zeta1*rho1 = 0.900000000000
+zeta1*rho2 = 1.100000000000
+
+REQUIRED BY EQ. (29) FOR T*=5.000000 s
+gamma1_required = 1.581138830084e+00
+gamma2_required = 3.162277660168e+00
+sigma1_required = 2.835189758909e+00
+sigma2_required = 5.290651164659e+00
+
+============================================================
+ BRANCH AUDIT
+============================================================
+
+------------------------------------------------------------
+MODE: paper_literal
+------------------------------------------------------------
+sigma1 = 4.545454545455e-01
+sigma2 = -2.222222222222e+00
+gamma1_eff = 2.534925452385e-01
+gamma2_eff = -1.328245516583e+00
+positive effective coefficients = 0
+T_low  = 1.556215067603e+02 s
+T_high = NaN s
+T_total= NaN s
+min s*q(s) over grid = -4.738317518621e+11
+bad sign samples      = 2598 / 4000
+bad sign fraction     = 6.495000000000e-01
+analytic s_cross      = 3.580545234895e-04
+
+------------------------------------------------------------
+MODE: sign_flip_candidate
+------------------------------------------------------------
+sigma1 = 4.545454545455e-01
+sigma2 = 2.222222222222e+00
+gamma1_eff = 2.534925452385e-01
+gamma2_eff = 1.328245516583e+00
+positive effective coefficients = 1
+T_low  = 1.556215067603e+02 s
+T_high = 5.668175423586e+00 s
+T_total= 1.612896821839e+02 s
+min s*q(s) over grid = 1.036960055810e-15
+bad sign samples      = 0 / 4000
+bad sign fraction     = 0.000000000000e+00
+analytic s_cross      = NaN
+
+------------------------------------------------------------
+MODE: eq29_consistent
+------------------------------------------------------------
+sigma1 = 2.835189758909e+00
+sigma2 = 5.290651164659e+00
+gamma1_eff = 1.581138830084e+00
+gamma2_eff = 3.162277660168e+00
+positive effective coefficients = 1
+T_low  = 4.000000000000e+00 s
+T_high = 1.000000000000e+00 s
+T_total= 5.000000000000e+00 s
+min s*q(s) over grid = 3.507136273570e-14
+bad sign samples      = 0 / 4000
+bad sign fraction     = 0.000000000000e+00
+analytic s_cross      = NaN
+
+============================================================
+ EQ. (26) STRUCTURAL CHECK
+============================================================
+1/[(1-rho1) eps0 T*]       = 4.545454545455e-01
+1/[(rho2-1)(1-eps0) T*]    = -2.222222222222e+00
+
+NOTE: rho2 = 0.550000 < 1, hence the second literal Eq.(26) coefficient is necessarily negative.
+But Eq.(29) reaches the large-state exponent condition through zeta1*rho2 = 1.100000 > 1.
+
+============================================================
+ STEP L.2 COMPLETE
+============================================================

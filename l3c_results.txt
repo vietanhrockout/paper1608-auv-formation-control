@@ -1,0 +1,373 @@
+
+============================================================
+ STEP L.3c -- INITIAL COMMAND UNDER LEADER-RELATIVE ERRORS
+============================================================
+
+ARCHITECTURE INPUTS
+
+AUV0
+chi_A xyz = [ 6.000000  6.000000  16.000000]
+chi_B xyz = [ 6.000000  6.000000  16.000000]
+vel_A xyz = [-0.100000  0.100000  0.200000]
+vel_B xyz = [-0.100000  0.100000  0.200000]
+
+AUV1
+chi_A xyz = [-2.000000 -3.000000  12.000000]
+chi_B xyz = [-8.000000 -9.000000 -4.000000]
+vel_A xyz = [-0.100000  0.100000  0.200000]
+vel_B xyz = [ 0.000000  0.000000  0.000000]
+
+AUV2
+chi_A xyz = [-6.000000  1.000000  8.000000]
+chi_B xyz = [-12.000000 -5.000000 -8.000000]
+vel_A xyz = [-0.100000  0.100000  0.200000]
+vel_B xyz = [ 0.000000  0.000000  0.000000]
+
+============================================================
+ NEGATIVE SIGNED-POWER ZERO BEHAVIOR
+============================================================
+sigpow_negative(0, -0.2)     = 0.000000000000e+00
+sigpow_negative(1e-12,-0.2)  = 1.584892875483e+01
+
+============================================================
+SIGMA MODE: paper_literal
+============================================================
+
+------------------------------------------------------------
+AUV0
+------------------------------------------------------------
+||s_A||_inf = 3.492047344230e+03
+||s_B||_inf = 3.492047344230e+03
+||vel_A||_inf = 2.000000000000e-01
+||vel_B||_inf = 2.000000000000e-01
+||sig_v_neg A||_inf = 1.584890022694e+00
+||sig_v_neg B||_inf = 1.584890022694e+00
+
+ARCHITECTURE A
+max |tau_surface| force = 1.660366818424e+03 N
+max |tau_q| force       = 1.952372612660e+06 N
+max |tau_k1| force      = 8.391483206140e+05 N
+max |tau_robust| force  = 6.270000000000e+00 N
+max |tau_cmd| force     = 1.111557655228e+06 N
+r_cmd                   = 1.269380825518e+08
+||v_c raw||             = 7.352122860896e+03
+
+ARCHITECTURE B
+max |tau_surface| force = 1.660366818424e+03 N
+max |tau_q| force       = 1.952372612660e+06 N
+max |tau_k1| force      = 8.391483206140e+05 N
+max |tau_robust| force  = 6.270000000000e+00 N
+tau_cmd xyz = [-1.262245508533e+05  1.337328956727e+05  1.111557655228e+06]
+max |tau_cmd| force     = 1.111557655228e+06 N
+max |tau_act| force     = 1.500000000000e+02 N
+r_cmd                   = 1.269380825518e+08
+||Phi||                 = 1.930632298072e-04
+||v_c raw||             = 7.352122860896e+03
+
+A/B RATIOS
+tau force ratio A/B = 1.000000000000e+00
+cost ratio A/B      = 1.000000000000e+00
+
+------------------------------------------------------------
+AUV1
+------------------------------------------------------------
+||s_A||_inf = 2.215353325858e+03
+||s_B||_inf = 1.406178425215e+03
+||vel_A||_inf = 2.000000000000e-01
+||vel_B||_inf = 0.000000000000e+00
+||sig_v_neg A||_inf = 1.584890022694e+00
+||sig_v_neg B||_inf = 0.000000000000e+00
+
+ARCHITECTURE A
+max |tau_surface| force = 1.402578770885e+03 N
+max |tau_q| force       = 1.121868222840e+06 N
+max |tau_k1| force      = 5.323553319035e+05 N
+max |tau_robust| force  = 6.270000000000e+00 N
+max |tau_cmd| force     = 5.881040421660e+05 N
+r_cmd                   = 3.463126672984e+07
+||v_c raw||             = 1.198612675981e+05
+
+ARCHITECTURE B
+max |tau_surface| force = 0.000000000000e+00 N
+max |tau_q| force       = 0.000000000000e+00 N
+max |tau_k1| force      = 0.000000000000e+00 N
+max |tau_robust| force  = 6.270000000000e+00 N
+tau_cmd xyz = [ 5.919000000000e+00  6.270000000000e+00  6.270000000000e+00]
+max |tau_cmd| force     = 6.270000000000e+00 N
+max |tau_act| force     = 6.270000000000e+00 N
+r_cmd                   = 1.610113660361e+02
+||Phi||                 = 4.835737269747e-03
+||v_c raw||             = 2.335825990781e-01
+
+A/B RATIOS
+tau force ratio A/B = 9.379649795311e+04
+cost ratio A/B      = 2.150858512813e+05
+
+------------------------------------------------------------
+AUV2
+------------------------------------------------------------
+||s_A||_inf = 1.167807833176e+03
+||s_B||_inf = 2.215208369925e+03
+||vel_A||_inf = 2.000000000000e-01
+||vel_B||_inf = 0.000000000000e+00
+||sig_v_neg A||_inf = 1.584890022694e+00
+||sig_v_neg B||_inf = 0.000000000000e+00
+
+ARCHITECTURE A
+max |tau_surface| force = 1.106636108614e+03 N
+max |tau_q| force       = 5.138072809850e+05 N
+max |tau_k1| force      = 2.806273470572e+05 N
+max |tau_robust| force  = 6.270000000000e+00 N
+max |tau_cmd| force     = 2.320670278193e+05 N
+r_cmd                   = 7.005810026150e+06
+||v_c raw||             = 1.444952502142e+05
+
+ARCHITECTURE B
+max |tau_surface| force = 0.000000000000e+00 N
+max |tau_q| force       = 0.000000000000e+00 N
+max |tau_k1| force      = 0.000000000000e+00 N
+max |tau_robust| force  = 6.270000000000e+00 N
+tau_cmd xyz = [ 5.919000000000e+00  6.270000000000e+00  6.270000000000e+00]
+max |tau_cmd| force     = 6.270000000000e+00 N
+max |tau_act| force     = 6.270000000000e+00 N
+r_cmd                   = 2.330113660361e+02
+||Phi||                 = 7.221971466627e-04
+||v_c raw||             = 5.048404310737e-02
+
+A/B RATIOS
+tau force ratio A/B = 3.701228513864e+04
+cost ratio A/B      = 3.006638751289e+04
+
+============================================================
+SIGMA MODE: sign_flip_candidate
+============================================================
+
+------------------------------------------------------------
+AUV0
+------------------------------------------------------------
+||s_A||_inf = 3.492047344230e+03
+||s_B||_inf = 3.492047344230e+03
+||vel_A||_inf = 2.000000000000e-01
+||vel_B||_inf = 2.000000000000e-01
+||sig_v_neg A||_inf = 1.584890022694e+00
+||sig_v_neg B||_inf = 1.584890022694e+00
+
+ARCHITECTURE A
+max |tau_surface| force = 1.660366818424e+03 N
+max |tau_q| force       = 2.291422439171e+06 N
+max |tau_k1| force      = 8.391483206140e+05 N
+max |tau_robust| force  = 6.270000000000e+00 N
+max |tau_cmd| force     = 3.132237396603e+06 N
+r_cmd                   = 1.055478687588e+09
+||v_c raw||             = 6.113223732554e+04
+
+ARCHITECTURE B
+max |tau_surface| force = 1.660366818424e+03 N
+max |tau_q| force       = 2.291422439171e+06 N
+max |tau_k1| force      = 8.391483206140e+05 N
+max |tau_robust| force  = 6.270000000000e+00 N
+tau_cmd xyz = [ 5.919924756598e+05 -6.272299386715e+05 -3.132237396603e+06]
+max |tau_cmd| force     = 3.132237396603e+06 N
+max |tau_act| force     = 1.500000000000e+02 N
+r_cmd                   = 1.055478687588e+09
+||Phi||                 = 1.930632298072e-04
+||v_c raw||             = 6.113223732554e+04
+
+A/B RATIOS
+tau force ratio A/B = 1.000000000000e+00
+cost ratio A/B      = 1.000000000000e+00
+
+------------------------------------------------------------
+AUV1
+------------------------------------------------------------
+||s_A||_inf = 2.215353325858e+03
+||s_B||_inf = 1.406178425215e+03
+||vel_A||_inf = 2.000000000000e-01
+||vel_B||_inf = 0.000000000000e+00
+||sig_v_neg A||_inf = 1.584890022694e+00
+||sig_v_neg B||_inf = 0.000000000000e+00
+
+ARCHITECTURE A
+max |tau_surface| force = 1.402578770885e+03 N
+max |tau_q| force       = 1.336961286236e+06 N
+max |tau_k1| force      = 5.323553319035e+05 N
+max |tau_robust| force  = 6.270000000000e+00 N
+max |tau_cmd| force     = 1.870725466910e+06 N
+r_cmd                   = 3.541592148784e+08
+||v_c raw||             = 1.225770133042e+06
+
+ARCHITECTURE B
+max |tau_surface| force = 0.000000000000e+00 N
+max |tau_q| force       = 0.000000000000e+00 N
+max |tau_k1| force      = 0.000000000000e+00 N
+max |tau_robust| force  = 6.270000000000e+00 N
+tau_cmd xyz = [ 5.919000000000e+00  6.270000000000e+00  6.270000000000e+00]
+max |tau_cmd| force     = 6.270000000000e+00 N
+max |tau_act| force     = 6.270000000000e+00 N
+r_cmd                   = 1.610113660361e+02
+||Phi||                 = 4.835737269747e-03
+||v_c raw||             = 2.335825990781e-01
+
+A/B RATIOS
+tau force ratio A/B = 2.983613184865e+05
+cost ratio A/B      = 2.199591392815e+06
+
+------------------------------------------------------------
+AUV2
+------------------------------------------------------------
+||s_A||_inf = 1.167807833176e+03
+||s_B||_inf = 2.215208369925e+03
+||vel_A||_inf = 2.000000000000e-01
+||vel_B||_inf = 0.000000000000e+00
+||sig_v_neg A||_inf = 1.584890022694e+00
+||sig_v_neg B||_inf = 0.000000000000e+00
+
+ARCHITECTURE A
+max |tau_surface| force = 1.106636108614e+03 N
+max |tau_q| force       = 6.271920676748e+05 N
+max |tau_k1| force      = 2.806273470572e+05 N
+max |tau_robust| force  = 6.270000000000e+00 N
+max |tau_cmd| force     = 9.089323208406e+05 N
+r_cmd                   = 1.176356305185e+08
+||v_c raw||             = 2.426241905279e+06
+
+ARCHITECTURE B
+max |tau_surface| force = 0.000000000000e+00 N
+max |tau_q| force       = 0.000000000000e+00 N
+max |tau_k1| force      = 0.000000000000e+00 N
+max |tau_robust| force  = 6.270000000000e+00 N
+tau_cmd xyz = [ 5.919000000000e+00  6.270000000000e+00  6.270000000000e+00]
+max |tau_cmd| force     = 6.270000000000e+00 N
+max |tau_act| force     = 6.270000000000e+00 N
+r_cmd                   = 2.330113660361e+02
+||Phi||                 = 7.221971466627e-04
+||v_c raw||             = 5.048404310737e-02
+
+A/B RATIOS
+tau force ratio A/B = 1.449652824307e+05
+cost ratio A/B      = 5.048493235316e+05
+
+============================================================
+SIGMA MODE: eq29_consistent
+============================================================
+
+------------------------------------------------------------
+AUV0
+------------------------------------------------------------
+||s_A||_inf = 3.492047344230e+03
+||s_B||_inf = 3.492047344230e+03
+||vel_A||_inf = 2.000000000000e-01
+||vel_B||_inf = 2.000000000000e-01
+||sig_v_neg A||_inf = 1.584890022694e+00
+||sig_v_neg B||_inf = 1.584890022694e+00
+
+ARCHITECTURE A
+max |tau_surface| force = 1.660366818424e+03 N
+max |tau_q| force       = 1.465745257993e+07 N
+max |tau_k1| force      = 8.391483206140e+05 N
+max |tau_robust| force  = 6.270000000000e+00 N
+max |tau_cmd| force     = 1.549826753736e+07 N
+r_cmd                   = 2.573727181300e+10
+||v_c raw||             = 1.490676246793e+06
+
+ARCHITECTURE B
+max |tau_surface| force = 1.660366818424e+03 N
+max |tau_q| force       = 1.465745257993e+07 N
+max |tau_k1| force      = 8.391483206140e+05 N
+max |tau_robust| force  = 6.270000000000e+00 N
+tau_cmd xyz = [ 2.844697576500e+06 -3.013986378322e+06 -1.549826753736e+07]
+max |tau_cmd| force     = 1.549826753736e+07 N
+max |tau_act| force     = 1.500000000000e+02 N
+r_cmd                   = 2.573727181300e+10
+||Phi||                 = 1.930632298072e-04
+||v_c raw||             = 1.490676246793e+06
+
+A/B RATIOS
+tau force ratio A/B = 1.000000000000e+00
+cost ratio A/B      = 1.000000000000e+00
+
+------------------------------------------------------------
+AUV1
+------------------------------------------------------------
+||s_A||_inf = 2.215353325858e+03
+||s_B||_inf = 1.406178425215e+03
+||vel_A||_inf = 2.000000000000e-01
+||vel_B||_inf = 0.000000000000e+00
+||sig_v_neg A||_inf = 1.584890022694e+00
+||sig_v_neg B||_inf = 0.000000000000e+00
+
+ARCHITECTURE A
+max |tau_surface| force = 1.402578770885e+03 N
+max |tau_q| force       = 8.643927994016e+06 N
+max |tau_k1| force      = 5.323553319035e+05 N
+max |tau_robust| force  = 6.270000000000e+00 N
+max |tau_cmd| force     = 9.177692174690e+06 N
+r_cmd                   = 8.516048520899e+09
+||v_c raw||             = 2.947464724881e+07
+
+ARCHITECTURE B
+max |tau_surface| force = 0.000000000000e+00 N
+max |tau_q| force       = 0.000000000000e+00 N
+max |tau_k1| force      = 0.000000000000e+00 N
+max |tau_robust| force  = 6.270000000000e+00 N
+tau_cmd xyz = [ 5.919000000000e+00  6.270000000000e+00  6.270000000000e+00]
+max |tau_cmd| force     = 6.270000000000e+00 N
+max |tau_act| force     = 6.270000000000e+00 N
+r_cmd                   = 1.610113660361e+02
+||Phi||                 = 4.835737269747e-03
+||v_c raw||             = 2.335825990781e-01
+
+A/B RATIOS
+tau force ratio A/B = 1.463746758324e+06
+cost ratio A/B      = 5.289097739218e+07
+
+------------------------------------------------------------
+AUV2
+------------------------------------------------------------
+||s_A||_inf = 1.167807833176e+03
+||s_B||_inf = 2.215208369925e+03
+||vel_A||_inf = 2.000000000000e-01
+||vel_B||_inf = 0.000000000000e+00
+||sig_v_neg A||_inf = 1.584890022694e+00
+||sig_v_neg B||_inf = 0.000000000000e+00
+
+ARCHITECTURE A
+max |tau_surface| force = 1.106636108614e+03 N
+max |tau_q| force       = 4.122502571905e+06 N
+max |tau_k1| force      = 2.806273470572e+05 N
+max |tau_robust| force  = 6.270000000000e+00 N
+max |tau_cmd| force     = 4.404242825070e+06 N
+r_cmd                   = 2.750374679627e+09
+||v_c raw||             = 5.672664203455e+07
+
+ARCHITECTURE B
+max |tau_surface| force = 0.000000000000e+00 N
+max |tau_q| force       = 0.000000000000e+00 N
+max |tau_k1| force      = 0.000000000000e+00 N
+max |tau_robust| force  = 6.270000000000e+00 N
+tau_cmd xyz = [ 5.919000000000e+00  6.270000000000e+00  6.270000000000e+00]
+max |tau_cmd| force     = 6.270000000000e+00 N
+max |tau_act| force     = 6.270000000000e+00 N
+r_cmd                   = 2.330113660361e+02
+||Phi||                 = 7.221971466627e-04
+||v_c raw||             = 5.048404310737e-02
+
+A/B RATIOS
+tau force ratio A/B = 7.024310725790e+05
+cost ratio A/B      = 1.180360737940e+07
+
+============================================================
+ EXACT-ZERO FOLLOWER SIGMA INVARIANCE
+============================================================
+Follower 1 mode 2 difference = 0.000000000000e+00
+Follower 1 mode 3 difference = 0.000000000000e+00
+Follower 2 mode 2 difference = 0.000000000000e+00
+Follower 2 mode 3 difference = 0.000000000000e+00
+
+Expected exact leader-relative follower costs:
+AUV1 r_cmd = 161.011366036100
+AUV2 r_cmd = 233.011366036100
+
+============================================================
+ STEP L.3c COMPLETE
+============================================================

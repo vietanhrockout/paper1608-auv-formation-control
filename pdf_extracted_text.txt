@@ -1,0 +1,2338 @@
+=== PAGE 1 ===
+ 
+Contents lists available at ScienceDirect
+Neurocomputing
+journal homepage: www.elsevier.com/locate/neucom 
+Reinforcement learning predefined-time formation control for uncertain 
+autonomous underwater vehicles with disturbance and input saturation
+Guangxin Guo a, b iD, Shaoqiu Xiao a,∗ iD, Tongsheng Shen a, b, c, Fuchang Chen a iD, Shaojun Guo b, 
+Zailei Luo b,∗
+a School of Systems Science and Engineering, Sun Yat-sen University, Guangzhou, China
+b National Innovation Institute of Defense Technology, Advanced Interdisciplinary Technology Research Center, Beijing, China
+c College of Oceanography, Zhejiang University, Hangzhou, China
+H I G H L I G H T S
+• To solve an uncertain model and to minimize the future execution cost, an actor-critic neural network reinforcement learning algorithm is developed.
+• To ensure the convergence of formation errors and avoid singularity without the use of any switching functions, a novel predefined-time terminal sliding surface is 
+designed, thereby avoiding the overestimation issue in fixed-time stability.
+• To address the issue of actuator saturation, an adaptive anti-windup compensator is designed to provide real-time compensation for the saturation effects.
+A R T I C L E  I N F O
+Communicated by J. Na
+2010 MSC:
+00–01
+99-00
+Keywords:
+Sliding mode control
+Reinforcement learning
+Predefined-time stability
+Neural networks
+Input saturation
+Autonomous underwater vehicles
+A B S T R A C T
+In this paper, the cooperative formation problem of multiple autonomous underwater vehicles (AUVs) is investi­
+gated, taking into account disturbances, unknown system models, and input saturation. Based on predefined-time 
+stability, reinforcement learning (RL) neural network (NN), and an adaptive method, a novel model-free control 
+protocol is designed to ensure that the semi-global formation errors converge to a bounded region of origin. 
+This settling time is independent of control parameters, thereby avoiding the overestimation issue. To solve un­
+certain model and to minimize the future execution cost, an actor-critic NN RL algorithm is proposed, where 
+the actor network is responsible for generating the control law, and the critic network is employed to evaluate 
+the execution cost. Moreover, a novel terminal sliding surface is designed to ensure the convergence of forma­
+tion errors and avoid singularity without any switching functions. To address the issue of actuator constraints, 
+an adaptive anti-windup compensator is designed to provide real-time compensation for the saturation effects. 
+The semi-global predefined-time stability of the closed-loop system is rigorously proven using Lyapunov theory, 
+demonstrating that all AUVs reach their desired positions. Finally, simulation results validate the effectiveness 
+and practical engineering value of the proposed method.
+1 . Introduction
+With the depletion of terrestrial resources, marine resources have 
+become a crucial asset for the sustainable development of human soci­
+ety. The exploitation of marine resources and the associated competition 
+have become strategic priorities. Due to the unique challenges of the 
+underwater environment [ 1], humans cannot directly and efficiently 
+perform tasks, necessitating the use of underwater vehicles to assist in 
+ocean exploration. Despite their high costs and limited battery life, au­
+tonomous underwater vehicle (AUV) [2] offer significant advantages in 
+terms of payload capacity, maneuverability, and operational depth, gar­
+nering increasing attention from scientists and engineers. However, as 
+the complexity of tasks increases, a single AUV system can no longer 
+∗ Corresponding authors.
+ Email addresses: xiaoshq8@mail.sysu.edu.cn (S. Xiao), zaileiluo@163.com (Z. Luo).
+ URL: xinpx1457@163.com; guogx5@mail2.sysu.edu.cn (G. Guo).
+https://doi.org/10.1016/j.neucom.2026.133031
+Received 14 July 2025; Received in revised form 9 December 2025; Accepted 10 February 2026
+Neurocomputing 677 (2026) 133031 
+Available online 12 February 2026 
+0925-2312/© 2026 Elsevier B.V. All rights are reserved, including those for text and data mining, AI training, and similar technologies. 
+
+=== PAGE 2 ===
+G. Guo, S. Xiao, T. Shen et al.
+meet mission requirements, making it nearly impossible to achieve sat­
+isfactory results. Therefore, the development of multi-AUV systems [ 3] 
+has garnered significant attention over the past few decades. Recently, 
+multi-AUV systems have gradually gained the capability to operate con­
+tinuously in complex environments, becoming efficient and reliable 
+underwater exploration systems. Thus, individual units can exchange 
+sensor data, carry sonar arrays, and coordinate with each other to form 
+an integrated system, thereby creating a reconfigurable sensor array 
+capable of efficient terrain exploration and data collection.
+In fact, developing high-performance formation controllers for a 
+group of AUVs is challenging due to the complex dynamics, which 
+include strong coupling, high nonlinearity, and system constraints. 
+Additionally, AUVs operating are subject to ocean current disturbances 
+and hydrodynamic effects, leading to model uncertainties. Sliding mode 
+control (SMC) [4,5] is a nonlinear strategy known for its fast response 
+and strong robustness. It is insensitive to disturbances and particularly 
+well-suited for handling the dynamic of robots, having already achieved 
+many notable results [6–8]. Moreover, achieving rapid convergence of 
+multi-AUV formations is a critical performance indicator for control 
+systems. Most previous AUVs formation control strategies are asymp­
+totically stable, meaning the convergence speed follows an exponential 
+form. To address this limitation, researchers proposed finite-time con­
+trol [9], which ensures that the system states converge to the equilibrium 
+point within a finite time. However, the convergence time of finite-time 
+stability grows unboundedly with increasing initial values, significantly 
+reducing the system’s performance. In practical engineering applica­
+tions, the initial information is often difficult to obtain, further limiting 
+the applicability of these algorithms. To solve this issue, fixed-time the­
+ory [4,10] was introduced. It enhances the convergence speed of the 
+system and eliminates the dependency on initial states. Its the critical 
+drawback is that the convergence time depends on the controller pa­
+rameters. In most cases, the settling time is overestimated, leading to 
+an imprecise stabilization time. For systems that require strict conver­
+gence time guarantees, such as AUVs, further improvements in controller 
+design based on fixed-time theory are necessary.
+To address the aforementioned issues, the predefined-time stability 
+theory [11,12] has been proposed. Its settling time is predetermined 
+by the designer and thus independent of the initial values and con­
+troller parameters. Predefined-time stability has attracted widespread 
+research attention [
+13]. To stabilize a nonlinear system with actuator 
+failure and disturbance, a predefined-time strategy is developed in [14] 
+by using an event-triggered rule and NN. An adaptive predefined-time 
+protocol is investigated in [15] based on fuzzy logic and adaptive back­
+stepping methods for synchronous motor systems with unpredictable 
+states. To achieve trajectory tracking of AUVs, a predefined-time proto­
+col with prescribed performance is studied in [16] to ensure the desired 
+steady-state performance. Conventional terminal SMC for achieving 
+predefined-time convergence often introduces singularity problems [13,
+17], which pose significant challenges to practical algorithm implemen­
+tation. Therefore, singularity avoidance becomes imperative. Feng et al. 
+[18] proposed a nonsingular surface, laying the foundation for nonsin­
+gular SMC. Building upon this work, reference [19] introduced a novel 
+nonsingular terminal sliding surface incorporating an 𝑎𝑟𝑐𝑡𝑎𝑛 function to 
+achieve trajectory tracking for uncertain robotic systems. Study [20] de­
+veloped a NN-based nonsingular terminal SMC scheme for robots, with 
+its key innovation being the design of a segmented sliding surface that 
+effectively circumvents the singularity issues.
+The aforementioned algorithms rely heavily or partially on the robot 
+model [13–16,19]. Formation control [21,22] algorithms can meet the 
+allowable error requirements of formation control under certain con­
+ditions, but they struggle to accurately estimate system models in 
+real-world environments, especially in rapidly changing underwater 
+conditions. As the number of AUVs increases [ 23,24], the parameters 
+of the formation system become more coupled, and the complexity of 
+the control algorithm increases accordingly [25]. In unknown environ­
+ments, model parameters are influenced by external conditions, and 
+the uncertainty of these parameters further increases the difficulty of 
+control. This research struggles to meet the real-time requirements of 
+formation control. To overcome the dependence on model parameters, 
+therefore, researchers have proposed RL algorithm [ 26–29]. It is well 
+known that value-based methods predict the value of actions through 
+NNs, with their objective function being the TD error; policy-based 
+methods directly predict the probability distribution of actions via NNs 
+based on the input state, i.e., they optimize the policy directly, with their 
+objective function being the cross-entropy weighted by cumulative re­
+wards. Actor-Critic combines the two approaches, meaning that it is a 
+method that is both value-based and policy-based, and it has achieved 
+remarkable results in robot control. To control a flexible manipulator 
+and suppress the vibration, two RBF NNs in [ 30] including the actor 
+network and critic network are employed to develop a control algo­
+rithm. Reference [31] integrated SMC with actor-critic NNs to develop 
+a model-free control law for robotic manipulator trajectory tracking, 
+while simultaneously minimizing the execution cost. In [ 32] a novel 
+online decision-making method adopting the soft actor-critic technique 
+to achieve underwater cooperative pursuit of multi-AUVs is proposed.
+In practical engineering applications, the thrust output of an AUV’s 
+propulsion system is subject to distinct physical limits, making input 
+saturation an inevitable phenomenon [ 24]. When the force required 
+for a formation task exceeds these limits, the actual input of the AUV 
+will be constrained at the saturation boundary. This effect can severely 
+disrupt the intended structure of the control law, potentially leading 
+to issues such as stability degradation, performance deterioration, and 
+intensified chattering. Therefore, in AUV formation control, input satu­
+ration is no longer a negligible secondary factor but a core constraint 
+that must be addressed directly. Current mature approaches include 
+designing adaptive compensators [33] to handle this constraint or em­
+ploying NNs [34], while more advanced methods leverage RL to derive 
+optimal input forces. Precisely because it achieves optimal input and 
+avoids the overestimation typical of traditional methods, RL can effec­
+tively balance the required convergence characteristics with saturation 
+constraints. Among these, critic-actor networks [ 31] and approximate 
+dynamic programming [35–37] are widely applied, as they enable the 
+design of cost functions to achieve optimal switching control.
+Inspired by the above analysis, addressing the issue of predefined-
+time formation tracking for AUVs with disturbances, uncertainties, 
+actuator saturation, and unknown models remains a challenge. To elim­
+inate the dependence of the formation controller on the AUV model 
+while achieving the minimum cost-to-go, two actor-critic RL NNs are 
+proposed. To address actuator saturation, an adaptive compensator 
+is implemented to dynamically mitigate saturation effects and ensure 
+stable performance. The specific contributions of this paper are as 
+follows:
+1. Unlike constrained methods [ 4,38,39], our approach allows the 
+settling time of closed-loop systems to be predefined to meet 
+specific convergence requirements. This paper designs a termi­
+nal sliding surface and controller without relying on switching 
+or auxiliary functions, which achieve predefined-time stability 
+and reduce computational complexity. Compared to previous re­
+search [13,17], the proposed predefined-time sliding avoids both 
+singularity and discontinuity problems.
+2. Different from works that require the system model as a prior 
+knowledge [ 4,33,35,40,41], the RL framework is employed, 
+where the actor network generates optimal control inputs and 
+the critic network evaluates the execution cost, minimizing fu­
+ture control effort without relying on system information, which 
+provides strong robustness for the cooperative formation of AUVs 
+in complex and uncertain underwater environments.
+3. While NN controllers have achieved numerous results [ 34,42], 
+they generally neglect cost functions and thus fail to achieve 
+optimal control. The proposed method employs an actor-critic 
+Neurocomputing 677 (2026) 133031 
+2 
+
+=== PAGE 3 ===
+G. Guo, S. Xiao, T. Shen et al.
+network framework to design a long-term cost function for 
+optimal control, significantly reducing execution costs.
+The structures of this paper are given as: Section 2 presents the dynamic 
+model of AUVs formation. The preliminary is proposed in Section 3. The 
+control strategy and actor NN are constructed in Section 4. The stability 
+analysis is shown in Section 5. Simulation examples and conclusion are 
+respectively presented in Sections 6 and 7.
+Notation: 
+⌢
+𝜆(∗) represents the largest eigenvalue of the matrix, while 
+⌣
+𝜆(∗) represents the smallest eigenvalue of the matrix, and [∗]𝑖 represents 
+the 𝑖𝑡ℎ element of vector ∗. Also, sig𝛼 (∗) = |∗|𝛼sgn (∗).
+2 . Dynamic model of AUVs formation
+The spatial motion model of AUVs is divided into two parts: the kine­
+matic and the dynamic. The kinematic describes the state changes of 
+the position and velocity vector of the AUVs during motion, while the 
+dynamic describes the external forces acting on the AUVs and their accel­
+eration under a specific motion state. The model dynamics of the AUVs 
+in [
+43] are given as
+̇ 𝜂=𝐽(𝜂)𝑣 (1)
+𝑀 ̇ 𝑣+𝐶(𝑣)𝑣+𝐷(𝑣)𝑣+𝑔(𝜂) = sat(𝜏 𝑢) +𝜏𝑒
+Here, 𝜂= [
+𝑥 𝑦 𝑧 𝜙 𝜃 𝜓
+]𝑇
+ represents the posi­
+tion and attitude vector in the fixed coordinate system; 𝑣=[
+𝑢 𝑣 𝑤 𝑝 𝑞 𝑟
+]𝑇
+ represents the velocity and angular ve­
+locity vector in the body-fixed coordinate system; 𝐽(𝜂)  is the Jacobian 
+transformation matrix from the body-fixed coordinate system to the 
+Earth-fixed coordinate system; 𝑀 is the inertia coefficient matrix; 𝐶
+is the Coriolis-centripetal coefficient matrix; 𝐷 is the damping force 
+matrix; 𝑔 is the restoring force vector; sat(𝜏𝑢) is the control force; and 𝜏𝑒
+represents ocean disturbances. Assuming that 𝐽(𝜂)  is non-singular, the 
+dynamic model (1) can be transformed into
+𝑀𝜂(𝜂)̈ 𝜂+𝐶𝜂(𝜂, ̇ 𝜂)̇ 𝜂+𝐷𝜂(𝜂, ̇ 𝜂)̇ 𝜂+𝑔𝜂(𝜂) =𝜏 𝑑 +𝐽 −𝑇 sat(𝜏𝑢)
+where 𝑀𝜂(𝜂) =𝐽 −𝑇 (𝜂)𝑀𝐽 −1(𝜂), 𝐶𝜂(𝜂, ̇ 𝜂) =𝐽 −𝑇 (𝜂) [𝐶(𝜈)−
+𝑀 −1(𝜂)𝐽 −1(𝜂) ̇𝐽(𝜂) ]𝐽 −1(𝜂),𝐷𝜂 (𝜂, ̇ 𝜂) =𝐽 −𝑇 (𝜂)𝐷(𝜈)𝐽 −1 (𝜂), 𝑔𝜂 (𝜂) =
+𝐽 −𝑇 (𝜂)𝑔 (𝜂), and 𝜏𝑑 =𝐽 −𝑇 (𝜂)𝜏𝑒. Due to the continuously changing 
+operating conditions and complex operational environment of the 
+AUVs, its model parameters exhibit uncertainties. Taking into account 
+the uncertainties in the AUVs system, i.e., 𝑀𝜂(𝜂) =𝑀 0(𝜂) + Δ𝑀(𝜂) , 
+𝐶𝜂(𝜂, ̇ 𝜂) =𝐶 0(𝜂, ̇ 𝜂) + Δ𝐶(𝜂, ̇ 𝜂), 𝐷𝜂 (𝜂, ̇ 𝜂) =𝐷 0 (𝜂, ̇ 𝜂) + Δ𝐷 (𝜂, ̇ 𝜂), and 
+𝑔𝜂 (𝜂) =𝑔 0 (𝜂) + Δ𝑔 (𝜂). The 𝑀0(𝜂), 𝐶0(𝜂, ̇ 𝜂), 𝐷0(𝜂, ̇ 𝜂) and 𝑔0 (𝜂) are the 
+nominal terms, and Δ𝑀(𝜂), Δ𝐶(𝜂, ̇ 𝜂), Δ𝑔 (𝜂), and Δ𝐷 (𝜂, ̇ 𝜂) are the 
+uncertain terms. However, these modeling uncertainties are difficult to 
+obtain, and thus the precise values of the system’s model are unknown. 
+This paper assumes that only inertia model 𝑀0 is known, therefore, the 
+dynamic model can be described as:
+𝑀0(𝜂)̈ 𝜂+𝐶(𝜂, ̇ 𝜂)̇ 𝜂+𝐷(𝜂, ̇ 𝜂)̇ 𝜂+𝑔(𝜂) =𝐽−𝑇
+𝑖 (𝜏+ Δ𝜏) +𝜏 𝑙 (2)
+where 𝜏𝑙 =𝜏 𝑑 − Δ𝑀𝜂̈ 𝜂. Considering that the control inputs are subject 
+to saturation, which means sat(𝜏𝑢) =𝜏+ Δ𝜏  and 𝜏𝑖𝑚𝑖𝑛 ≤𝜏 𝑖 ≤𝜏 𝑖𝑚𝑎𝑥. The 
+practical input is designed as
+sat(𝜏𝑢𝑖) =
+⎧
+⎪
+⎨
+⎪⎩
+𝜏𝑖𝑚𝑎𝑥,if sat(𝜏 𝑢𝑖)≥𝜏 𝑖𝑚𝑎𝑥
+𝜏𝑖,if 𝜏 𝑖𝑚𝑖𝑛 ≤sat(𝜏 𝑢𝑖)<𝜏 𝑖𝑚𝑎𝑥
+𝜏𝑖𝑚𝑖𝑛,if sat(𝜏 𝑢𝑖)<𝜏 𝑖𝑚𝑖𝑛.
+(3)
+The AUVs’ formation is a complex system composed of multiple individ­
+ual agents, extended by adding a leader to achieve unified scheduling 
+and motion. Each member is a completely autonomous system, and the 
+formation control objective is accomplished by coordinating the motion 
+states of other members within the group. Assume that an agent repre­
+sents the leader, while the remaining 𝑁 AUVs are denoted as 𝑀𝑖. Below 
+is a brief introduction to the structure of the formation system.
+𝑀𝑖(𝜂)̈ 𝜂𝑖 +𝐶𝑖(𝜂, ̇ 𝜂)̇ 𝜂𝑖 +𝐷𝑖(𝜂, ̇ 𝜂)̇ 𝜂𝑖 +𝑔𝑖(𝜂) =𝐽 −𝑇
+𝑖 (𝜏𝑖 + Δ𝜏𝑖) +𝜏𝑙𝑖 (4)
+For convenience, 𝑀𝑖 is used to represent 𝑀0𝑖. To achieve formation con­
+trol, first, the formation position tracking error and velocity tracking 
+error for each AUVs are defined as follows
+𝜒𝑖 =𝜂 𝑖 −𝜂 𝑑
+0 −𝜂 𝑙
+0𝑖 (5)
+𝜐𝑖 =̇ 𝜂𝑖 −̇ 𝜂𝑑
+0 −̇ 𝜂𝑙
+0𝑖 (6)
+where 𝜂𝑑
+0  represents the leader’s trajectory, 𝜂𝑙
+0𝑖 represents the relative 
+distance between 𝑖𝑡ℎ AUVs and leader. Thus, the formation errors are 
+constructed as
+̇ 𝜒𝑖 =𝜐 𝑖 (7)
+̇𝜐𝑖 =𝑓 𝑖(𝜂, ̇ 𝜂) +𝑀−1
+𝑖 𝐽 −𝑇
+𝑖 (𝜏𝑖 + Δ𝜏𝑖) +𝑑𝑖 − ̈̄ 𝜂𝑑
+0
+where 𝑓𝑖(𝜂, ̇ 𝜂) = −𝑀−1
+𝑖 (𝐶𝑖(𝜂, ̇ 𝜂)̇ 𝜂𝑖 +𝐷𝑖(𝜂, ̇ 𝜂)̇ 𝜂𝑖 +𝑔𝑖(𝜂)) represents a unknown 
+system model, ̈̄ 𝜂𝑑
+0 =̈ 𝜂𝑑
+0 +̈ 𝜂𝑙
+0𝑖 denotes the desired information, and 𝑑=
+𝑀 −1
+𝑖 𝜏𝑙𝑖 represents a lumped disturbance. Due to the limitations of actual 
+equipment, all unknown parts constituted by model uncertainties are 
+bounded. Given the vast coverage of underwater acoustic communica­
+tion and the deep-sea operational context, inter-AUV collision avoidance 
+is excluded from this study.
+Assumption 1.All attitude 𝜂 and velocity ̇ 𝜂 information of the 
+𝑖𝑡ℎ−AUVs can be obtained through high-precision sensors. The 𝜂𝑑
+0  and 
+𝜂𝑙
+0𝑖 are known to all follower AUVs in the formation.
+Assumption 2.The input of the saturation part Δ𝜏𝑖 of the system is 
+bounded, and its upper bound is a known constant, i.e., ||Δ𝜏𝑖||≤Δ̄ 𝜏𝑖. 
+The lumped disturbance 𝑑𝑖 of AUVs is bounded, and ||𝑑𝑖||< ̄𝑑𝑖.
+Assumption 3.The pitch angle 𝜃 of the AUVs is bounded and |𝜃| <
+±𝜋
+2 . Also, 𝐽(𝜃),𝐽 𝑇 (𝜃),𝐽 −1(𝜃) and the derivative of them all exist and 
+bounded. The model matrices 𝐶(𝑣),𝐷(𝑣),𝑔(𝜂)  are unknown.
+Lemma 1  ([31]).Considering the dynamics ( 7) of the AUVs, if a contin­
+uous, positive definite and differentiable Lyapunov function 𝑉(𝜂)  satisfies
+̇𝑉(𝜂)≤− (𝜎1𝑉𝜌1 (𝜂) +𝜎 2𝑉𝜌1 (𝜂))𝑐 +𝜁 (8)
+where 𝜎1,𝜎 2, 𝜌1, 𝜌2, 𝜁, and 𝑐 >0 , 𝜌1𝑐 <1 , 𝜌2𝑐 >1 . Then, the formation 
+trajectories of the AUVs are practically fixed-time stable, and the setting time 
+is given
+𝑇≤ 1
+𝜎𝑐
+1𝜀𝑐 (1 −𝑐𝜌 1
+) + 1
+𝜎𝑐
+2𝜀𝑐 (1 −𝑐𝜌 2
+)
+(9)
+where 0<𝜀<1 .
+Lemma 2  ([44]).From Lemma 1, the settling time can be predefined as 
+𝑇 ∗ if the parameters 𝜎1 and 𝜎2 are designed as
+𝜎1 = 1(1 −𝜌 1
+)𝜀0𝑇 ∗, 𝜎 2 = 1
+(𝜌2 − 1) (1 −𝜀 0
+)𝑇 ∗
+(10)
+where 0<𝜀 0 <1  is a constant. The 𝑇 ∗ is designed in advance by user, thus 
+being independent of the system’s initial conditions and control parameters.
+Lemma 3  ([4,44]).For ∀𝜄∈𝑅 , will yields
+( 𝑛∑
+𝑖=1
+|𝜄|
+)𝜍
+≤
+𝑛∑
+𝑖=1
+|𝜄|𝜍 ≤𝑛 1−𝜍
+( 𝑛∑
+𝑖=1
+|𝜄|
+)𝜍
+,0<𝜍≤1 (11)
+𝑛1−𝜍
+( 𝑛∑
+𝑖=1
+|𝜄|
+)𝜍
+≤
+𝑛∑
+𝑖=1
+|𝜄|𝜍,1<𝜍 <∞ (12)
+Neurocomputing 677 (2026) 133031 
+3 
+
+=== PAGE 4 ===
+G. Guo, S. Xiao, T. Shen et al.
+3 . Preliminary
+3.1 . RBF NN
+According to the structure of the RBFNN, a continuous-time function 
+is given as follows
+𝑓𝑐 (𝐼) =𝑤 ∗𝜃(𝐼) +𝑤 0 (13)
+where 𝑤∗ = [ 𝑤∗
+1 𝑤∗
+2 …𝑤 ∗
+𝑟
+]𝑇
+∈ℜ 𝑟
+ is a optimal weight vec­
+tor, 𝑟 >1 is a the number of nodes in the hidden layer of RBFNN, and 
+𝐼 ∗ = [
+𝐼1 𝐼2 …𝐼 𝑛
+]𝑇
+∈ℜ 𝑟 is a input vector. Alao, 𝑤0 denotes 
+the minimal approximation error, 𝜃(𝐼) by using the Gaussian function is 
+described as
+𝜃(𝐼) = exp
+(
+−(𝐼−𝑜 𝑖)𝑇 (𝐼−𝑜 𝑖)
+𝑙2
+𝑘
+)
+,𝑖= 1,2,…,𝑟 (14)
+𝑜𝑖 = [
+𝑜𝑖1 𝑜𝑖2 …𝑜 𝑖𝑛
+] represents the center of receptive field and 
+𝑙𝑘 is the width of the Gaussian function.
+3.2 . Critic NN
+According to [30], a long-term cost function is constructed as
+𝐶(𝑡) = ∫
+∞
+𝑡
+exp
+(𝑡−𝑟 0
+𝜆
+)
+𝑟(𝑟0)𝑑𝑟0 (15)
+where 𝜆>0  denotes a discount value of the future cost. The immediate 
+cost function is given as
+𝑟(𝑡) = (𝜂−̄ 𝜂𝑑
+0
+)𝑇
+𝐵 (𝜂−̄ 𝜂𝑑
+0
+) +𝜏 𝑇𝑅𝜏 (16)
+where 𝐵 and 𝑅 represent positive definite matrices. It should be noted 
+that the AUVs formation achieves optimal control when the minimum 
+cost-to-go is obtained.
+Design the ideal cost function 𝐶 as 𝐶=𝑤 ∗𝑇
+𝑐 𝜃𝑐(𝜂) +𝑤 0𝑐, and estmi­
+nated ̂𝐶 as ̂𝐶= ̂𝑤𝑇
+𝑐𝜃𝑐 (𝜂). Then, the approximation error of the cost-to-go 
+function is expressed based on the Eqs. (15) and (16), as
+𝑐𝑒(𝑡) =𝑟(𝑡) − 1
+𝜆
+̂𝐶(𝑡) + ̇̂𝐶(𝑡) (17)
+Then, according to the gradient descent algorithm, the adaptive update 
+law for the critic NN is designed in the following form,
+̇̂𝑤𝑐 = −𝜆𝑐
+𝜕 (𝑐2
+𝑒
+)
+2𝜕𝑤𝑐
+(18)
+Here, define ̃ 𝑒𝑇
+𝑐 =𝑤 ∗
+𝑐 − ̂𝑤𝑇
+𝑐
+ as weight errors. Through calculation, will 
+obtain,
+̇̂𝑤𝑐 = −𝜆𝑐𝑐𝑒
+𝜕
+(
+𝑟(𝑡) − (1∕𝜆) ̂𝐶(𝑡) + ̇̂𝐶(𝑡)
+)
+𝜕 ̂𝑤𝑐
+(19)
+= −𝜆𝑐𝑐𝑒
+(
+− 1
+𝜆
+𝜕 ̂𝐶
+𝜕 ̂𝑤𝑐
++ 𝜕
+𝜕 ̂𝑤𝑐
+(
+𝜕 ̂𝐶
+𝜕𝜒𝑖
+)
+𝜐𝑖
+)
+= −𝜆𝑐
+(𝑟(𝑡) + ̂𝑤𝑇
+𝑐 Φ) Φ
+= −𝜆𝑐Φ𝑐
+(𝑤𝑐,𝜒𝑖,𝜐𝑖
+)
+The parameter 𝜆𝑐 represents the learning law of the critic NN, and Φ =
+−
+(𝜃𝑐
+𝜆
+)
++ ∇𝜃𝑐𝜐𝑖. Designing a 𝛿𝑐 = [
+𝛿𝑐1 𝛿𝑐2 …𝛿 𝑐𝑟
+]𝑇
+ as a constant 
+vector, and it satisfied ||̂𝑤𝑐𝑖|
+|<𝛿 𝑐𝑖
+. Then, a adaptive updating law of critic 
+NN is proposed as
+̇̂𝑤𝑐 =
+{
+−𝜆𝑐Φ𝑐, ‖‖̂𝑤𝑐 ‖
+‖ ≤ ‖
+‖𝛿𝑐 ‖
+‖ or ‖
+‖̂𝑤𝑐‖
+‖ = ‖
+‖𝛿𝑐 ‖
+‖,𝑤𝑇
+𝑐 Φ𝑐 >0
+𝜆𝑐̄Φ𝑐 −𝜆𝑐 Φ𝑐, ‖‖̂𝑤𝑐 ‖
+‖ = ‖
+‖𝛿𝑐 ‖
+‖,𝑤𝑇
+𝑐 Φ𝑐 ≤0
+(20)
+where ̄Φ𝑐 =
+̂𝑤𝑇
+𝑐 Φ𝑐 ̂𝑤𝑐
+‖‖̂𝑤𝑐 ‖
+‖
+2
+, ̄Φ𝑐 and Φ𝑐 are bounded. As demonstrated by Eqs. 
+(16)–(18) the designed critic network incorporates control inputs 𝜏 as 
+execution costs, thereby deriving the minimum-cost torque inputs and 
+achieving optimal performance.
+3.3 . Design of sliding manifold
+In this section, a nonsingular terminal sliding surface and formation 
+protocol are designed to ensure that the local formation errors (𝜒𝑖, 𝜐𝑖) of 
+all AUVs converge to a neighborhood of the origin, where the settling 
+time 𝑇 ∗
+1  is predetermined and is independent of the initial states and 
+controller parameters. Here, a nonsingular terminal sliding manifold is 
+given as,
+𝑠𝑖 =𝐿 (𝜒𝑖
+)𝜒𝑖 + sig𝛼1 (𝜐𝑖) (21)
+where 𝐿 (𝜒𝑖
+) = diag { 𝑙𝜒𝑖1 𝑙𝜒𝑖2 …𝑙 𝜒𝑖6
+}, and the element 𝑙𝜒𝑖𝑗  is 
+designed as
+𝑙𝜒𝑖𝑗 =
+(
+𝑎1
+|||𝜒𝑖𝑗
+|||
+𝛼2
++𝑎 2
+|||𝜒𝑖𝑗
+|||
+𝛼3
+)𝑐𝛼1
+Two important parameters are designed as 𝛼2 =𝑏 1− 1
+𝑐𝛼1
+ and 𝛼3 =𝑏 2− 1
+𝑐𝛼1
+. 
+The constraints for the parameters are as 𝑐 >1,1<𝛼 1 <1.5 , 𝑏2𝑐 >1, 1
+𝛼1
+<
+𝑏1𝑐 <1. To ensure that the convergence time of the closed-loop system 
+breaks the limitation of fixed-time stability, the two control parameters 
+must be designed in the following form,
+𝑎1 = 6𝑐−1
+(1 −𝑏 1
+)𝜀0𝑇 ∗
+2
+, 𝑎 2 = 6𝑐−1
+(𝑏2 − 1) (1 −𝜀 0
+)𝑇 ∗
+2
+(22)
+The time derivative of 𝑠𝑖 is
+̇ 𝑠𝑖 =𝐿 (𝜒𝑖
+)𝜐𝑖 + ̃𝐿 (𝜒𝑖
+)𝜐𝑖 +𝛼 1Λ1̇𝜐𝑖 (23)
+where two important diagonal matrices are designed
+̃𝐿 (𝜒𝑖
+) = diag
+{ |||̃𝑙𝜒𝑖1
+|||
+|||̃𝑙𝜒𝑖2
+||| … |||̃𝑙𝜒𝑖6
+|||
+}
+(24)
+Λ1 = diag
+{
+|
+|𝜐𝑖1|
+|
+𝛼1−1 |
+|𝜐𝑖2|
+|
+𝛼1−1 … |
+|𝜐𝑖6|
+|
+𝛼1−1
+}
+where |
+||̃𝑙𝜒𝑖𝑗
+|
+||
+ (𝑗= 1,2,…,6 ) is described as
+̃𝑙𝜒𝑖𝑗 =𝑐𝛼 1
+(
+𝑎1
+|
+||𝜒𝑖𝑗
+|
+||
+𝛼2
++𝑎 2
+|
+||𝜒𝑖𝑗
+|
+||
+𝛼3
+)𝑐𝛼1−1 (
+𝑎1𝛼2
+|
+||𝜒𝑖𝑗
+|
+||
+𝛼2
++𝑎 2𝛼3
+|
+||𝜒𝑖𝑗
+|
+||
+𝛼3
+)
+Based on the designed terminal surface Eq. (21) and its derivative Eq. 
+(23), the nonsingular terminal SMC protocol can be naturally derived as
+𝜏𝑖 =𝐽 𝑇
+𝑖 𝑀𝑖
+⎛
+⎜
+⎜
+⎜
+⎜⎝
+− 1
+𝛼1
+(̃𝐿 (𝜒𝑖
+) +𝐿 (𝜒𝑖
+)) sig2−𝛼1 (𝜐𝑖) −𝑘 0sgn(𝑠)
+− sig1−𝛼1 (𝑣𝑖)
+𝛼1
+(sig𝜍1 (𝜎1sig𝜍2 (𝑠𝑖) +𝜎 2sig𝜍3 (𝑠𝑖)))
++ ̈̄ 𝜂𝑑
+0 −𝑓𝑖(𝜂, ̇ 𝜂)
+⎞
+⎟
+⎟
+⎟
+⎟⎠
+(25)
+where 𝜍1 >1,𝜍 1𝜍2 <1,1<𝜍 1𝜍3 <𝜍 1 represent the important parameters, 
+𝑘0 = diag{𝑘0𝑗 } as gain matrix. Also, 𝜎1 and 𝜎2 are constructed as
+𝜎1 = 2𝜍1(2𝜍1 − 1 −𝜍 1𝜍2
+)𝜀0𝑇 ∗
+1
+, (26)
+𝜎2 = 2𝜍1(1 +𝜍 1𝜍3 − 2𝜍1
+) (1 −𝜀 0
+)𝑇 ∗
+1
+Remark 1.The given control protocol is nonsingular because: (1). The 
+parameter constraints ensure 𝜍1𝜍2 <1  and 𝜍1𝜍3 >1 , creating a spe­
+cific asymptotic structure. (2). The condition 𝛼1𝜍1𝜍2 ≥𝛼 1 − 1 guarantees 
+boundedness of the control law as 𝑣𝑖 →0 . Rearranging the above 
+inequality, will yield a singularity-free constraint as 𝛼1 ≤ 1
+1−𝜍1𝜍2
+.
+Theorem 1.The given control protocol Eq. (25) ensures that the sliding 
+manifold (21) converges to 0 within the predefined time 𝑇 ∗
+1 , which means 
+Neurocomputing 677 (2026) 133031 
+4 
+
+=== PAGE 5 ===
+G. Guo, S. Xiao, T. Shen et al.
+that the formation of the AUVs will reach the desired position within the 
+predefined time.
+Proof. Construct a Lyapunov candidate function 𝑉1 = 1
+2𝑠𝑇
+𝑖 𝑠𝑖, and then 
+take its time derivative to obtain
+̇𝑉1 =𝑠 𝑇
+𝑖
+(𝐿 (𝜒𝑖
+)𝜐𝑖 + ̃𝐿 (𝜒𝑖
+)𝜐𝑖 +𝛼 1Λ1̇𝜐𝑖
+) (27)
+=𝑠 𝑇
+𝑖
+( 𝐿 (𝜒𝑖
+)𝜐𝑖 + ̃𝐿 (𝜒𝑖
+)𝜐𝑖
++𝛼1Λ1
+(𝑓(𝜂, ̇ 𝜂) +𝑀−1
+0 𝐽 −𝑇
+𝑖 𝜏𝑖 +𝑑𝑖 −̈ 𝜂𝑑
+0
+)
+)
+Substituting protocol Eq. (25) into the above equation, we obtain
+̇𝑉1 = −𝑠𝑇
+𝑖
+(sig𝜍1 (𝜎1sig𝜍2 (𝑠𝑖) +𝜎 2sig𝜍3 (𝑠𝑖))) − ||
+|𝑠𝑇
+𝑖
+||
+|
+(𝑘0sgn(𝑠𝑖) − ̄𝑑𝑖
+)
+Since the elements 𝑘0𝑗 of the diagonal matrix 𝑘0 are always larger than 
+the upper bound of the disturbance 𝑑𝑖𝑗, i.e., 𝑘0𝑗 > ̄𝑑𝑖𝑗, it follows that
+̇𝑉1 = −
+6∑
+𝑗=1
+(
+𝜎1(|𝑠𝑖𝑗 |2)
+1+𝜍1𝜍2
+2𝜍1 +𝜎 2(|𝑠𝑖𝑗 |2)
+1+𝜍1𝜍3
+2𝜍1
+)𝜍1
+(28)
+Further scaling yields,
+̇𝑉1 ≤−6 1−𝜍1
+⎛
+⎜
+⎜
+⎜⎝
+𝜎1
+( 6∑
+𝑗=1
+|𝑠𝑖𝑗 |2
+) 1+𝜍1𝜍2
+2𝜍1
++𝜎 2
+( 6∑
+𝑗=1
+|𝑠𝑖𝑗 |2
+) 1+𝜍1𝜍3
+2𝜍1
+⎞
+⎟
+⎟
+⎟⎠
+𝜍1
+(29)
+≤−6 1−𝜍1
+⎛
+⎜
+⎜
+⎜⎝
+2
+1+𝜍1𝜍2
+2𝜍1 𝜎1
+( 6∑
+𝑗=1
+1
+2 |𝑠𝑖𝑗 |2
+) 1+𝜍1𝜍2
+2𝜍1
++ 2
+1+𝜍1𝜍3
+2𝜍1 𝜎2
+( 6∑
+𝑗=1
+1
+2 |𝑠𝑖𝑗 |2
+) 1+𝜍1𝜍3
+2𝜍1
+⎞
+⎟
+⎟
+⎟⎠
+𝜍1= −6 1−𝜍1
+(
+̄ 𝜎1𝑉
+1+𝜍1𝜍2
+2𝜍1
+1 +̄ 𝜎2𝑉
+1+𝜍1𝜍3
+2𝜍1
+1
+)𝜍1
+According to Lemma 1, it can be concluded that the fixed-time stability 
+of the sliding system is guaranteed. However, this settling time heav­
+ily depends on the controller parameters, leading to an overestimation 
+of the time. If the two important parameters 
+𝜎1 and 𝜎2 are designed 
+in Eq. (26), then according to Lemma 2, the predefined-time stability 
+of the sliding manifold will be achieved. All AUVs will reach the de­
+sired state within the predefined time, which is predetermined by the 
+designer, making the settling time independent of control parameters 
+and avoiding overestimation of the settling time. This completes the 
+proof.
+□
+It can be observed that the protocol ( 25) designed utilizes the system 
+model 𝑓𝑖(𝜂, ̇ 𝜂). However, the model information is unknown, render­
+ing the aforementioned control protocol unusable. To address this, this 
+paper designs an actor NN to estimate the system model.
+4 . Model-free control protocol
+The above protocol ( 25) does not account for actuator saturation. 
+To address the actuator saturation issue in AUVs, this paper designs 
+an adaptive law to compensate for saturation faults, ensuring that each 
+AUVs can achieve the desired motion state even in the event of thrust 
+saturation. The designed adaptive law is
+̇ 𝜛𝑖 = −𝑘 2𝜛𝑖 − sig𝜍1 (𝜎3sig𝜍2 (𝜛𝑖) +𝜎 4sig𝜍3 (𝜛𝑖)) +𝑠𝑖 + Δ𝜏𝑖 (30)
+where 𝑘2 denotes a positive definite matrices. Although large initial 
+errors would require excessively high control torques to stabilize the 
+AUVs, which contradicts their actual constraints and prevents global sta­
+bility. This study emphasizes that the RL NN generates control inputs by 
+minimizing a cost function. This ensures optimal torque when the cost 
+is minimized, effectively mitigating the high-frequency chattering inher­
+ent in traditional SMC while optimally reducing input force. Thus, our 
+strategy provides a theoretical foundation for studying multi-AUVs for­
+mation under input constraints, achieving semi-global predefined-time 
+stability of formation errors.
+4.1 . Actor NN design
+Unlike model-based control, which requires accurate system dy­
+namics, the proposed nonsingular predefined-time formation control 
+approach is entirely model-free. This is a critical advantage for AUVs, 
+whose hydrodynamic parameters are often difficult to obtain accurately 
+and are subject to change. The critic-actor network structure allows the 
+system to learn the optimal policy online through interaction with the 
+environment. This enables it to adapt to time-varying dynamics, mov­
+ing beyond the mere robustness of traditional controllers to achieve true, 
+online adaptation with performance optimization. Ultimately, it ensures 
+that the semi-global formation errors converge to a small neighborhood 
+of the origin within the predefined time. The protocol is designed as
+𝜏𝑖 =𝐽 𝑇
+𝑖 𝑀𝑖
+⎛
+⎜
+⎜
+⎜
+⎜
+⎜⎝
+− 1
+𝛼1
+(̃𝐿 (𝜒𝑖
+) +𝐿 (𝜒𝑖
+)) sig2−𝛼1 (𝜐𝑖)
+−𝑘0sgn(𝑠𝑖) −𝑓 𝑖
+𝑅𝐿 − ̈̄ 𝜂𝑑
+0
+− sig1−𝛼1 (𝑣𝑖)
+𝛼1
+(
+sig𝜍1 (𝜎1sig𝜍2 (𝑠𝑖) +𝜎 2sig𝜍3 (𝑠𝑖))
++𝑘1𝑠𝑖 +𝜛𝑖
+)
+⎞
+⎟
+⎟
+⎟
+⎟
+⎟⎠
+(31)
+Among them, 𝑓𝑖
+𝑅𝐿 is the output of a RL NN designed to compensate the 
+model information. Its structure is as follows,
+𝑓𝑖
+𝑅𝐿 =
+⎡
+⎢
+⎢
+⎢
+⎢
+⎢⎣
+̂𝑤𝑇
+𝑎1𝜃𝑎1
+(̄ 𝑥𝑎1
+)
+̂𝑤𝑇
+𝑎2𝜃𝑎2
+(̄ 𝑥𝑎2
+)
+…
+̂𝑤𝑇
+𝑎6𝜃𝑎6
+(̄ 𝑥𝑎6
+)
+⎤
+⎥
+⎥
+⎥
+⎥
+⎥⎦
+(32)
+where 𝑤𝑎𝑖 = [
+𝑤𝑎𝑖1 𝑤𝑎𝑖2 …𝑤 𝑎𝑖𝑚
+]𝑇
+ denotes a weight vector, and 
+̄ 𝑥𝑎𝑖 = [
+𝜒𝑖𝑗 𝜐𝑖𝑗
+]𝑇
+ represents the input vector of NN.
+̃𝑓𝑖
+𝑅𝐿 =
+⎡
+⎢
+⎢
+⎢
+⎢
+⎢⎣
+𝑤∗𝑇
+𝑎1𝐶𝑎1(̄ 𝑥𝑎1)
+𝑤∗𝑇
+𝑎2𝐶𝑎2(̄ 𝑥𝑎2)
+…
+𝑤∗𝑇
+𝑎6𝐶𝑎6(̄ 𝑥𝑎6)
+⎤
+⎥
+⎥
+⎥
+⎥
+⎥⎦
+−
+⎡
+⎢
+⎢
+⎢
+⎢
+⎢⎣
+̂𝑤𝑇
+𝑎1𝐶𝑎1(̄ 𝑥𝑎1)
+̂𝑤𝑇
+𝑎2𝐶𝑎2(̄ 𝑥𝑎2)
+…
+̂𝑤𝑇
+𝑎6𝐶𝑎6(̄ 𝑥𝑎6)
+⎤
+⎥
+⎥
+⎥
+⎥
+⎥⎦
++
+⎡
+⎢
+⎢
+⎢
+⎢⎣
+𝜋1
+𝜋2
+…
+𝜋6
+⎤
+⎥
+⎥
+⎥
+⎥⎦
+(33)
+where 𝜋𝑖 represents a approximation error, and 𝜋𝑖 < ̄ 𝜋𝑖. Here, the 
+definition of the estimation error is first provided, as it will be used 
+later in the stability proof phase. It is important to emphasize that after 
+incorporating velocity information 
+𝜐𝑖 into the input ̄ 𝑥𝑎𝑖, the cost function 
+𝐶(𝑡) can be estimated more accurately by the NN. Define ̃ 𝑒𝑇
+𝑎𝑖 =𝑤 ∗
+𝑎𝑖 − ̂𝑤𝑇
+𝑎𝑖
+as weight errors, then a learning errors are presented as
+𝑒𝑙 =
+∑𝑛
+𝑖=1 ̃𝑤𝑇
+𝑎1𝜃𝑎𝑖
+(̄ 𝑥𝑎𝑖
+) (34)
+Then,
+̃𝐸𝑎 = ln [cosh (𝑒𝑙 +𝑐 0
+𝑎
+( ̂𝐶−𝐶 𝑑 (𝑡)))] (35)
+where 𝐶𝑑 = 0  is a desired ideal cost-to-go in the future and 𝑐0
+𝑎 >0  is a 
+constant. Thus, the adaptive update rule of actor NN is constructed as
+̇̂𝑤𝑎𝑖 = −𝜆𝑎
+𝜕 ̃𝐸𝑎
+𝜕𝑤𝑎
+(36)
+= −𝜆𝑎
+𝑑 ̃𝐸𝑎
+𝑑ℎ𝑎
+𝜕ℎ𝑎
+𝜕𝑒𝑙
+𝜕𝑒𝑙
+𝜕 ̂𝑤𝑎𝑖
+= −𝜆𝑎 tanh (𝑒𝑙 +𝑐 0
+𝑎 ̂𝐶)𝜃𝑎𝑖
+Neurocomputing 677 (2026) 133031 
+5 
+
+=== PAGE 6 ===
+G. Guo, S. Xiao, T. Shen et al.
+where ℎ𝑎 =𝑒 𝑙 +𝑐 0
+𝑎
+( ̂𝐶−𝐶 𝑑 (𝑡)) represents a error with the actor NN. Since 
+the aforementioned learning errors Eq. (34) is unknown, a new adaptive 
+rule is redefined as follows
+̇̂𝑤𝑎𝑖 = −𝜆𝑎 tanh
+( 𝑛∑
+𝑖=1
+̂𝑤𝑎𝑖𝜃𝑎𝑖 +𝑐 0
+𝑎 ̂𝐶
+)
+𝜃𝑎𝑖 (37)
+= −𝜆𝑎Φ𝑎
+(̂𝑤𝑎𝑖, ̄ 𝑥𝑎𝑖
+)
+Designing a 𝛿𝑎 = [
+𝛿𝑎1 𝛿𝑎2 …𝛿 𝑎𝑟
+]𝑇
+ as a constant vector, and 
+it satisfied ||̂𝑤𝑎𝑖|
+| < |
+|𝛿𝑎𝑖|
+|
+. Then, a parameter projection-based adaptive 
+updating law of actor NN is proposed as
+̇̂𝑤𝑎𝑖 =
+{
+−𝜆𝑎Φ𝑎𝑖, ‖
+‖̂𝑤𝑎𝑖‖
+‖ ≤ ‖
+‖𝛿𝑎𝑖‖
+‖ or ‖
+‖̂𝑤𝑎𝑖‖
+‖ = ‖
+‖𝛿𝑎𝑖‖
+‖,𝑤𝑇
+𝑎𝑖Φ𝑎𝑖 >0
+𝜆𝑎̄Φ𝑎𝑖 −𝜆𝑎Φ𝑎𝑖, ‖‖̂𝑤𝑎𝑖‖
+‖ = ‖
+‖𝛿𝑎𝑖‖
+‖,𝑤𝑇
+𝑎𝑖Φ𝑎𝑖 ≤0
+(38)
+where ̄Φ𝑎𝑖 =
+̂𝑤𝑇
+𝑎𝑖Φ𝑎𝑖 ̂𝑤𝑎𝑖
+‖‖̂𝑤𝑎𝑖‖
+‖
+2
+, Φ𝑎𝑖 and ̄Φ𝑎𝑖 are bounded. The weight vectors of 
+the critic network Eq. (20) and the actor network Eq. (38) are guar­
+anteed to be bounded due to the application of parameter projection. 
+Considering the two NNs and their adaptive laws ̇̂𝑤𝑐 and ̇̂𝑤𝑎, if the ini­
+tial conditions of the AUVs’ states are bounded, then the response signals 
+̂𝑤𝑐 and ̂𝑤𝑎 remain bounded. Furthermore, since parameter projection is 
+applied as specified in Eqs. (20) and (38), the weights of both NNs are 
+also ensured to be bounded.
+Remark 2.While the proposed control scheme offers significant advan­
+tages, such as model-free design, predefined-time convergence indepen­
+dent of initial conditions, and effective handling of input saturation via 
+an online compensator, it is also important to acknowledge its limi­
+tations. The primary disadvantage lies in the increased computational 
+complexity associated with the online training of the actor-critic NNs, 
+which may pose a challenge for implementation on platforms with 
+limited computational resources. The performance of the RL compo­
+nent depends on the selection of appropriate learning rates and reward 
+functions, which often requires a certain level of empirical tuning.
+5 . Stability analysis
+In this section, the stability of the model-free formation control pro­
+tocol using RL NNs and the stability of the entire closed-loop system will 
+be analyzed.
+Theorem 2.For the multi-AUVs system Eqs. (4) and (7), by defining the 
+sliding surface Eq. (21), designing the control laws Eq. (31), the critic net­
+work Eq. (18), the actor NN Eq. (37), and the adaptive law Eq. (20), Eq. 
+(38) the position error 𝜒𝑖 and the velocity formation error 𝜐𝑖 will converge 
+to a neighborhood of zero within a predefined time 𝑇 ∗
+2 . The formation error 
+system and the entire closed-loop system are predefined-time stable.
+Proof. First, constructing a function 𝑉2 = 1
+2𝑠𝑇
+𝑖 𝑠𝑖 + 1
+2𝜛𝑇
+𝑖 𝜛𝑖 + 1
+2𝜆𝑐
+̃ 𝑒𝑇
+𝑐 ̃ 𝑒𝑐
++ 1
+2𝜆𝑎
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖̃ 𝑒𝑎𝑖, then
+̇𝑉2 =𝑠 𝑇
+𝑖 ̇ 𝑠𝑖 +𝜛 𝑇
+𝑖 ̇ 𝜛𝑖 − 1
+𝜆𝑐
+̃ 𝑒𝑇
+𝑐
+̇̂𝑤𝑐 − 1
+𝜆𝑎
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖
+̇̂𝑤𝑎𝑖
+(39)
+Taking the time derivative of the above Eq. (39) yields
+̇𝑉2 =𝑠 𝑇
+𝑖
+(𝐿 (𝜒𝑖
+)𝜐𝑖 + ̃𝐿 (𝜒𝑖
+)𝜐𝑖 +𝛼 1Λ1̇𝜐𝑖
+)
+(40)
++𝜛 𝑇
+𝑖
+(−𝑘2𝜛𝑖 − sig𝜍1 (𝜎3sig𝜍2 (𝜛𝑖) +𝜎 4sig𝜍3 (𝜛𝑖)) +𝑠𝑖 + Δ𝜏𝑖
+)
+− 1
+𝜆𝑐
+̃ 𝑒𝑇
+𝑐
+̇̂𝑤𝑐 − 1
+𝜆𝑎
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖
+̇̂𝑤𝑎𝑖
+Substituting the control protocol (31) into the above proof process, we 
+obtain
+̇𝑉2 =𝑠 𝑇
+𝑖
+(sig𝜍1 (𝜎1sig𝜍2 (𝑠𝑖) +𝜎 2sig𝜍3 (𝑠𝑖))) −𝑠𝑇
+𝑖 𝜛𝑖
+(41)
++𝑠𝑇
+𝑖 𝑘1𝑠𝑖 −𝛼 1𝑠𝑇
+𝑖 Λ1
+(𝑘0sgn(𝑠𝑖) − ̄𝑑𝑖
+) −𝜛 𝑇
+𝑖 𝑘2𝜛𝑖
+−𝜛 𝑇
+𝑖
+(sig𝜍1 (𝜎3sig𝜍2 (𝜛𝑖) +𝜎 4sig𝜍3 (𝜛𝑖))) +𝜛 𝑇
+𝑖 𝑠𝑖 +𝜛 𝑇
+𝑖 Δ𝜏𝑖
++𝛼 1𝑠𝑇
+𝑖 Λ1 ̃𝑓𝑖
+𝑅𝐿 +𝛼 1𝑠𝑇
+𝑖 Λ1𝑀 −1
+0 𝐽 −𝑇
+𝑖 Δ𝜏− 1
+𝜆𝑐
+̃ 𝑒𝑇
+𝑐
+̇̂𝑤𝑐 − 1
+𝜆𝑎
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖
+̇̂𝑤𝑎𝑖
+≤𝑠 𝑇
+𝑖
+(sig𝜍1 (𝜎1sig𝜍2 (𝑠𝑖) +𝜎 2sig𝜍3 (𝑠𝑖))) +𝑠𝑇
+𝑖 𝑘1𝑠𝑖
+−𝜛 𝑇
+𝑖 𝑘2𝜛𝑖 −𝜛 𝑇
+𝑖
+(sig𝜍1 (𝜎3sig𝜍2 (𝜛𝑖) +𝜎 4sig𝜍3 (𝜛𝑖))) +𝜛 𝑇
+𝑖 Δ𝜏
++𝛼 1𝑠𝑇
+𝑖 Λ1 ̃𝑓𝑖
+𝑅𝐿 +𝛼 1𝑠𝑇
+𝑖 Λ1𝑀 −1
+0 𝐽 −𝑇 Δ𝜏− 1
+𝜆𝑐
+̃ 𝑒𝑇
+𝑐
+̇̂𝑤𝑐 − 1
+𝜆𝑎
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖
+̇̂𝑤𝑎𝑖According to Young’s inequality and Λ1 =
+diag
+{
+||𝜐𝑖1|
+|
+𝛼1−1 |
+|𝜐𝑖2|
+|
+𝛼1−1 … |
+|𝜐𝑖6|
+|
+𝛼1−1
+}
+, one has
+𝛼1𝑠𝑇
+𝑖 Λ1𝑀0𝐽 −𝑇 Δ𝜏≤ 𝛼1
+2 𝑠𝑇
+𝑖 Ω1𝑠𝑖 + 𝛼1
+2 Δ𝜏𝑇 Δ𝜏
+Ω1 = Λ 1𝑀 −1
+0 𝐽 −𝑇𝐽𝑇𝑀0Λ1
+𝜛𝑇
+𝑖 Δ𝜏𝑖 ≤ 1
+2𝜛𝑇
+𝑖 𝜛𝑖 + 1
+2 Δ𝜏𝑇
+𝑖 Δ𝜏𝑖
+(42)
+Using Eq. (33) defined above, we can obtain 𝜋𝑖 + ‖‖̃ 𝑒𝑎𝑖‖
+‖ ≤̄ 𝜋𝑖 + ‖
+‖𝑤𝑎𝑖‖
+‖ +
+‖‖𝛿𝑎𝑖‖
+‖ =𝜋 𝛿𝑖
+. Also. substituting the Eq. (42) into Eq. (41), thus
+̇𝑉2 ≤𝑠 𝑇
+𝑖
+(sig𝜍1 (𝜎1sig𝜍2 (𝑠𝑖) +𝜎 2sig𝜍3 (𝑠𝑖))) (43)
++ 1 +𝛼
+2 Δ𝜏𝑇
+𝑖 Δ𝜏𝑖 −𝜛 𝑇
+𝑖 (𝑘2 − 1
+2𝐸𝐼 )𝜛𝑖
+−𝜛 𝑇
+𝑖
+(sig𝜍1 (𝜎3sig𝜍2 (𝜛𝑖) +𝜎 4sig𝜍3 (𝜛𝑖)))
+− 1
+𝜆𝑐
+̃ 𝑒𝑇
+𝑐
+̇̂𝑤𝑐 − 1
+𝜆𝑎
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖
+̇̂𝑤𝑎𝑖 +
+(
+𝛼1 ‖‖Λ1‖
+‖
+⌢
+𝜆(𝑘3)
+)2
+2
+(
+2
+⌣
+𝜆(𝑘1) −𝛼 1 ‖‖Ω1‖
+‖
+)
+−
+(
+⌣
+𝜆(𝑘1) − 𝛼1
+2
+‖
+‖Ω1‖
+‖
+) ⎛
+⎜
+⎜⎝
+‖‖𝑠𝑖‖
+‖ − 𝛼1 ‖
+‖Λ1‖
+‖
+⌢
+𝜆(𝑘3)
+2
+⌣
+𝜆(𝑘1) −𝛼 1 ‖‖Ω1‖
+‖
+⎞
+⎟
+⎟⎠
+2
+where 𝑘3 = diag{ 𝜋𝛿𝑖 𝜋𝛿2 …𝜋 𝛿6 } denotes a diagonal positive 
+definite matrix. It should be noted that if we set 𝑘2 − 1
+2𝐸𝐼 ≥0  and (
+⌣
+𝜆(𝑘1) − 𝛼1
+2
+‖‖Ω1‖
+‖
+)
+>0
+, the above Eq. (43) will becomes
+̇𝑉2 ≤𝑠 𝑇
+𝑖
+(sig𝜍1 (𝜎1sig𝜍2 (𝑠𝑖) +𝜎 2sig𝜍3 (𝑠𝑖))) + 1 +𝛼
+2 Δ𝜏𝑇
+𝑖 Δ𝜏𝑖
+−𝜛 𝑇
+𝑖
+(sig𝜍1 (𝜎3sig𝜍2 (𝜛𝑖) +𝜎 4sig𝜍3 (𝜛𝑖)))
+− 1
+𝜆𝑐
+̃ 𝑒𝑇
+𝑐
+̇̂𝑤𝑐 − 1
+𝜆𝑎
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖
+̇̂𝑤𝑎𝑖 +
+(
+𝛼1 ‖‖Λ1‖
+‖
+⌢
+𝜆(𝑘3)
+)2
+2
+(
+2
+⌣
+𝜆(𝑘1) −𝛼 1 ‖‖Ω1‖
+‖
+)
+(44)
+Next, the boundedness of the RL NN is analyzed. Under the designed 
+adaptive law Eqs. (20) and (38), the overall stability of the closed-loop 
+system will be proven in two cases.
+Case I: when ‖‖̂𝑤𝑐‖
+‖ ≤ ‖
+‖𝛿𝑐‖
+‖𝑜𝑟 ‖
+‖̂𝑤𝑐‖
+‖ = ‖
+‖𝛿𝑐‖
+‖,𝑤𝑇
+𝑐 Φ𝑐 >0
+ and‖‖̂𝑤𝑎𝑖‖
+‖ ≤
+‖
+‖𝛿𝑎𝑖‖
+‖
+ or ‖
+‖̂𝑤𝑎𝑖‖
+‖ = ‖
+‖𝛿𝑎𝑖‖
+‖,𝑤𝑇
+𝑎𝑖Φ𝑎𝑖 >0
+ hold, based on the rules Eqs. (20) and 
+(38), one has
+−̃ 𝑒𝑇
+𝑐
+̇̂𝑤𝑐 = −1
+𝜆𝑐
+(−𝜆𝑐 Φ𝑐
+) =̃ 𝑒𝑇
+𝑐 Φ𝑐
+− 1
+𝜆𝑎
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖
+̇̂𝑤𝑎𝑖 = − 1
+𝜆𝑎
+𝑛∑
+𝑖=1
+−̃ 𝑒𝑇
+𝑎𝑖𝜆𝑎Φ𝑎𝑖 =
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖Φ𝑎𝑖
+Neurocomputing 677 (2026) 133031 
+6 
+
+=== PAGE 7 ===
+G. Guo, S. Xiao, T. Shen et al.
+Thus, Eq. (44) is refresh as
+̇𝑉2 ≤𝑠 𝑇
+𝑖
+(sig𝜍1 (𝜎1sig𝜍2 (𝑠𝑖) +𝜎 2sig𝜍3 (𝑠𝑖))) + 1 +𝛼
+2 Δ̄ 𝜏2
+𝑖
+−𝜛 𝑇
+𝑖
+(sig𝜍1 (𝜎3sig𝜍2 (𝜛𝑖) +𝜎 4sig𝜍3 (𝜛𝑖)))
++̃ 𝑒𝑇
+𝑐 Φ𝑐 +
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖Φ𝑎𝑖 +
+(
+𝛼1 ‖‖Λ1‖
+‖
+⌢
+𝜆(𝑘3)
+)2
+2
+(
+2
+⌣
+𝜆(𝑘1) −𝛼 1 ‖‖Ω1‖
+‖
+)
+(45)
+If we set Ω2 = 1+𝛼
+2 Δ̄ 𝜏2 +̃ 𝑒𝑇
+𝑐 Φ𝑐 +
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖Φ𝑎𝑖 +
+(
+𝛼1‖‖Λ1‖
+‖
+⌢
+𝜆(𝑘 3)
+)2
+2
+(
+2
+⌣
+𝜆(𝑘 1)−𝛼1‖‖Ω1‖
+‖
+)
+ as an integer, 
+then Eq. (45) can be written as
+̇𝑉2 = −
+6∑
+𝑗=1
+(
+(𝜎1(|𝑠𝑖𝑗 |2)
+1+𝜍1𝜍2
+2𝜍1 +𝜎 2(|𝑠𝑖𝑗 |2)
+1+𝜍1𝜍3
+2𝜍1 )
+)𝜍1
+(46)
+−
+6∑
+𝑗=1
+(
+(𝜎3(|𝜛𝑗 |2)
+1+𝜍1𝜍2
+2𝜍1 +𝜎 4(|𝜛𝑗 |2)
+1+𝜍1𝜍3
+2𝜍1 )
+)𝜍1
++ Ω2
+Case II: when ‖‖̂𝑤𝑐‖
+‖ = ‖
+‖𝛿𝑐‖
+‖,𝑤𝑇
+𝑐 Φ𝑐 ≤0
+ and ‖‖̂𝑤𝑎𝑖‖
+‖ = ‖
+‖𝛿𝑎𝑖‖
+‖,𝑤𝑇
+𝑎𝑖Φ𝑎𝑖 ≤0
+hold, based on the rules Eqs. (20) and (38), one has
+− 1
+𝜆𝑐
+̃ 𝑒𝑇
+𝑐
+̇̂𝑤𝑐 = − 1
+𝜆𝑐
+̃ 𝑒𝑇
+𝑐
+(−𝜆𝑐 Φ𝑐 +𝜆𝑐̄Φ𝑐
+) =̃ 𝑒𝑇
+𝑐 Φ𝑐 −̃ 𝑒𝑇
+𝑐 ̄Φ𝑐
+− 1
+𝜆𝑎
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖
+̇̂𝑤𝑎𝑖 = − 1
+𝜆𝑎
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖
+(−𝜆𝑎Φ𝑎𝑖 +𝜆𝑎̄Φ𝑎𝑖
+) =
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖
+(Φ𝑎𝑖 − ̄Φ𝑎𝑖
+)At this point, the proof process is updated to
+̇𝑉2 ≤𝑠 𝑇
+𝑖
+(sig𝜍1 (𝜎1sig𝜍2 (𝑠𝑖) +𝜎 2sig𝜍3 (𝑠𝑖))) + 1 +𝛼
+2 Δ̄ 𝜏2
+𝑖
+−𝜛 𝑇
+𝑖
+(sig𝜍1 (𝜎3sig𝜍2 (𝜛𝑖) +𝜎 4sig𝜍3 (𝜛𝑖)))
++̃ 𝑒𝑇
+𝑐 Φ𝑐 −̃ 𝑒𝑇
+𝑐 ̄Φ𝑐 +
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖
+(Φ𝑎𝑖 − ̄Φ𝑎𝑖
+) +
+(
+𝛼1 ‖‖Λ1‖
+‖
+⌢
+𝜆(𝑘3)
+)2
+2
+(
+2
+⌣
+𝜆(𝑘1) −𝛼 1 ‖‖Ω1‖
+‖
+)
+(47)
+After further simplification and scaling, the result of the inequality 
+Eq. (47) is
+̇𝑉2 = −
+6∑
+𝑗=1
+((
+𝜎1(|𝑠𝑖𝑗 |2)
+1+𝜍1𝜍2
+2𝜍1 +𝜎 2(|𝑠𝑖𝑗 |2)
+1+𝜍1𝜍3
+2𝜍1
+))𝜍1
+(48)
+−
+6∑
+𝑗=1
+((
+𝜎3(|𝜛𝑗 |2)
+1+𝜍1𝜍2
+2𝜍1 +𝜎 4(|𝜛𝑗 |2)
+1+𝜍1𝜍3
+2𝜍1
+))𝜍1
++ Ω3
+where Ω3 = 1+𝛼
+2 Δ̄ 𝜏2
+𝑖 +
+(
+𝛼1‖‖Λ1‖
+‖
+⌢
+𝜆(𝑘 3)
+)2
+2
+(
+2
+⌣
+𝜆(𝑘 1)−𝛼1‖‖Ω1‖
+‖
+)
+. Although the two types of 
+proofs mentioned above have achieved significant results, they are 
+not sufficient to fully demonstrate the predefined-time stability of the 
+closed-loop system. Below, the stability of the system is proven using 
+the invariant property of addition and subtraction transformations. First, 
+inequalities (
+46) and (48) are rewritten in the following form
+̇𝑉2 = −
+6∑
+𝑗=1
+((
+𝜎1(|𝑠𝑖𝑗 |2)
+1+𝜍1𝜍2
+2𝜍1 +𝜎 2(|𝑠𝑖𝑗 |2)
+1+𝜍1𝜍3
+2𝜍1
+))𝜍1
+(49)
+−
+6∑
+𝑗=1
+((
+𝜎3(|𝜛𝑗 |2)
+1+𝜍1𝜍2
+2𝜍1 +𝜎 4(|𝜛𝑗 |2)
+1+𝜍1𝜍3
+2𝜍1
+))𝜍1
++ Ω3
+− 1
+𝜆𝑐
+(̃ 𝑒𝑇
+𝑐 ̃ 𝑒𝑇
+𝑐
+) 1+𝜍1𝜍2
+2 − 1
+𝜆𝑐
+(̃ 𝑒𝑇
+𝑐 ̃ 𝑒𝑇
+𝑐
+) 1+𝜍1𝜍3
+2 + 1
+𝜆𝑐
+(̃ 𝑒𝑇
+𝑐 ̃ 𝑒𝑇
+𝑐
+) 1+𝜍1𝜍2
+2
+−
+(
+1
+𝜆𝑎
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖̃ 𝑒𝑇
+𝑎𝑖
+) 1+𝜍1𝜍2
+2
+−
+(
+1
+𝜆𝑎
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖̃ 𝑒𝑇
+𝑎𝑖
+) 1+𝜍1𝜍3
+2
++
+(
+1
+𝜆𝑎
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖̃ 𝑒𝑇
+𝑎𝑖
+) 1+𝜍1𝜍2
+2
++ 1
+𝜆𝑐
+(̃ 𝑒𝑇
+𝑐 ̃ 𝑒𝑇
+𝑐
+) 1+𝜍1𝜍3
+2 +
+(
+1
+𝜆𝑎
+𝑛∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖̃ 𝑒𝑇
+𝑎𝑖
+) 1+𝜍1𝜍3
+2
+Finally, we obtain
+̇𝑉2(𝑡)≤−𝑚 0
+⎡
+⎢
+⎢
+⎢
+⎢
+⎢
+⎢
+⎢⎣
+𝑚1
+(
+6∑
+𝑗=1
+||
+|𝑠𝑖𝑗
+|
+|
+|
+2
++
+6∑
+𝑗=1
+|
+|
+|𝜛𝑗
+|
+|
+|
+2
++ 1
+𝜆𝑐
+̃ 𝑒𝑇
+𝑐 ̃ 𝑒𝑇
+𝑐 + 1
+𝜆𝑎
+6∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖̃ 𝑒𝑇
+𝑎𝑖
+)
+1+𝜍1𝜍2
+2𝜍1
+𝑚2
+(
+6∑
+𝑗=1
+|||𝑠𝑖𝑗
+|||
+2
++
+6∑
+𝑗=1
+|||𝜛𝑗
+|||
+2
++ 1
+𝜆𝑐
+̃ 𝑒𝑇
+𝑐 ̃ 𝑒𝑇
+𝑐 + 1
+𝜆𝑎
+6∑
+𝑖=1
+̃ 𝑒𝑇
+𝑎𝑖̃ 𝑒𝑇
+𝑎𝑖
+)
+1+𝜍1𝜍3
+2𝜍1
+⎤
+⎥
+⎥
+⎥
+⎥
+⎥
+⎥
+⎥⎦
++ Ω4
+= −𝑚 0
+(
+̃ 𝑚1𝑉
+1+𝜍1𝜍2
+2𝜍1
+2 +̃ 𝑚2𝑉
+1+𝜍1𝜍3
+2𝜍1
+2
+)
++ Ω4 (50)
+where 𝑚0 = (3 ∗ 6 )1−𝜍1,𝑚 1 = min [
+𝜎1, 𝜎 3,1
+],𝑚 2 =
+min [
+𝜎2, 𝜎 4,1
+], ̃ 𝑚1 = 2
+1+𝜍1𝜍2
+2𝜍1 min [
+𝑎1, 𝜎 3,1
+], and 
+̃ 𝑚2 = 2
+1+𝜍1𝜍3
+2𝜍1 min [
+𝑎2, 𝜎 4,1
+]. Through Lemma 1  and the above 
+proof, it is sufficiently demonstrated that the closed-loop system reaches 
+a bounded region, and all errors will converge to this bounded region 
+within a fixed time. This fixed time is given as follows
+𝑇2 = 2
+𝑚0̃ 𝑚𝜍1
+1 𝜀𝜍1
+(1 −𝜍 1𝜍2
+) + 2
+𝑚0̃ 𝑚𝜍1
+2 𝜀𝜍1
+(𝜍1𝜍3 − 1) (51)
+To eliminate this parameter limitation and achieve predefined-time con­
+vergence for all errors, several key parameters 𝜎1,𝜎 2,𝜎 3 and 𝜎4 need to 
+be designed in an appropriate form in advance. In this case, the settling 
+time 𝑇 ∗
+2  is predetermined and independent of other constraints, thereby 
+improving the convergence accuracy.
+Based on the ( 39) and Lemma 1, it can be concluded that the slid­
+ing trajectories 𝑠 converge to 𝜓 within predefined time 𝑇 ∗
+2  by selecting 
+appropriate parameters, and 𝜓 is described as
+𝜓=
+{
+‖‖𝑆𝑖‖
+‖ ≤min
+[
+1
+̃ 𝑚𝜍1
+1
+( Ω4
+1−𝜀
+) 2
+1+𝜍1𝜍2, 1
+̃ 𝑚𝜍1
+2
+( Ω4
+1−𝜀
+) 2
+1+𝜍1𝜍3
+]}
+□
+Theorem 3.The local formation errors of all AUVs will converge to a 
+neighborhood of the origin, which means that all AUVs will reach their 
+desired formation positions within the predefined time 
+𝑇 ∗
+3 . This time is pre­
+determined and independent of the initial state values and other controller
+parameters.
+Proof. Once all the sliding mode trajectories converge to 𝜓, it indicates 
+that the sliding manifold has been established. At this point, 𝜓=𝑙 𝜒𝑖𝑗𝜒𝑖𝑗 +
+sig𝛼1 (𝜐𝑖𝑗 ), according to Eq. (21), it can derive the following,
+̇ 𝜒𝑖𝑗 = sig(𝑎 1sig𝑏1 (𝜒𝑖𝑗 ) +𝑎 2sig𝑏2 (𝜒𝑖𝑗 ))
+𝑐
++𝜓
+1
+𝛼1 (52)
+where 𝜓=𝑙 𝜒𝑖𝑗𝜒𝑖𝑗 +sig𝛼1 (𝜐𝑖𝑗 ). Constructing a Lyapunov function as 𝑉5(𝑡) =
+6∑
+𝑗=1
+|||𝜒𝑖𝑗
+|||, then taking the derivative of 𝑉5(𝑡) along time. one has
+̇𝑉5(𝑡) =
+6∑
+𝑗=1
+sgn(𝜒𝑖𝑗 )̇ 𝜒𝑖𝑗 (53)
+= −
+6∑
+𝑗=1
+|||𝑎1sig𝑏1 (𝜒𝑖𝑗 ) +𝑎 2sig𝑏2 (𝜒𝑖𝑗 )|||
+𝑐
++
+6∑
+𝑗=1
+sgn(𝜒𝑖𝑗 )𝜓
+1
+𝛼1
+≤−6 1−𝑐
+(
+𝑎1
+6∑
+𝑗=1
+|sig𝑏1 (𝜒𝑖𝑗 )|+𝑎 2
+6∑
+𝑗=1
+|sig𝑏2 (𝜒𝑖𝑗 )|2
+)𝑐
++|𝜓
+1
+𝛼1 |
+Neurocomputing 677 (2026) 133031 
+7 
+
+=== PAGE 8 ===
+G. Guo, S. Xiao, T. Shen et al.
+≤−6 1−𝑐
+(
+𝑎1
+6∑
+𝑗=1
+|𝜒𝑖𝑗 |𝑏1 +𝑎 2
+6∑
+𝑗=1
+|𝜒𝑖𝑗 |𝑏2
+)𝑐
++|𝜓
+1
+𝛼1 |
+≤−6 1−𝑐
+⎛
+⎜
+⎜⎝
+𝑎1
+( 6∑
+𝑗=1
+|𝜒𝑖𝑗 |
+)𝑏1
++𝑎 2
+( 6∑
+𝑗=1
+|𝜒𝑖𝑗 |
+)𝑏2 ⎞
+⎟
+⎟⎠
+𝑐
++|𝜓
+1
+𝛼1 |
+= −6 1−𝑐
+(
+𝑎1𝑉𝑏1
+5 +𝑎 2𝑉𝑏1
+5
+)𝑐
++|𝜓
+1
+𝛼1 |
+According to Lemma 1, it can be concluded that the error system con­
+verges to a neighborhood of the origin within the fixed time. This 
+fully implies that all AUVs subsystems reach their predetermined posi­
+tions within the practical fixed time, achieving a coordinated formation 
+motion.
+𝑇3 = 1
+𝑎𝑐
+1𝜀𝑐 (1 −𝑐𝑏 1
+) + 1
+𝑎𝑐
+2𝜀𝑐 (𝑐𝑏2 − 1) (54)
+This convergence time strictly depends on the key parameters of the 
+controller 𝑎1, 𝑏1, 𝑎2, 𝑏2, 𝑐. Therefore, according to Lemma 2 , if the 
+two important control parameters 𝑎1 and 𝑎2 are predefined in the form 
+mentioned above Eq. (22) , then the fixed-time convergence is opti­
+mized to the predefined-time convergence. This settling time can be 
+predetermined as 𝑇 ∗
+3 . Moreover, this neighborhood is given as
+𝐸1 =
+⎧
+⎪
+⎨
+⎪⎩
+‖‖𝜒𝑖‖‖ ≤min
+⎡
+⎢
+⎢⎣
+(
+𝜓
+1
+𝛼1
+𝑎𝑐
+1(1−𝜀)
+) 1
+𝑐𝑏1
+,
+(
+𝜓
+1
+𝛼1
+𝑎𝑐
+2(1−𝜀)
+) 1
+𝑐𝑏2
+⎤
+⎥
+⎥⎦
+⎫
+⎪
+⎬
+⎪⎭
+Since the tracking error 𝜒𝑖 has converged to a bounded region 𝐸1, the 
+direct relationship between the position error 𝜒𝑖 and the velocity error 
+𝜐𝑖 can be observed from Eq. (52). Therefore, it can be directly concluded 
+that the velocity error 𝜐𝑖 will also converge to a bounded region within 
+a predefined time 𝑇 ∗
+3 . This completes the proof. □
+In summary, through the three theories and proofs presented above, 
+it can be sufficiently demonstrated that the designed model-free control 
+protocol based on RL NNs indeed ensures the practical predefined-time 
+stability of multi-agent formations under the condition of input satu­
+ration. This method completely overcomes the dependence on precise 
+system models and effectively achieves coordinated AUVs formations 
+in complex underwater environments. In addition, optimal control 
+performance is obtained by minimizing execution cost.
+6 . Simulation
+In this section, an example of AUVs formation is given to verify the 
+practical values of the proposed control method. Then, the sliding sur­
+face and controller parameters are described in Table 1. The selection 
+of sliding and controller parameters relies on their inherent constraints, 
+with optimal values determined through systematic tuning. The Actor’s 
+update process is critically dependent on the gradient direction provided 
+by the Critic, necessitating that the 𝜆𝑐 be configured significantly larger 
+than that of the 𝜆𝑎. The AUV model parameters can be found in the 
+reference [43]. The external disturbance 𝜏𝑑 is
+𝜏𝑑1 =𝜏 𝑑2 =𝜏𝑑3 = sin (0.0𝑖∗𝑡 ) ; (55)
+Table 1 
+Model and control parameters.
+Parameter Value Parameter Value Parameter Value
+𝛼1 1.2 𝑘0 diag{0.3} 𝜆𝑎 0.04
+𝑇 ∗
+1 5 𝜍1 2 𝜆𝑐 0.3
+𝑇 ∗
+2 5 𝜍2 0.4 𝑘1 diag{10}
+𝜀 0.01 𝜍3 0.6 𝜀0 0.8
+𝑏1 0.7 𝑘1 10 𝑐0
+𝑎 2
+𝑏2 10/9 𝑘2 diag{1} 𝜆 10
+𝑐 1.2 𝑙𝑐 5 𝑙𝑎 5
+𝜎3 8 𝜎4 8
+Fig. 1. The topological connection diagram of multiple AUVs.
+Fig. 2. The operational performance of multiple AUVs in underwater environ­
+ments.
+Fig. 3. The planar motion trajectories of the multi-AUV over time.
+0 5 10 15 20 25 30
+Time (s)
+0
+0.5
+1
+1.5
+2
+2.5 108
+Fig. 4. The long-term cost function over time.
+𝜏𝑑4 =𝜏 𝑑5 =𝜏𝑑6 = cos (0.0𝑖∗𝑡 ) ;
+The initial value of the state is set to
+𝜂0 = [
+6 6 6 0 0 0
+]𝑇
+𝜂1 = [
+1 1 4 0 0 0
+]𝑇
+𝜂2 = [
+0 2 2 0 0 0
+]𝑇
+(56)
+Neurocomputing 677 (2026) 133031 
+8 
+
+=== PAGE 9 ===
+G. Guo, S. Xiao, T. Shen et al.
+0 5 10 15 20 25 30
+Time(s)
+0
+0.5
+1
+1.5
+Fig. 5. The output of network.
+The formation information is described as
+𝜂𝑑
+0 = [
+sin(0.1𝑡) −0 .1𝑡−0 .2𝑡− 10
+] (57)
+𝜂𝑙
+01 = [
+3 4 2
+]
+𝜂𝑙
+02 = [
+6 1 4
+]
+The topological diagram of multiple AUVs is presented in Fig. 1, which 
+systematically characterizes the communication architecture and coop­
+erative relationships within the formation. The 𝐴𝑈𝑉 0 represents a leader 
+agent, while 𝐴𝑈𝑉 1 and 𝐴𝑈𝑉 2 represent the follower agent in AUVs 
+formation.
+Here, the effectiveness of the control method will be validated un­
+der the proposed method. Below is an analysis of the simulation results. 
+Fig. 2 illustrates the formation motion of three AUVs in a 3D under­
+water environment. It can be observed that the leader AUV tracks the 
+Fig. 6. Tracking responses of position state (𝑥,𝑦,𝑧 ).
+Fig. 7. The formation distances between multiple AUVs.
+desired trajectory in time, while the other two follower AUVs, starting 
+from different initial positions, quickly converge to the leader and 
+maintain the formation. These results sufficiently demonstrate that the 
+proposed model-free predefined-time control protocol, based on RL NNs, 
+ensures formation consensus for multiple AUVs with input saturation. 
+Meanwhile, the 2D motion diagram of the multi-AUVs system is shown 
+in Fig. 3, illustrating the movement direction and motion state of the 
+AUV formation.
+The evolution of the long-term cost function in response to the AUV 
+formation’s motion is presented in Fig. 4. As demonstrated, the cost pro­
+gressively converges to a stable value over time, validating the control 
+strategy’s efficacy. The network weights are shown in Fig. 5, and the 
+networks of the three AUVs gradually converge to stable values. Fig. 6 
+presents the time-domain position tracking responses of the three AUVs. 
+As demonstrated, the leader AUV rapidly converges to the planned 
+trajectory within a short timeframe, while both follower AUVs success­
+fully track the leader’s motion state within the predefined time, thereby 
+achieving formation consensus. More importantly, the formation con­
+figuration is illustrated in Fig. 7, which depicts the relative distances 
+between the two follower AUVs and the leader. It should be noted that 
+this study primarily focuses on the spatial coordinate intervals (𝑥,𝑦,𝑧 )
+between AUVs. Fig. 8 shows the evolution of the six formation errors, in­
+cluding three position errors and three attitude angle errors of the AUVs 
+over time. It should be noted that, for convenience, all initial attitude 
+values of the AUVs were set to zero in this study. It can be observed 
+from Fig. 8(a)–(c) show that all errors reach to origin in a predefined 
+time. It shows that all error variables converge to zero within predefined 
+time 𝑇 ∗
+2 , which fully demonstrates the correctness and practicality of 
+the control method. Therefore, it can be concluded that when actuators 
+saturate, all system states of the multi-AUVs converge to the formation 
+region within the predefined time, indicating that the control effect is ef­
+fective. The sliding mode trajectories of multiple AUVs are presented in 
+Neurocomputing 677 (2026) 133031 
+9 
+
+=== PAGE 10 ===
+G. Guo, S. Xiao, T. Shen et al.
+Fig. 8. Tracking responses of multiple AUVs.
+Fig. 9. Sliding trajectory 𝑆 over time.
+Fig. 9. As demonstrated, all sliding trajectories converge to zero within 
+the predefined time, indicating the establishment of the sliding manifold 
+during this prescribed interval.
+7 . Conclusion
+This study has addressed the formation problem for multiple AUVs 
+under disturbances, unknown dynamics, and input constraints. A novel 
+model-free control framework was developed, integrating predefined-
+time theory, RL, and adaptive compensation to ensure robust and 
+precise formation tracking. Unlike fixed-time approaches, the proposed 
+method guarantees semi-global convergence within a predefined time, 
+eliminating the overestimation issue while maintaining stability. To 
+handle system uncertainties and optimize control performance, an RL 
+strategy was implemented, utilizing actor-critic NNs. The actor net­
+work generated control inputs, while the critic network evaluated 
+long-term costs, enhancing adaptability in unknown environments. 
+Furthermore, a singularity-free sliding surface was introduced to ensure 
+rapid and smooth convergence without relying on switching functions. 
+Additionally, an adaptive anti-windup compensator effectively miti­
+gated actuator saturation effects, improving control reliability. The 
+predefined-time stability of the closed-loop system was rigorously estab­
+lished via Lyapunov analysis. Extensive numerical simulations demon­
+strated the efficacy and robustness of the proposed approach, showcas­
+ing its potential for practical applications in underwater multi-vehicle 
+systems. Future work will focus on developing simplified NN archi­
+tectures and more efficient learning rules to reduce the computational 
+burden and enhance the method’s practicality for real-time applications 
+with stricter resource constraints.
+CRediT authorship contribution statement
+Guangxin Guo: Writing – review & editing, Writing – original draft, 
+Software, Methodology, Formal analysis, Conceptualization. Shaoqiu 
+Xiao: Writing – review & editing, Funding acquisition. Tongsheng 
+Shen: Writing – review & editing, Funding acquisition. Fuchang Chen:
+Writing – review & editing, Writing – original draft. Shaojun Guo:
+Writing – review & editing. Zailei Luo: Writing – review & editing.
+Declaration of competing interest
+The authors declare that they have no known competing financial 
+interests or personal relationships that could have appeared to influence 
+the work reported in this paper.
+Acknowledgments
+This work was supported by the National Natural Science Foundation 
+of China under Grant 62171487.
+Data availability
+No data was used for the research described in the article.
+References
+[1] C.-D. Liang, K.-L. Huang, X.-S. Zhan, T. Han, Q. Chen, M.-F. Ge, Fault-tolerant 
+formation of interlinked marine surface vehicles based on fixed-time distributed op­
+timization, IEEE Internet Things J. (2025) 1, https://doi.org/10.1109/JIOT.2025.
+3631953
+[2] K. Duan, S. Fong, C.L.P. Chen, Reinforcement learning based model-free opti­
+mized trajectory tracking strategy design for an AUV, Neurocomputing 469 (2022) 
+289–297, https://doi.org/10.1016/j.neucom.2021.10.056
+[3] Y. Sun, Y. Du, H. Qin, Distributed adaptive neural network constraint contain­
+ment control for the benthic autonomous underwater vehicles, Neurocomputing 
+484 (2022) 89–98, https://doi.org/10.1016/j.neucom.2021.03.137
+[4] G. Guo, H. Tan, Y. Feng, Y. Wang, Event-triggered fixed-time tracking control for 
+uncertain networked autonomous surface vehicle with disturbances, Ocean Eng. 
+312 (2024) 119100.
+[5] R. Xia, M. Chen, Q. Wu, Y. Wang, Neural network based integral sliding mode op­
+timal flight control of near space hypersonic vehicle, Neurocomputing 379 (2020) 
+41–52.
+[6] G. Guo, H. Tan, Y. Feng, Y. Wang, Event-triggered super-twisting fixed-time con­
+sensus control for networked nonlinear multi-agent systems with disturbance, IEEE 
+Trans. Autom. Sci. Eng. 22 (2025) 11920–11932, https://doi.org/10.1109/TASE.
+2025.3540503
+Neurocomputing 677 (2026) 133031 
+10 
+
+=== PAGE 11 ===
+G. Guo, S. Xiao, T. Shen et al.
+[7] F. Li, Z. Liu, Q. Zhu, Adaptive fuzzy finite-time control for a QUAV with tracking 
+error constraints and unknown actuator faults, Aerosp. Sci. Technol. 160 (2025) 
+110054, https://doi.org/10.1016/j.ast.2025.110054
+[8] C. Jia, Z. Yang, Z. Shao, Y. Li, Predefined time sliding mode control based on inter­
+val type-2 fuzzy emotional neural network, Neurocomputing 619 (2025) 129173, 
+https://doi.org/10.1016/j.neucom.2024.129173
+[9] G. Guo, X. An, J. Sun, Z. Ji, Z. Zhao, Observer-based event-triggered sliding mode 
+tracking control for uncertain robotic manipulator systems, J. Braz. Soc. Mech. Sci. 
+Eng. 45 (9) (2023) 453.
+[10] B. Xu, Y.-X. Li, Z. Hou, Fixed-time fuzzy resilient consensus tracking of nonlinear 
+mass under DoS attacks and actuator faults, IEEE Trans. Autom. Sci. Eng. (2024) 
+1–12, https://doi.org/10.1109/TASE.2024.3386603
+[11] C.-D. Liang, M.-F. Ge, Z.-W. Liu, Z.-W. Gu, Q. Chen, Distributed predefined-time 
+optimization control for networked marine surface vehicles subject to set con­
+straints, IEEE Trans. Intell. Transp. Syst. 25 (2) (2024) 2129–2138, https://doi.
+org/10.1109/TITS.2023.3314800
+[12] C.-D. Liang, M.-F. Ge, Z.-W. Liu, X.-S. Zhan, J.H. Park, Predefined-time stabiliza­
+tion of t–s fuzzy systems: a novel integral sliding mode-based approach, IEEE 
+Trans. Fuzzy Syst. 30 (10) (2022) 4423–4433, https://doi.org/10.1109/TFUZZ.
+2022.3152834
+[13] F. Wang, Y. Miao, C. Li, I. Hwang, Attitude control of rigid spacecraft with 
+predefined-time stability, J. Frankl. Inst. 357 (7) (2020) 4212–4221, https://doi.
+org/10.1016/j.jfranklin.2020.01.001
+[14] Y. Wang, J. Gao, J. Zhao, X. Wu, Event-triggered predefined-time tracking control 
+for high-order nonlinear systems with time-varying actuator failures and uncer­
+tain disturbances, Eng. Appl. Artif. Intell. 148 (2025) 110368, https://doi.org/10.
+1016/j.engappai.2025.110368
+[15] W. Liu, S. Sui, C.L.P. Chen, Event-triggered predefined-time output feedback 
+fuzzy adaptive control of permanent magnet synchronous motor systems, Eng. 
+Appl. Artif. Intell. 142 (2025) 109882, https://doi.org/10.1016/j.engappai.2024.
+109882
+[16] Y. Sun, Y. Zhang, H. Qin, L. Ouyang, R. Jing, Predefined-time prescribed perfor­
+mance control for AUV with improved performance function and error transforma­
+tion, Ocean Eng. 281 (2023) 114817, https://doi.org/10.1016/j.oceaneng.2023.
+114817
+[17] Z. Shi, F. Zhao, X. Wang, Z. Jin, Satellite attitude tracking control of moving targets 
+combining deep reinforcement learning and predefined-time stability considering 
+energy optimization, Adv. Space Res. 69 (5) (2022) 2182–2196, https://doi.org/
+10.1016/j.asr.2021.12.014
+[18] Y. Feng, X. Yu, Z. Man, Non-singular terminal sliding mode control of rigid 
+manipulators, Automatica 38 (12) (2002) 2159–2167.
+[19] J. Zhai, G. Xu, A novel non-singular terminal sliding mode trajectory tracking con­
+trol for robotic manipulators, IEEE Trans. Circuits Syst. II Express Briefs 68 (1) 
+(2021) 391–395, https://doi.org/10.1109/TCSII.2020.2999937
+[20] L. Wang, T. Chai, L. Zhai, Neural-network-based terminal sliding-mode control of 
+robotic manipulators including actuator dynamics, IEEE Trans. Ind. Electron. 56 
+(9) (2009) 3296–3304, https://doi.org/10.1109/TIE.2008.2011350
+[21] B. Yan, P. Shi, C.-C. Lim, Robust formation control for nonlinear heterogeneous 
+multiagent systems based on adaptive event-triggered strategy, IEEE Trans. Autom. 
+Sci. Eng. 19 (4) (2022) 2788–2800.
+[22] Z. Gao, G. Guo, Fixed-time sliding mode formation control of AUVs based on a 
+disturbance observer, IEEE/CAA J. Autom. Sin. 7 (2) (2020) 539–545.
+[23] L. Wang, D. Zhu, W. Pang, C. Luo, A novel obstacle avoidance consensus control for 
+multi-AUV formation system, IEEE/CAA J. Autom. Sin. 10 (5) (2023) 1304–1318, 
+https://doi.org/10.1109/JAS.2023.123201
+[24] M. Van, Y. Sun, S. Mcllvanna, M.-N. Nguyen, F. Zocco, Z. Liu, Control of mul­
+tiple AUV systems with input saturations using distributed fixed-time consensus 
+fuzzy control, IEEE Trans. Fuzzy Syst. 32 (5) (2024) 3142–3153, https://doi.org/
+10.1109/TFUZZ.2024.3368352
+[25] G. Cui, H. Xu, J. Yu, H.-K. Lam, Event-triggered distributed fixed-time adaptive atti­
+tude control with prescribed performance for multiple QUAVs, IEEE Trans. Autom. 
+Sci. Eng. (2023) 1–11.
+[26] B. Xu, Y.-X. Li, Z. Hou, C.K. Ahn, Dynamic event-triggered reinforcement learning-
+based consensus tracking of nonlinear multi-agent systems, IEEE Trans. Circuits 
+Syst. I Regul. Pap. 70 (5) (2023) 2120–2132, https://doi.org/10.1109/TCSI.2023.
+3246001
+[27] Y.-Z. Xiang, W. Yi, M. Chadli, J. Guo, S. Li, Z. Xiang, Fixed-time prescribed per­
+formance control for robotic manipulators via reinforcement learning, IEEE/ASME 
+Trans. Mechatron. (2025) 1–11, https://doi.org/10.1109/TMECH.2025.3612986
+[28] D. Wang, G. Tang, J. Ren, M. Zhao, J. Qiao, Model-free tracking design for non­
+linear zero-sum games with an improved utility function, Nonlinear Dyn. 113 (13) 
+(2025) 16679–16694, cited by: 3. https://doi.org/10.1007/s11071-025-10946-2
+[29] H. Li, Q. Wei, X. Tan, Reinforcement learning for h∞ optimal control of unknown 
+continuous-time linear systems, IEEE Trans. Cybern. 55 (5) (2025) 2379–2389, 
+https://doi.org/10.1109/TCYB.2025.3541815
+[30] Y. Ouyang, W. He, X. Li, Reinforcement learning control of a single-link flexible 
+robotic manipulator, IET Control Theory Appl. 11 (9) (2017) 1426–1433.
+[31] S. Cao, L. Sun, J. Jiang, Z. Zuo, Reinforcement learning-based fixed-time trajectory 
+tracking control for uncertain robotic manipulators with input saturation, IEEE 
+Trans. Neural Netw. Learn. Syst. 34 (8) (2023) 4584–4595, https://doi.org/10.
+1109/TNNLS.2021.3116713
+[32] Y. Hou, G. Han, F. Zhang, C. Lin, J. Peng, L. Liu, Distributional soft Actor-Critic-
+based multi-AUV cooperative pursuit for maritime security protection, IEEE Trans. 
+Intell. Transp. Syst. 25 (6) (2024) 6049–6060, https://doi.org/10.1109/TITS.2023.
+3341034
+[33] A.T. Vo, T.N. Truong, H. Kang, T.D. Le, A fixed-time sliding mode control for uncer­
+tain magnetic levitation systems with prescribed performance and anti-saturation 
+input, Eng. Appl. Artif. Intell. 133 (2024) 108373.
+[34] J. Hu, D. Zhang, Z.-G. Wu, H. Li, Neural network-based adaptive second-order 
+sliding mode control for uncertain manipulator systems with input saturation, ISA 
+Trans. 136 (2023) 126–138, https://doi.org/10.1016/j.isatra.2022.11.024
+[35] J. Liao, B. Guo, Y. Zhang, X. Miao, T. Zheng, Non-singular optimal terminal slid­
+ing mode control for autonomous surface vessels with actuator faults and model 
+uncertainties via adaptive dynamic programming, Ocean Eng. 343 (2026) 123334, 
+https://doi.org/10.1016/j.oceaneng.2025.123334
+[36] G. Tang, D. Wang, A. Liu, J. Qiao, Adjustable behavior-guided adaptive dynamic 
+programming for neural learning control, Neurocomputing 636 (2025) 129986, 
+https://doi.org/10.1016/j.neucom.2025.129986
+[37] X. Yang, Q. Wei, Adaptive dynamic programming for robust event-driven 
+tracking control of nonlinear systems with asymmetric input constraints, IEEE 
+Trans. Cybern. 54 (11) (2024) 6333–6344, https://doi.org/10.1109/TCYB.2024.
+3418904
+[38] Y. Li, Y.-X. Li, S. Tong, Event-based finite-time control for nonlinear multiagent 
+systems with asymptotic tracking, IEEE Trans. Autom. Control 68 (6) (2023) 
+3790–3797, https://doi.org/10.1109/TAC.2022.3197562
+[39] Y. Luo, W. Zhu, J. Cao, L. Rutkowski, Event-triggered finite-time guaranteed cost h-
+infinity consensus for nonlinear uncertain multi-agent systems, IEEE Trans. Netw. 
+Sci. Eng. 9 (3) (2022) 1527–1539.
+[40] Q. Chen, S. Xie, M. Sun, X. He, Adaptive nonsingular fixed-time attitude stabi­
+lization of uncertain spacecraft, IEEE Trans. Aerosp. Electron. Syst. 54 (6) (2018) 
+2937–2950, https://doi.org/10.1109/TAES.2018.2832998
+[41] A. Yesmin, K. Nath, M.K. Bera, Periodic event-based sliding mode tracking control 
+of euler lagrange systems with dynamic triggering, ISA Trans. 145 (2024) 32–43.
+[42] X.-G. Guo, M.-E. Tian, Q. Li, C.K. Ahn, Y.-H. Yang, Multiple-fault diagnosis for 
+spacecraft attitude control systems using RBFNN-based observers, Aerosp. Sci. 
+Technol. 106 (2020) 106195, https://doi.org/10.1016/j.ast.2020.106195
+[43] L. Qiao, W. Zhang, Adaptive second-order fast nonsingular terminal sliding mode 
+tracking control for fully actuated autonomous underwater vehicles, IEEE J. Ocean. 
+Eng. 44 (2) (2019) 363–385, https://doi.org/10.1109/JOE.2018.2809018
+[44] Q. Cui, Y. Song, C. Wen, Prescribed time consensus control of multiagent systems 
+with minimized time-varying cost function, IEEE Trans. Autom. Control 69 (5) 
+(2024) 8.
+Author biography
+Guangxin Guo was born in 1997. He received the B.S. degree 
+from School of Computer Science and Technology, Jining 
+University, Shandong, China, in 2020. He received the M.S. 
+degree from School of Computer Science and Technology, 
+Tiangong University, Tianjin, China, in 2023. He is currently 
+pursuing the Ph.D. degree in School of Systems Science and 
+Engineering with Sun Yat-sen University, Guangzhou, China. 
+In February 2025, he was jointed Ph.D. training program 
+at the National Innovation Institute of Defense Technology, 
+Advanced Interdisciplinary Technology Research Center, 
+Beijing, China. His research interests include sliding mode 
+control, robotics and its application, nonlinear systems control, networked multi-agent 
+systems cooperative consensus, and multi-underwater vehicles hunting control.
+Shaoqiu Xiao received the Ph.D. degree in electromag­
+netic field and microwave technology from the University 
+of Electronic Science and Technology of China (UESTC), 
+Chengdu, China, in 2003. From January 2004 to June 
+2004, he joined UESTC as an Assistant Professor. 
+From July 2004 to March 2006, he worked for the 
+Wireless Communications Laboratory, National Institute 
+of Information and Communications Technology of Japan 
+(NICT), Singapore, as a Research Fellow, with a focus on 
+the planar antenna and smart antenna design and optimiza­
+tion. From July 2006 to June 2010 and from August 2010 
+to December 2019, he worked at UESTC as an Associate Professor and a Professor, 
+respectively. He visited Ecole Normale Superieure de Cachan, Paris, France, as a Senior 
+Research Scholar, from July 2015 to August 2015. In January 2020, he joined Sun 
+Yat-sen University, Guangzhou, China, as a Professor. His current research interests 
+include planar antenna and phased array, magnetoelectric antenna, microwave passive 
+circuits, computational electromagnetics, communication with multiple vehicles, and 
+multiple robots formation. He has authored/co-authored more than 400 technical 
+journals, conference papers, books, and book chapters.
+Neurocomputing 677 (2026) 133031 
+11 
+
+=== PAGE 12 ===
+G. Guo, S. Xiao, T. Shen et al.
+Fuchang Chen received his B.S. degrees from the School 
+of Automation, Wuhan University of Technology, Wuhan, 
+China, in 2024. He is currently pursuing his M.S. degree in 
+the School of Systems Science and Engineering, Sun Yat-sen 
+University, Guangzhou, China. His research interests include 
+motion planning, multi-robot systems, SLAM.
+Shaojun Guo received the Ph.D. degree in signal and 
+information processing from Navy Aeronautical University, 
+Yantai, China, in 2017. He is currently an Associate 
+Researcher of National Innovation Institute of Defense 
+Technology, Advanced Interdisciplinary Technology 
+Research Center, Beijing, China. His current research 
+interests include underwater vehicles formation, intelli­
+gent information processing, ocean target detection and 
+identification.
+Zilei Luo received the B.Eng. degree in mechanical engi­
+neering and the Ph.D. degree in Mechanical and Electronic 
+Engineering from the Huazhong University of Science and 
+Technology (HUST), Wuhan, China, in 2012 and 2018, re­
+spectively. He currently serves as an Associate Researcher 
+at the National Innovation Institute of Defense Technology, 
+Advanced Interdisciplinary Technology Research Center, 
+Beijing, China. His research interests include underwater 
+acoustic signal processing and intelligent marine systems.
+Neurocomputing 677 (2026) 133031 
+12 
+

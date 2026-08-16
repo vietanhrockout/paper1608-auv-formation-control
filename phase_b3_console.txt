@@ -1,0 +1,19 @@
+exp4_rl_pts_mc_projected: integrating [0, 15.0000]s at h=1.00e-04 (150000 steps) ...
+exp4_rl_pts_mc_projected: done, 150000 steps, 1223.0s wall, max_retraction=3.824e+04
+params.inverse_lambda_mode = proof_consistent_unsigned
+
+=== PHASE B.3 SUMMARY (Issue P fix, t_final=15.00, h=1.0e-04) ===
+nsteps=150000, wall=1223.0s, max_retraction=3.8237e+04, total_retracted=641485
+max tau_act = 150.0000 N/Nm (limit 150/30)
+max ||Wc|| = 100.0000 (limit 100.0), max ||Wa||_F = 2.0616 (limit 50.0)
+t=  0.000  E_chi=   16.0000  E_s=   3492.0473
+t=  1.494  E_chi=   13.1950  E_s=   2571.2250
+t=  3.760  E_chi=    7.8463  E_s=   1129.6762
+t=  5.005  E_chi=    4.9108  E_s=    538.5248
+t=  7.495  E_chi=    0.0090  E_s=      0.0085
+t= 11.255  E_chi=    0.0055  E_s=      0.0214
+t= 15.000  E_chi=    0.0037  E_s=      0.0129
+
+E_chi(0)=16.0000 -> E_chi(end)=0.0037
+PASS: E_chi(end)=0.0037 is within the 2.0-unit convergence neighborhood.
+=== END PHASE B.3 (all structural asserts PASSED; see convergence verdict above) ===

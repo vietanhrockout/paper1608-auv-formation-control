@@ -1,0 +1,138 @@
+
+============================================================
+ STEP K.3 -- PROJECTION STEP-REFINEMENT AUDIT
+============================================================
+t_micro = 8.000000e-05 s
+delta_c = 1.000000e+02
+RelTol  = 1e-3
+AbsTol  = 1e-4
+
+------------------------------------------------------------
+RUN 1 / 4
+MaxStep cap = 5.000000e-02 s
+------------------------------------------------------------
+solver points       = 27
+min actual step     = 3.731197909222e-10 s
+max actual step     = 1.555732280644e-05 s
+elapsed time        = 3.290 s
+
+AUV 0
+max ||Wc||          = 1.001455824019e+02
+absolute violation  = 1.455824019126e-01
+relative violation  = 1.455824019126e-03
+
+AUV 1
+max ||Wc||          = 1.098598277245e+02
+absolute violation  = 9.859827724473e+00
+relative violation  = 9.859827724473e-02
+
+AUV 2
+max ||Wc||          = 1.021553566477e+02
+absolute violation  = 2.155356647747e+00
+relative violation  = 2.155356647747e-02
+
+------------------------------------------------------------
+RUN 2 / 4
+MaxStep cap = 1.000000e-06 s
+------------------------------------------------------------
+solver points       = 88
+min actual step     = 3.731197909222e-10 s
+max actual step     = 1.000000000000e-06 s
+elapsed time        = 2.657 s
+
+AUV 0
+max ||Wc||          = 1.005503142403e+02
+absolute violation  = 5.503142403372e-01
+relative violation  = 5.503142403372e-03
+
+AUV 1
+max ||Wc||          = 1.010454310481e+02
+absolute violation  = 1.045431048061e+00
+relative violation  = 1.045431048061e-02
+
+AUV 2
+max ||Wc||          = 1.048840711323e+02
+absolute violation  = 4.884071132261e+00
+relative violation  = 4.884071132261e-02
+
+------------------------------------------------------------
+RUN 3 / 4
+MaxStep cap = 2.000000e-07 s
+------------------------------------------------------------
+solver points       = 407
+min actual step     = 3.731197909222e-10 s
+max actual step     = 2.000000000000e-07 s
+elapsed time        = 7.438 s
+
+AUV 0
+max ||Wc||          = 1.001105546254e+02
+absolute violation  = 1.105546254068e-01
+relative violation  = 1.105546254068e-03
+
+AUV 1
+max ||Wc||          = 1.006549106345e+02
+absolute violation  = 6.549106345148e-01
+relative violation  = 6.549106345148e-03
+
+AUV 2
+max ||Wc||          = 1.001961320415e+02
+absolute violation  = 1.961320415027e-01
+relative violation  = 1.961320415027e-03
+
+------------------------------------------------------------
+RUN 4 / 4
+MaxStep cap = 5.000000e-08 s
+------------------------------------------------------------
+solver points       = 1604
+min actual step     = 3.731197909222e-10 s
+max actual step     = 5.000000000000e-08 s
+elapsed time        = 23.098 s
+
+AUV 0
+max ||Wc||          = 1.000321363212e+02
+absolute violation  = 3.213632117176e-02
+relative violation  = 3.213632117176e-04
+
+AUV 1
+max ||Wc||          = 1.005428983527e+02
+absolute violation  = 5.428983527155e-01
+relative violation  = 5.428983527155e-03
+
+AUV 2
+max ||Wc||          = 1.012707046397e+02
+absolute violation  = 1.270704639686e+00
+relative violation  = 1.270704639686e-02
+
+============================================================
+ STEP K.3 SUMMARY
+============================================================
+MaxStep_cap     max_h_actual   Wc0_max   err0   Wc1_max   err1   Wc2_max   err2
+5.000e-02   1.556e-05   100.14558240 0.14558240   109.85982772 9.85982772   102.15535665 2.15535665
+1.000e-06   1.000e-06   100.55031424 0.55031424   101.04543105 1.04543105   104.88407113 4.88407113
+2.000e-07   2.000e-07   100.11055463 0.11055463   100.65491063 0.65491063   100.19613204 0.19613204
+5.000e-08   5.000e-08   100.03213632 0.03213632   100.54289835 0.54289835   101.27070464 1.27070464
+
+REFINEMENT RATIOS:
+
+AUV 0
+run 1 -> 2: violation ratio = 3.780088e+00
+run 2 -> 3: violation ratio = 2.008936e-01
+run 3 -> 4: violation ratio = 2.906827e-01
+
+AUV 1
+run 1 -> 2: violation ratio = 1.060293e-01
+run 2 -> 3: violation ratio = 6.264503e-01
+run 3 -> 4: violation ratio = 8.289655e-01
+
+AUV 2
+run 1 -> 2: violation ratio = 2.266015e+00
+run 2 -> 3: violation ratio = 4.015749e-02
+run 3 -> 4: violation ratio = 6.478822e+00
+
+============================================================
+ STEP K.3 CLASSIFICATION
+============================================================
+RESULT: projection-bound violation decreases under step refinement.
+This supports finite-step discretization as the dominant mechanism.
+This does NOT yet establish a production-ready numerical solution.
+============================================================

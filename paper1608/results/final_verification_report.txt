@@ -1,0 +1,18 @@
+=====================================================
+  Running Paper 1608 Targeted Verification Subset
+=====================================================
+STEP 05: PASS (paper_literal sigma2 < 0 verified, eq29_consistent sigma1=2.8352, sigma2=5.2907 verified)
+STEP 20: PASS (q(s) sign alignment with s verified under eq29_consistent)
+STEP 29: PASS (NN Config & Field Aliases delta_a=50, delta_c=100 verified)
+STEP 32: PASS (Equation Fidelity wdot==v in interior verified, w_bnd @ wdot_bnd == 0 boundary orthogonality verified)
+STEP 35: PASS (Paper Eq. 16 Strategic Utility r(t))
+STEP 35b: PASS (Confirmed tau_cmd vs tau_act cost signal separation under saturation: r_cmd=25.9026, r_act=9.2826)
+STEP 36: PASS (Paper Eq. 17 Bellman Error c_e)
+STEP 37: PASS (Paper Eq. 19 Gradient Descent dWc + lambda_c*c_e*Phi == 0 verified)
+STEP 39: PASS (Paper Eq. 37 Gradient Descent dWa_j + lambda_a*tanh(...)*theta_j == 0 verified)
+STEP 40: PASS (Paper Eq. 31 RL Controller Execution)
+STEP 43: PASS (Master 549-State Closed-Loop ODE RHS Evaluation with tau_cmd)
+STEP 44: PASS (Numerical ODE Step Stability)
+-----------------------------------------------------
+TARGETED VERIFICATION SUBSET (STEPS 05, 20, 29, 32, 35, 35b, 36, 37, 39, 40, 43, 44) PASSED 100%!
+=====================================================

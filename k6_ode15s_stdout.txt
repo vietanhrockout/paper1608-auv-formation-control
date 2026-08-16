@@ -1,0 +1,40 @@
+
+============================================================
+ STEP K.6 -- STIFF SOLVER TEST: ODE15S
+============================================================
+t_final = 2.0000 s, RelTol=1e-3, AbsTol=1e-4 (production values)
+  progress: init at t=0.000000
+  progress: accepted_steps=8 t=0.000002
+  progress: accepted_steps=18 t=0.000003
+  progress: accepted_steps=23 t=0.000003
+  progress: accepted_steps=38 t=0.000014
+  progress: accepted_steps=45 t=0.000067
+  progress: accepted_steps=64 t=0.000563
+  progress: accepted_steps=81 t=0.010623
+  progress: accepted_steps=89 t=0.013158
+  progress: accepted_steps=96 t=0.013167
+  progress: accepted_steps=105 t=0.013169
+  progress: accepted_steps=111 t=0.013169
+  progress: accepted_steps=117 t=0.013169
+  progress: accepted_steps=120 t=0.013169
+  progress: accepted_steps=126 t=0.013169
+  progress: accepted_steps=128 t=0.013169
+  progress: accepted_steps=131 t=0.013169
+  progress: accepted_steps=133 t=0.013169
+  progress: accepted_steps=136 t=0.013169
+  progress: accepted_steps=145 t=0.013169
+  progress: accepted_steps=151 t=0.013169
+  progress: accepted_steps=157 t=0.013169
+  progress: accepted_steps=163 t=0.013169
+  progress: accepted_steps=169 t=0.013169
+  progress: accepted_steps=175 t=0.013169
+  progress: accepted_steps=181 t=0.013169
+  progress: accepted_steps=193 t=0.013169
+  progress: accepted_steps=202 t=0.013169
+  progress: accepted_steps=217 t=0.013169
+  progress: accepted_steps=226 t=0.013169
+  progress: accepted_steps=235 t=0.013169
+  progress: accepted_steps=247 t=0.013169
+  progress: accepted_steps=253 t=0.013169
+  progress: accepted_steps=259 t=0.013169
+  progress: accepted_steps=261 t=0.013169

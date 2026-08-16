@@ -1,0 +1,99 @@
+
+============================================================
+ STEP K.2 -- MICRO PROJECTION CROSSING AUDIT
+============================================================
+t_micro = 2.000000e-04 s
+delta_c = 1.000000e+02
+RelTol  = 1e-3
+AbsTol  = 1e-4
+MaxStep = 5e-2  (unchanged production value)
+
+Solver output points : 47
+Accepted intervals   : 46
+min output step       : 3.731198e-10 s
+max output step       : 1.555732e-05 s
+first output step     : 3.731198e-10 s
+
+------------------------------------------------------------
+AUV 0
+------------------------------------------------------------
+max ||Wc|| over micro horizon = 1.001455824019e+02
+first ||Wc|| >= 0.9 delta at t = 6.148743186299e-05 s
+  ||Wc|| = 9.175680284805e+01
+
+FIRST OUTSIDE-BOUNDARY OUTPUT:
+t_prev    = 6.7592273408800590e-05 s
+t_outside = 6.8765868078346344e-05 s
+h_cross   = 1.1735946695457536e-06 s
+||Wc_prev||    = 9.9985751217089856e+01
+||Wc_outside|| = 1.0014558240191262e+02
+overshoot ratio = 1.0014558240191263e+00
+||v_raw|| outside  = 1.4942525990410210e+06
+||v_proj|| outside = 1.0586384532517107e+01
+Wc'*v_raw outside  = 1.4964279678277913e+08
+Wc'*v_proj outside = 2.1773161051896750e-08
+r outside             = 2.5843723676156391e+10
+max tau_cmd force     = 1.5531268419228896e+07 N
+normalized projected radial = 2.0537237405037742e-11
+
+CLASSIFICATION:
+STATE CROSSED FROM INSIDE TO OUTSIDE WHILE PROJECTED RADIAL DERIVATIVE IS NON-OUTWARD.
+This is evidence of finite-step numerical loss of the invariant set.
+
+------------------------------------------------------------
+AUV 1
+------------------------------------------------------------
+max ||Wc|| over micro horizon = 1.098598277245e+02
+first ||Wc|| >= 0.9 delta at t = 3.206099889682e-06 s
+  ||Wc|| = 9.450266026424e+01
+
+FIRST OUTSIDE-BOUNDARY OUTPUT:
+t_prev    = 3.2060998896824875e-06 s
+t_outside = 4.1701998035794202e-06 s
+h_cross   = 9.6409991389693273e-07 s
+||Wc_prev||    = 9.4502660264243630e+01
+||Wc_outside|| = 1.0985982769045060e+02
+overshoot ratio = 1.0985982769045060e+00
+||v_raw|| outside  = 2.9477888685364492e+07
+||v_proj|| outside = 2.9249090029513519e+02
+Wc'*v_raw outside  = 3.2384357714930086e+09
+Wc'*v_proj outside = 4.8957190301734954e-07
+r outside             = 8.5182448739208393e+09
+max tau_cmd force     = 9.1788871637388896e+06 N
+normalized projected radial = 1.5235798226976885e-11
+
+CLASSIFICATION:
+STATE CROSSED FROM INSIDE TO OUTSIDE WHILE PROJECTED RADIAL DERIVATIVE IS NON-OUTWARD.
+This is evidence of finite-step numerical loss of the invariant set.
+
+------------------------------------------------------------
+AUV 2
+------------------------------------------------------------
+max ||Wc|| over micro horizon = 1.021553566477e+02
+first ||Wc|| >= 0.9 delta at t = 1.680347084940e-06 s
+  ||Wc|| = 9.532119186010e+01
+
+FIRST OUTSIDE-BOUNDARY OUTPUT:
+t_prev    = 1.6803470849398656e-06 s
+t_outside = 1.9032882665376438e-06 s
+h_cross   = 2.2294118159777826e-07 s
+||Wc_prev||    = 9.5321191860100328e+01
+||Wc_outside|| = 1.0215535530928719e+02
+overshoot ratio = 1.0215535530928719e+00
+||v_raw|| outside  = 5.6727645475558251e+07
+||v_proj|| outside = 1.4120575222830854e+02
+Wc'*v_raw outside  = 5.7950327793969774e+09
+Wc'*v_proj outside = 2.3199123688755208e-07
+r outside             = 2.7504786781182919e+09
+max tau_cmd force     = 4.4045046795261316e+06 N
+normalized projected radial = 1.6082666380446380e-11
+
+CLASSIFICATION:
+STATE CROSSED FROM INSIDE TO OUTSIDE WHILE PROJECTED RADIAL DERIVATIVE IS NON-OUTWARD.
+This is evidence of finite-step numerical loss of the invariant set.
+
+============================================================
+ STEP K.2 CLASSIFICATION
+============================================================
+RESULT: finite-step numerical projection crossing is supported by the micro-horizon data.
+============================================================

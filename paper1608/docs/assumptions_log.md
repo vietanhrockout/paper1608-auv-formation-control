@@ -1,0 +1,125 @@
+# Paper 1608 Assumptions & Source Audit Log
+
+This document tracks all audited discrepancies, ambiguities, typos, and mathematical inconsistencies identified during the detailed audit of PDF Paper 1608 (*Neurocomputing, 2026, 133031*). Every issue includes a clear resolution strategy, implementation assumption, and status.
+
+---
+
+### ISSUE A — Sliding Surface Definition (Eq. 21)
+
+* **ID**: ISSUE_A_SLIDING_SURFACE
+* **Equation/Figure**: Eq. (21), Page 4
+* **What paper says**: 
+  $$s_i = L(\chi_i)\chi_i + \text{sig}^{\alpha_1}(\upsilon_i)$$
+* **Problem**: Secondary notes (e.g. `equation.md`) wrote $s_i = \upsilon_i + L(\chi_i)\chi_i$, which alters the power $\alpha_1$ on $\upsilon_i$ and violates the nonsingular terminal sliding surface theory of paper 1608.
+* **Implementation assumption**: Strictly implement PDF Eq. (21): $s_i = L(\chi_i)\chi_i + \text{sig}^{\alpha_1}(\upsilon_i)$.
+* **Reason**: The PDF text and proof in Theorem 1 rely on $\text{sig}^{\alpha_1}(\upsilon_i)$ to ensure nonsingularity during reaching phase.
+* **Impact**: Critical for sliding surface function `sliding_surface.m`.
+* **Status**: RESOLVED WITH PDF LITERAL
+
+---
+
+### ISSUE B — Gains $a_1, a_2$ Parameter Formulas (Eq. 22)
+
+* **ID**: ISSUE_B_GAIN_FORMULAS
+* **Equation/Figure**: Eq. (22), Page 4
+* **What paper says**: 
+  $$a_1 = \frac{6^{c-1}}{(1-b_1)\varepsilon_0 T_2^*}, \quad a_2 = \frac{6^{c-1}}{(b_2-1)(1-\varepsilon_0) T_2^*}$$
+* **Problem**: Code previously used $T_1^{*2}$ in the denominator instead of $T_2^*$, yielding $a_1 = 0.0215, a_2 = 0.0318$. Literal PDF gives $a_1 \approx 1.192474, a_2 \approx 12.878722$.
+* **Implementation assumption**: Implement literal PDF Eq. (22) with $T_2^*$.
+* **Reason**: Preserves exact sliding gain matrix $L(\chi_i)$ magnitude as specified in PDF Paper 1608.
+* **Impact**: Direct calculation of coefficients $a_1, a_2$ in `config/derived_params.m`.
+* **Status**: REPAIRED WITH PDF LITERAL ($a_1 \approx 1.1925, a_2 \approx 12.8787$)
+
+---
+
+### ISSUE C — Predefined-Time Reaching Coefficients $\sigma_1, \sigma_2$ (Eq. 26 vs Lemma 2)
+
+* **ID**: ISSUE_C_NEGATIVE_SIGMA
+* **Equation/Figure**: Eq. (26), Page 4 vs Lemma 2
+* **What paper says**: 
+  $$\sigma_2 = \frac{2^{\varsigma_1}}{(1 + \varsigma_1\varsigma_3 - 2\varsigma_1)(1-\varepsilon_0)T_1^*}$$
+* **Problem**: Substituting parameters from Table 1 ($\varsigma_1=2, \varsigma_3=0.6, \varepsilon_0=0.8, T_1^*=5$):
+  $$1 + \varsigma_1\varsigma_3 - 2\varsigma_1 = 1 + 2(0.6) - 2(2) = 1 + 1.2 - 4 = -1.8 < 0$$
+  This yields a negative gain $\sigma_2 = \frac{4}{(-1.8)(0.2)(5)} = -2.222 < 0$, which breaks Lyapunov stability ($\dot{V} \le 0$).
+* **Analytical Re-Derivation**: From Lemma 2, the reaching term exponent is $\beta = \frac{\varsigma_1(1+\varsigma_3)}{2} > 1$. The predefined time bound integration term $\frac{1}{\beta - 1}$ expands to $\frac{2}{\varsigma_1 + \varsigma_1\varsigma_3 - 2} = \frac{2}{2\varsigma_1 - 1 - \varsigma_1\varsigma_3}$.
+  The paper authors erroneously wrote $1 + \varsigma_1\varsigma_3 - 2\varsigma_1$ instead of $2\varsigma_1 - 1 - \varsigma_1\varsigma_3$.
+* **Implementation assumption**: Support three modes:
+  - `params.sigma_mode = 'paper_literal'`: Literal formula (yields negative $\sigma_2 = -2.2222$).
+  - `params.sigma_mode = 'sign_flip_candidate'`: Empirical sign flip ($\sigma_2 = +2.2222$).
+  - `params.sigma_mode = 'eq29_consistent'`: Independent Eq. (29) derivation ($\sigma_1 \approx 2.8352, \sigma_2 \approx 5.2907 > 0$).
+* **Reason**: Mathematically sound derivation from Lemma 2 Lyapunov predefined-time bound.
+* **Impact**: Reaching law term stability.
+* **Status**: RESOLVED WITH INDEPENDENT DERIVATION (`eq29_consistent`)
+
+---
+
+### ISSUE D — Reference Acceleration Sign in Controller (Eq. 25 vs Eq. 31)
+
+* **ID**: ISSUE_D_REF_ACCEL_SIGN
+* **Equation/Figure**: Eq. (25) Page 4 vs Eq. (31) Page 5
+* **What paper says**: 
+  Eq. (25) contains $+\ddot{\bar{\eta}}_{d0}$, whereas Eq. (31) prints $-\ddot{\bar{\eta}}_{d0}$.
+* **Problem**: Since tracking error is $\upsilon_i = \dot{\eta}_i - \dot{\bar{\eta}}_{d0}$, differentiating $\upsilon_i$ yields $\dot{\upsilon}_i = \ddot{\eta}_i - \ddot{\bar{\eta}}_{d0}$. Inverting for control input requires $+\ddot{\bar{\eta}}_{d0}$ to cancel reference acceleration.
+* **Implementation assumption**: Implement config flag:
+  - `params.ref_accel_sign = +1`: Mathematically consistent feedforward $+ \ddot{\bar{\eta}}_{d0}$.
+  - `params.ref_accel_sign = -1`: Literal Eq. (31) print.
+* **Reason**: Verification requirement Issue D.
+* **Impact**: Feedforward tracking precision.
+* **Status**: RESOLVED WITH TWO-BRANCH TEST
+
+---
+
+### ISSUE E — Actuator Saturation Deviation Definition ($\Delta\tau_i$)
+
+* **ID**: ISSUE_E_SATURATION_DEVIATION
+* **Equation/Figure**: Section 2 Eq. (3), Section 4 Eq. (30), (31)
+* **What paper says**: $\text{sat}(\tau_{ui}) = \tau + \Delta\tau$.
+* **Problem**: In implementation, $\tau_{\text{cmd}}$ is the nominal control signal generated by the controller, and $\tau_{\text{act}} = \text{sat}(\tau_{\text{cmd}})$ is the physical actuator output bounded by $[\tau_{\min}, \tau_{\max}]$.
+* **Implementation assumption**: Define $\Delta\tau = \tau_{\text{act}} - \tau_{\text{cmd}}$.
+* **Reason**: Natural physical deviation $\tau_{\text{act}} = \tau_{\text{cmd}} + \Delta\tau$. When unsaturated, $\tau_{\text{act}} = \tau_{\text{cmd}} \implies \Delta\tau = 0$.
+* **Impact**: Anti-windup compensator state derivative $\dot{\varpi}_i$.
+* **Status**: VERIFIED
+
+---
+
+### ISSUE F — Critic Network Input Vector ($\eta_i$ vs $\chi_i$)
+
+* **ID**: ISSUE_F_CRITIC_INPUT
+* **Equation/Figure**: Section 3.2 Eq. (17), (19)
+* **What paper says**: Text states $\hat{C} = \hat{w}_c^T \theta_c(\eta_i)$, but Eq. (19) evaluates derivative $\frac{\partial \hat{C}}{\partial \chi_i} \upsilon_i$.
+* **Problem**: If $\hat{C}$ depends on global position $\eta_i$ vs formation error $\chi_i$, cost-to-go behavior changes.
+* **Implementation assumption**: Support config option:
+  - `critic.input_mode = 'chi'`: Input to Critic RBF is tracking error $\chi_i$.
+  - `critic.input_mode = 'eta'`: Input to Critic RBF is spatial position $\eta_i$.
+* **Reason**: Formation tracking cost optimization is relative to formation reference.
+* **Impact**: Critic basis evaluation and regressor $\Phi$.
+* **Status**: RESOLVED WITH TWO-BRANCH TEST
+
+---
+
+### ISSUE G — Actor Update Law Dimension Consistency (Eq. 37)
+
+* **ID**: ISSUE_G_ACTOR_DIM_CONSISTENCY
+* **Equation/Figure**: Eq. (37), Page 6
+* **What paper says**: 
+  $$\dot{\hat{w}}_{ai} = -\lambda_a \tanh\left( \sum_{i=1}^n \hat{w}_{ai}\theta_{ai} + c_{0a}\hat{C} \right) \theta_{ai}$$
+* **Problem**: $\hat{w}_{ai}^T \theta_{ai}$ is scalar output for each DOF $j$, while $\hat{C}$ is scalar estimated cost. In `equation.md`, line 108 incorrectly wrote $c_{0a}\hat{w}_c$, which is a vector and causes dimension mismatch.
+* **Implementation assumption**: Implement scalar argument inside $\tanh$: $h_{aij} = \hat{w}_{aij}^T \theta_{aij} + c_{0a} \hat{C}_i$.
+* **Reason**: Dimensionally consistent scalar argument for hyperbolic tangent function.
+* **Impact**: Actor weight adaptation rule `actor_update.m`.
+* **Status**: VERIFIED
+
+---
+
+### ISSUE H — Critic Strategic Utility Cost Input Signal ($\tau_{\text{cmd}}$ vs $\tau_{\text{act}}$)
+
+* **ID**: ISSUE_H_CRITIC_COST_SIGNAL
+* **Equation/Figure**: Eq. (16), Page 3 vs Eq. (31), Page 5
+* **What paper says**: 
+  $$r(t) = (\eta - \bar{\eta}_0^d)^T B (\eta - \bar{\eta}_0^d) + \tau^T R \tau$$
+* **Problem**: In paper notation, $\tau$ represents the control input vector generated by controller Eq. (31) ($\tau_{\text{cmd}}$). Saturation is modeled as $\text{sat}(\tau_u) = \tau + \Delta\tau$.
+  If $\tau_{\text{act}}$ (the bounded physical force) is fed to Critic utility calculation instead of $\tau_{\text{cmd}}$, the cost calculation diverges under saturation ($\tau_{\text{cmd}} \neq \tau_{\text{act}}$).
+* **Implementation assumption**: Feed controller output signal $\tau_i = \tau_{\text{cmd}, i}$ into `strategic_utility.m` and `critic_update.m` per Paper Eq. (16) literal notation.
+* **Reason**: Strict fidelity to Paper Eq. (16) literal specification of control effort penalty.
+* **Impact**: Critic Bellman residual error $c_{ei}$ and weight update $\dot{\hat{w}}_{ci}$.
+* **Status**: VERIFIED WITH ISSUE_H AUDIT TEST

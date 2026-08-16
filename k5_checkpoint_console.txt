@@ -1,0 +1,3 @@
+checkpoint: running hot phase [0, 0.15]s, h=1e-6 ...
+checkpoint: hot phase done, 150000 steps, 1195.4s wall
+checkpoint: saved to k5_hotphase_checkpoint.mat

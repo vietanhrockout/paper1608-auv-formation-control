@@ -1,0 +1,46 @@
+
+============================================================
+ STEP N.1 SINGLE CASE: delta_c = 1.000e+02, delta_a = 5.000e+01, horizon=2.000s
+============================================================
+  progress: step=23 t=6.759227e-05
+  progress: step=93 t=4.816814e-04
+  progress: step=168 t=9.272017e-04
+  progress: step=251 t=1.417337e-03
+  progress: step=403 t=2.314310e-03
+  progress: step=568 t=3.285676e-03
+  progress: step=747 t=4.340200e-03
+  progress: step=923 t=5.374751e-03
+  progress: step=1030 t=6.004786e-03
+  progress: step=1184 t=6.911549e-03
+  progress: step=1339 t=7.821773e-03
+  progress: step=1488 t=8.694101e-03
+  progress: step=1577 t=9.213792e-03
+  progress: step=1688 t=9.861997e-03
+  progress: step=1856 t=1.083863e-02
+  progress: step=2002 t=1.168311e-02
+  progress: step=2091 t=1.219633e-02
+  progress: step=2141 t=1.248262e-02
+  progress: step=2168 t=1.263758e-02
+  progress: step=2269 t=1.320900e-02
+  progress: step=2431 t=1.411276e-02
+  progress: step=2593 t=1.489423e-02
+  progress: step=2730 t=1.535777e-02
+  progress: step=2844 t=1.567674e-02
+  progress: step=2929 t=1.588675e-02
+  progress: step=3050 t=1.615596e-02
+  progress: step=3203 t=1.645387e-02
+  progress: step=3368 t=1.673705e-02
+  progress: step=3478 t=1.690868e-02
+  progress: step=3579 t=1.705430e-02
+  progress: step=3725 t=1.724201e-02
+  progress: step=3807 t=1.734088e-02
+  progress: step=3958 t=1.751100e-02
+  progress: step=4131 t=1.769152e-02
+  progress: step=4291 t=1.784036e-02
+  progress: step=4400 t=1.793999e-02
+  progress: step=4566 t=1.807717e-02
+  progress: step=4700 t=1.818287e-02
+  progress: step=4872 t=1.830902e-02
+  progress: step=5044 t=1.842699e-02
+  progress: step=5214 t=1.853642e-02
+  progress: step=5362 t=1.862820e-02

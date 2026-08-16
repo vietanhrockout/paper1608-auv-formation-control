@@ -1,0 +1,21 @@
+
+============================================================
+ STEP K.5 -- HOT-PHASE THROUGHPUT TEST
+============================================================
+t_hot_final = 2.000000e-03 s, h = 1.000000e-06 s -> 2001 steps
+delta_c = 1.000e+02, delta_a = 5.000e+01 (production defaults)
+
+RESULT:
+steps               = 2001
+elapsed wall time   = 35.012 s
+steps/sec           = 57.2
+max retraction norm = 2.999754e+01
+total retractions   = 10246
+
+Endpoint (t=2.000000e-03 s):
+||Wc|| per AUV   = [1.000000e+02 1.000000e+02 1.000000e+02] (delta_c=100.0)
+||Wa||_F per AUV = [4.053195e-05 3.344216e-04 3.463716e-04] (delta_a=50.0)
+
+STATUS: PASS -- structural bounds held, state finite.
+
+Extrapolated wall time for a 0.15s hot phase at this h: 2625.9 s

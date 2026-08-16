@@ -1,0 +1,15 @@
+exp4_rl_pts_mc_projected: integrating [0, 15.0000]s at h=1.00e-04 (150000 steps) ...
+exp4_rl_pts_mc_projected: done, 150000 steps, 1345.5s wall, max_retraction=1.521e+06
+
+=== PHASE B.2 SUMMARY ===
+t final = 15.0000
+any NaN/Inf: 0
+max tau_act force: 150.0000 N (limit 150)
+t=0.00  E_chi=16.0000  E_s=3492.0473
+t=0.15  E_chi=16.0028  E_s=3492.8743
+t=1.00  E_chi=16.0029  E_s=3492.8933
+t=2.99  E_chi=22.6170  E_s=6052.3350
+t=5.00  E_chi=36.8568  E_s=13121.9188
+t=10.01  E_chi=72.1121  E_s=38110.3694
+t=15.00  E_chi=107.0422  E_s=71447.8953
+=== PHASE B.2 DONE ===

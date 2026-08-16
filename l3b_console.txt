@@ -1,0 +1,94 @@
+
+============================================================
+ STEP L.3b -- FIG. 9 SLIDING-SCALE VISIBILITY AUDIT
+============================================================
+
+Leader-relative formation errors from L.3a:
+AUV0 chi_xyz =  6.000000000000   6.000000000000   16.000000000000
+AUV0 vel_xyz = -0.100000000000   0.100000000000   0.200000000000
+AUV1 chi_xyz = -8.000000000000  -9.000000000000  -4.000000000000
+AUV1 vel_xyz =  0.000000000000   0.000000000000   0.000000000000
+AUV2 chi_xyz = -12.000000000000  -5.000000000000  -8.000000000000
+AUV2 vel_xyz =  0.000000000000   0.000000000000   0.000000000000
+
+------------------------------------------------------------
+LITERAL PDF EQ. (21) INITIAL s
+------------------------------------------------------------
+AUV0 s_xyz =  7.419019085666e+02   7.420281000355e+02   3.492047344230e+03
+AUV0 ||s||_inf = 3.492047344230e+03
+AUV0 clipping-scale ratio = 2.328031562820e+02
+AUV1 s_xyz = -1.167662877243e+03  -1.406178425215e+03  -3.921334734472e+02
+AUV1 ||s||_inf = 1.406178425215e+03
+AUV1 clipping-scale ratio = 1.406178425215e+02
+AUV2 s_xyz = -2.215208369925e+03  -5.568729716685e+02  -1.167662877243e+03
+AUV2 ||s||_inf = 2.215208369925e+03
+AUV2 clipping-scale ratio = 1.476805579950e+02
+
+------------------------------------------------------------
+DIAGNOSTIC ONLY: L = I SURFACE
+s_I = chi + sig^{alpha1}(vel_err)
+------------------------------------------------------------
+AUV0 s_I_xyz =  5.936904265552e+00   6.063095734448e+00   1.614495593274e+01
+AUV1 s_I_xyz = -8.000000000000e+00  -9.000000000000e+00  -4.000000000000e+00
+AUV2 s_I_xyz = -1.200000000000e+01  -5.000000000000e+00  -8.000000000000e+00
+
+============================================================
+ IDEAL q-ONLY TIME TO ENTER FIG. 9 VISIBLE WINDOW
+============================================================
+
+------------------------------------------------------------
+MODE: paper_literal
+sigma1 = 4.545454545455e-01
+sigma2 = -2.222222222222e+00
+------------------------------------------------------------
+AUV0 T_visible xyz [s] = NaN  NaN  NaN  
+AUV0 max finite T_visible = INVALID
+AUV1 T_visible xyz [s] = NaN  NaN  NaN  
+AUV1 max finite T_visible = INVALID
+AUV2 T_visible xyz [s] = NaN  NaN  NaN  
+AUV2 max finite T_visible = INVALID
+
+------------------------------------------------------------
+MODE: sign_flip_candidate
+sigma1 = 4.545454545455e-01
+sigma2 = 2.222222222222e+00
+------------------------------------------------------------
+AUV0 T_visible xyz [s] = 2.704209523044e-01  2.704292101928e-01  3.360015784602e-01  
+AUV0 max T_visible = 3.360015784602e-01 s
+AUV0 fraction of 100-s plot width = 3.360015784602e-01 %
+AUV1 T_visible xyz [s] = 3.309537854098e-01  3.391319767525e-01  2.770176486661e-01  
+AUV1 max T_visible = 3.391319767525e-01 s
+AUV1 fraction of 100-s plot width = 3.391319767525e-01 %
+AUV2 T_visible xyz [s] = 3.186152708644e-01  2.561279546081e-01  2.915680586954e-01  
+AUV2 max T_visible = 3.186152708644e-01 s
+AUV2 fraction of 100-s plot width = 3.186152708644e-01 %
+
+------------------------------------------------------------
+MODE: eq29_consistent
+sigma1 = 2.835189758909e+00
+sigma2 = 5.290651164659e+00
+------------------------------------------------------------
+AUV0 T_visible xyz [s] = 3.755137816026e-02  3.755261850997e-02  4.760068067573e-02  
+AUV0 max T_visible = 4.760068067573e-02 s
+AUV0 fraction of 100-s plot width = 4.760068067573e-02 %
+AUV1 T_visible xyz [s] = 4.574946276498e-02  4.699677768657e-02  3.767604823634e-02  
+AUV1 max T_visible = 4.699677768657e-02 s
+AUV1 fraction of 100-s plot width = 4.699677768657e-02 %
+AUV2 T_visible xyz [s] = 4.489713202171e-02  3.541377500517e-02  4.074811626074e-02  
+AUV2 max T_visible = 4.489713202171e-02 s
+AUV2 fraction of 100-s plot width = 4.489713202171e-02 %
+
+============================================================
+ INTERPRETATION RULE
+============================================================
+A small Fig. 9 y-axis is NOT sufficient evidence that
+the underlying initial s was O(10). MATLAB axis clipping
+can hide an O(1e3) initial transient.
+
+If eq29_consistent reaches the visible window in O(1e-2) s,
+then Fig. 9 cannot resolve the true initial sliding magnitude
+on a 0--100 s horizontal axis.
+
+============================================================
+ STEP L.3b COMPLETE
+============================================================

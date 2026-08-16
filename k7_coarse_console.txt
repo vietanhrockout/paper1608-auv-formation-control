@@ -1,0 +1,17 @@
+
+============================================================
+ STEP K.7 -- COARSE FIXED-STEP PROJECTED RK4 (from checkpoint)
+============================================================
+starting at t=0.15s (checkpoint), extending 1.0000s at h=1.00e-04 (10000 steps)
+
+RESULT: steps=10000 elapsed=87.410s (114.4 steps/s) max_retraction=1.351e+06 total_retracted=125456
+
+Endpoint at t=1.1500s (0.15+1.0000):
+  AUV0: eta=[6.1141 5.8858 5.7729]  ||nu||=0.2445  ||Wc||=100.000000  ||Wa||_F=0.019446
+  AUV1: eta=[-3.0490 2.8602 3.7729]  ||nu||=5.9616  ||Wc||=100.000000  ||Wa||_F=0.034132
+  AUV2: eta=[-4.0409 1.8858 1.7729]  ||nu||=5.8689  ||Wc||=100.000000  ||Wa||_F=0.174552
+
+STATUS: PASS -- finite, structural bounds held.
+
+Extrapolated wall time at this h for remaining 14.85s (Phase B.2 total 15s): 1298.0 s (21.6 min)
+Extrapolated wall time at this h for remaining 99.85s (Phase C total 100s):  8727.9 s (145.5 min)

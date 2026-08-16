@@ -1,0 +1,23 @@
+
+============================================================
+ STEP K.5 -- INSTRUMENTED COLD-PHASE TEST
+============================================================
+cold phase: [0.1500, 0.2500]s (duration 0.1000s)
+  AUV0 ||Wc|| at hot-phase end = 100.000000 (delta_c=100.0)
+  AUV1 ||Wc|| at hot-phase end = 100.000000 (delta_c=100.0)
+  AUV2 ||Wc|| at hot-phase end = 100.000000 (delta_c=100.0)
+  progress: init at t=0.150000
+  progress: accepted_steps=52 t=0.150002
+  progress: accepted_steps=140 t=0.150005
+  progress: accepted_steps=242 t=0.150009
+  progress: accepted_steps=326 t=0.150012
+  progress: accepted_steps=478 t=0.150017
+  progress: accepted_steps=663 t=0.150024
+  progress: accepted_steps=833 t=0.150031
+  progress: accepted_steps=1020 t=0.150037
+  progress: accepted_steps=1183 t=0.150043
+  progress: accepted_steps=1374 t=0.150050
+  progress: accepted_steps=1570 t=0.150058
+  progress: accepted_steps=1759 t=0.150065
+  progress: accepted_steps=1953 t=0.150072
+  progress: accepted_steps=2078 t=0.150076

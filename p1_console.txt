@@ -1,0 +1,17 @@
+=== ISSUE P.1 DIAGNOSTIC: signed vs unsigned Lambda1^{-1} cancellation ===
+alpha1=1.2000, F=5.0000 (fixed, representing s>0 case)
+
+           v      sig^{1-a1}(v)   paper: -sgn(v)*F       unsigned: -F             match?
+   -0.200000      -1.379730e+00       5.000000e+00      -5.000000e+00              false
+   -0.100000      -1.584893e+00       5.000000e+00      -5.000000e+00              false
+   -0.001000      -3.981072e+00       5.000000e+00      -5.000000e+00              false
+   -0.000001      -1.584893e+01       5.000000e+00      -5.000000e+00              false
+    0.000001       1.584893e+01      -5.000000e+00      -5.000000e+00               true
+    0.001000       3.981072e+00      -5.000000e+00      -5.000000e+00               true
+    0.100000       1.584893e+00      -5.000000e+00      -5.000000e+00               true
+    0.200000       1.379730e+00      -5.000000e+00      -5.000000e+00               true
+
+PASS: paper-literal reaching term algebraically reduces to -sign(v)*F (NOT -F) in every case.
+PASS: proof-consistent unsigned |v|^-0.2 inverse algebraically reduces to -F in every case (direction-independent of sign(v)).
+CONFIRMED: paper-literal form does NOT match -F whenever v<0 -- Issue P hypothesis (sign inconsistency) SURVIVES this algebraic test.
+=== END P.1 ===

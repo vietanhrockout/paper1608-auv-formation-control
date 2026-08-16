@@ -1,0 +1,32 @@
+
+============================================================
+ STEP N.1 SINGLE CASE: delta_c = 1.000e+06, delta_a = 5.000e+05, horizon=2.000s
+============================================================
+  progress: step=18 t=1.289326e-02
+  progress: step=74 t=1.370974e-02
+  progress: step=152 t=1.422633e-02
+  progress: step=243 t=1.465954e-02
+  progress: step=359 t=1.509888e-02
+  progress: step=519 t=1.558098e-02
+  progress: step=682 t=1.598101e-02
+  progress: step=806 t=1.624313e-02
+  progress: step=918 t=1.645674e-02
+  progress: step=1030 t=1.664911e-02
+  progress: step=1152 t=1.684499e-02
+  progress: step=1276 t=1.702788e-02
+  progress: step=1418 t=1.720947e-02
+  progress: step=1586 t=1.740697e-02
+  progress: step=1745 t=1.757414e-02
+  progress: step=1904 t=1.773103e-02
+  progress: step=2064 t=1.787856e-02
+  progress: step=2227 t=1.801470e-02
+  progress: step=2389 t=1.814113e-02
+  progress: step=2486 t=1.821587e-02
+  progress: step=2594 t=1.829285e-02
+  progress: step=2713 t=1.837458e-02
+  progress: step=2859 t=1.846979e-02
+  progress: step=3042 t=1.858290e-02
+  progress: step=3221 t=1.868691e-02
+  progress: step=3375 t=1.877278e-02
+  progress: step=3500 t=1.883898e-02
+  progress: step=3647 t=1.891202e-02
