@@ -1,30 +1,38 @@
 === eps=1.0e-08, t_final=1.00, h=1.0e-04 ===
-  10000 steps, 137.1s wall, max_retraction=3.916947e+04, total_retracted=124285
+  10000 steps, 106.4s wall, max_retraction=3.916947e+04, total_retracted=124285
   E_chi(end)=14.330666, E_s(end)=2930.438447, max|tau_cmd|(traj)=6.029032e+07
   max|tau_act| force=150.0000 moment=21.2056
   min|vel_err| encountered = 0.000000e+00, cancellation multiplier there = 0.000000 (1.0=exact -F, 0.0=total loss)
 === eps=1.0e-07, t_final=1.00, h=1.0e-04 ===
-  10000 steps, 118.1s wall, max_retraction=3.908103e+04, total_retracted=124273
+  10000 steps, 105.7s wall, max_retraction=3.908103e+04, total_retracted=124273
   E_chi(end)=14.330666, E_s(end)=2930.438463, max|tau_cmd|(traj)=6.028603e+07
   max|tau_act| force=150.0000 moment=21.5865
   min|vel_err| encountered = 0.000000e+00, cancellation multiplier there = 0.000000 (1.0=exact -F, 0.0=total loss)
 === eps=1.0e-06, t_final=1.00, h=1.0e-04 ===
-  10000 steps, 101.4s wall, max_retraction=3.823673e+04, total_retracted=124250
+  10000 steps, 101.8s wall, max_retraction=3.823673e+04, total_retracted=124250
   E_chi(end)=14.330667, E_s(end)=2930.438530, max|tau_cmd|(traj)=6.024370e+07
   max|tau_act| force=150.0000 moment=23.1206
   min|vel_err| encountered = 0.000000e+00, cancellation multiplier there = 0.000000 (1.0=exact -F, 0.0=total loss)
 === eps=1.0e-05, t_final=1.00, h=1.0e-04 ===
-  10000 steps, 128.7s wall, max_retraction=3.239989e+04, total_retracted=124289
+  10000 steps, 110.4s wall, max_retraction=3.239989e+04, total_retracted=124289
   E_chi(end)=14.330670, E_s(end)=2930.439573, max|tau_cmd|(traj)=5.985930e+07
   max|tau_act| force=150.0000 moment=25.6767
   min|vel_err| encountered = 0.000000e+00, cancellation multiplier there = 0.000000 (1.0=exact -F, 0.0=total loss)
 
 === CROSS-EPSILON COMPARISON (trajectory-level, all runs share common timestamps since h is fixed) ===
-max trajectory-wide spread across eps: E_chi=3.401923e-06 (rel 2.1258e-07), E_s=1.126177e-03 (rel 3.2242e-07), tau_cmd=3.265261e+06 (rel 5.4159e-02)
-max|tau_act| force across eps: [150.0000  150.0000  150.0000  150.0000]
-max|tau_act| moment across eps: [21.2056   21.5865   23.1206   25.6767]
-max_retraction across eps: [3.9169e+04  3.9081e+04  3.8237e+04  3.2400e+04]
+max trajectory-wide spread across eps:
+  E_chi=3.401923e-06 (rel 2.1258e-07), E_s=1.126177e-03 (rel 3.2242e-07)
+  tau_cmd=3.265261e+06 (rel 5.4159e-02)
+  tau_act_force=0.000000e+00 (rel 0.0000e+00), tau_act_moment=8.473384e+00 (rel 3.3000e-01)
+max_retraction across eps: [3.9169e+04  3.9081e+04  3.8237e+04  3.2400e+04] (rel spread 1.7283e-01)
 total_retracted across eps: [124285  124273  124250  124289]
 
-VERDICT: FAIL -- at least one trajectory-level metric exceeds the 1.0% relative-spread tolerance across eps. Needs further investigation before treating eps as a non-issue.
-=== END P.1b v2 (structured verdict saved to p1b_result.mat) ===
+VERDICT (per metric group, 1.0% relative-spread tolerance):
+  PHYSICAL STATE (E_chi, E_s):        PASS -- this is what Issue O/P convergence and Figs.2,3,6,7,8,9 depend on
+  COMMAND (tau_cmd, unsaturated):     FAIL
+  ACTUATOR (tau_act force/moment):    FAIL
+  RETRACTION (max_retraction):        FAIL
+  OVERALL:                             FAIL
+
+INTERPRETATION: the physical closed-loop trajectory (and hence Issue O/P's convergence claim) is NOT meaningfully sensitive to eps in this range, even though the unsaturated command and/or actuator channels are. eps=1e-6 remains a safe default for Figs.2,3,6,7,8,9. A future figure quantitatively plotting tau_cmd or the moment channel must treat eps as a documented assumption.
+=== END P.1b v3 (structured, per-metric-group verdict saved to p1b_result.mat) ===

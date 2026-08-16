@@ -47,25 +47,45 @@ pointer into it, updated at verified checkpoints, not every edit.
   trajectory-level, all-AUV, multi-metric audit with a structured saved
   verdict (see result below once the run completes).
 
-- **P.1b v2** result: structured verdict is **FAIL** against a 1%
-  relative-spread tolerance across eps in {1e-8..1e-5} — but the failure
-  is entirely in `max|tau_cmd|` (5.4% relative spread, the UNSATURATED
-  command) and the moment-channel `tau_act` (21.2→25.7 Nm trend, still
-  under the 30Nm limit). `E_chi`/`E_s` (the actual physical trajectory)
-  show negligible spread (~2-3e-7 relative). Mechanistically expected:
-  eps regularizes a near-singularity in the unsaturated command; force
-  channels are protected by saturation (pegged at 150N regardless of
-  eps), the moment channel isn't always saturated so it inherits some of
-  tau_cmd's eps-sensitivity directly. **Conclusion**: eps=1e-6 remains
-  fine for closed-loop convergence and physical-state figures (2,3,6,7,
-  8,9); a FUTURE figure that quantitatively plots tau_cmd or the moment
-  channel would need to treat eps as a documented assumption, like
-  tau_max/R/B/delta_c/delta_a. See `handoff.md`'s Phase C.0 Gate Round 2
-  section for full numbers.
+- **Phase C.0 Gate, round 3** (third GPT audit pass,
+  `REVIEW_GPT_2026-08-16_R2.md`): round 2's resume fix never actually
+  exercised the production wrapper (`resume_projected_rk4_run.m`) or a
+  same-target interruption; a resumed run couldn't reconstruct the full
+  pre-crash decimated history needed for Phase C figures; nothing bound
+  a checkpoint to the exact `t_final`/`h`/`params`/`sat_cfg`/`cfg` it was
+  produced under (silent hybrid-trajectory risk); online actuator maxima
+  didn't carry forward across resume; P.1b v2 still only compared single
+  `tau_act` scalars. All fixed: checkpoints now persist `store_stride`,
+  `t_hist_partial`/`X_hist_partial`, and the full config; the wrapper
+  hard-fails on any config mismatch and stitches a complete `[0,t_final]`
+  history; a controlled `opts.max_steps` test hook lets the acceptance
+  test simulate a same-target crash properly. The fix's OWN first test
+  run caught an additional self-introduced bug (store_stride mismatch
+  causing a density discontinuity at the resume boundary) — fixed too.
+  **Verified**: full-history stitch, all cumulative stats (including
+  actuator maxima), and final state all match an uninterrupted run
+  exactly (`0.000000e+00`); a negative test confirms mismatched-target
+  resume is correctly rejected. P.1b rewritten (v3) to compare full
+  `tau_act` trajectories with a separate PASS/FAIL verdict per metric
+  group (physical/command/actuator/retraction) instead of one blended
+  number.
+- **P.1b v3 final result** (per-metric-group verdict, see `handoff.md`
+  for full numbers): **PHYSICAL STATE (E_chi, E_s): PASS** (rel spread
+  ~2-3e-7) — this is what Issue O/P's convergence claim and Figs.
+  2,3,6,7,8,9 depend on. COMMAND (tau_cmd): FAIL (5.4% rel spread).
+  ACTUATOR (tau_act force/moment): FAIL (moment 33% rel spread,
+  21.2→25.7 Nm). RETRACTION (max_retraction): FAIL (17.3% rel spread,
+  monotonically decreasing as eps grows — mechanistically sensible,
+  larger eps softens the near-v=0 singularity). **Conclusion (GPT's
+  interpretation, adopted)**: this does NOT block Phase C at the fixed
+  `eps=1e-6` default for physical Figs. 2,3,6,7,8,9. It DOES mean Figs.
+  4,5 stay provisional and any future report must document eps as an
+  explicit numerical-implementation assumption, same tier as
+  tau_max/R/B/delta_c/delta_a.
 
 ## In progress
 
-None — Phase C.0 Gate rounds 1 and 2 are both fully addressed with
+None — Phase C.0 Gate rounds 1, 2, and 3 are all fully addressed with
 verified evidence for every finding. Next milestone is the Phase C
 (100s) run itself, pending explicit user go-ahead (real ~2.4hr compute
 commitment).

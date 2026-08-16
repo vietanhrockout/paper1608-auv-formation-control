@@ -1,31 +1,46 @@
-function diagnose_stepC0b_checkpoint_resume_equivalence(t_final, t_mid, h)
-    % DIAGNOSE_STEPC0B_CHECKPOINT_RESUME_EQUIVALENCE
-    % Phase C.0 gate follow-up (P0 finding from the second GPT audit pass,
-    % REVIEW_GPT_2026-08-16.md): proves the checkpoint/resume mechanism
-    % added to projected_rk4_integrate.m produces a trajectory equivalent
-    % (to floating-point roundoff) to an uninterrupted run, per the exact
-    % acceptance test requested:
-    %   1. Run an uninterrupted trajectory [0, t_final].
-    %   2. Run [0, t_mid], writing a checkpoint along the way; start a
-    %      FRESH state (simulating a fresh MATLAB process -- clear/reload)
-    %      and resume [checkpoint.t, t_final] from that checkpoint.
-    %   3. Compare final state, stored states at the checkpoint time, and
-    %      integration statistics (max_retraction, total_retracted,
-    %      nsteps) between the uninterrupted and resumed paths at
-    %      roundoff-level tolerance.
-    %   4. Checkpoint writes are already atomic (temp file + rename, see
-    %      projected_rk4_integrate.m's local_save_checkpoint_atomic).
+function diagnose_stepC0b_checkpoint_resume_equivalence(t_final, h, interrupt_step)
+    % DIAGNOSE_STEPC0B_CHECKPOINT_RESUME_EQUIVALENCE (v2, round-2 audit fix)
+    %
+    % The v1 version of this test resumed by calling
+    % projected_rk4_integrate directly, using a checkpoint written by a
+    % SEPARATE, SHORTER run (target t_mid < t_final) -- a mismatch that
+    % the actual production wrapper, resume_projected_rk4_run.m, would
+    % correctly REJECT (checkpoint.nsteps for target t_mid does not equal
+    % ceil(t_final/h)). So v1 proved the raw integrator's one-step-method
+    % state continuation works, but never actually exercised the
+    % production-facing wrapper or a realistic same-target interruption.
+    %
+    % This version:
+    %   1. Runs an uninterrupted baseline [0, t_final] (store_stride=1).
+    %   2. Runs a SEPARATE invocation with the SAME t_final target
+    %      (matching a real production launch), but stops early via the
+    %      opts.max_steps test hook -- simulating a crash/kill AFTER at
+    %      least one checkpoint was written. nsteps (and hence
+    %      checkpoint.nsteps/.t_final_target) correctly reflects the true
+    %      t_final target throughout, exactly as a real interruption
+    %      would leave it. The truncated in-memory output of this call is
+    %      discarded (simulating that it was lost in the crash) -- only
+    %      the checkpoint FILE survives.
+    %   3. Calls resume_projected_rk4_run.m -- the actual production
+    %      wrapper, not the raw integrator -- to resume to t_final.
+    %   4. Compares the wrapper's FULL STITCHED [0,t_final] history (not
+    %      just the tail segment) against the uninterrupted baseline at
+    %      every shared timestamp, plus cumulative stats including the
+    %      actuator maxima (which must carry forward across the crash,
+    %      not reset to 0).
+    %   5. Negative test: confirms the wrapper actually REJECTS a resume
+    %      attempt with a mismatched t_final (config-binding fix).
 
     addpath(genpath('paper1608'));
 
     if nargin < 1 || isempty(t_final)
         t_final = 0.6;
     end
-    if nargin < 2 || isempty(t_mid)
-        t_mid = 0.3;
-    end
-    if nargin < 3 || isempty(h)
+    if nargin < 2 || isempty(h)
         h = 1e-4;
+    end
+    if nargin < 3 || isempty(interrupt_step)
+        interrupt_step = round((t_final / h) * 0.4); % interrupt at ~40% of the way through
     end
 
     cfg = nn_config();
@@ -42,77 +57,73 @@ function diagnose_stepC0b_checkpoint_resume_equivalence(t_final, t_mid, h)
     if exist(checkpoint_path, 'file')
         delete(checkpoint_path);
     end
+    tmp_path = [checkpoint_path '.tmp'];
+    if exist(tmp_path, 'file')
+        delete(tmp_path);
+    end
 
-    fprintf('=== [A] Uninterrupted run [0, %.4f] ===\n', t_final);
-    opts_a = struct('store_stride', 1);
+    fprintf('=== [A] Uninterrupted baseline [0, %.4f] ===\n', t_final);
+    opts_a = struct('store_stride', 1, 'track_actuator', true);
     [tA, XA, statsA] = projected_rk4_integrate(t_final, h, X0, params, sat_cfg, cfg, opts_a);
-    fprintf('  nsteps=%d, max_retraction=%.6e, total_retracted=%d\n', statsA.nsteps, statsA.max_retraction, statsA.total_retracted);
+    fprintf('  nsteps=%d, max_retraction=%.6e, total_retracted=%d, max_tau_act force=%.4f moment=%.4f\n', ...
+        statsA.nsteps, statsA.max_retraction, statsA.total_retracted, statsA.max_tau_act_force, statsA.max_tau_act_moment);
 
-    fprintf('=== [B1] Checkpointed run [0, %.4f] (checkpoint_every_sec small enough to fire before t_mid) ===\n', t_mid);
-    opts_b1 = struct('store_stride', 1, 'checkpoint_every_sec', t_mid / 3, 'checkpoint_path', checkpoint_path);
-    [tB1, XB1, statsB1] = projected_rk4_integrate(t_mid, h, X0, params, sat_cfg, cfg, opts_b1);
-    fprintf('  nsteps=%d, max_retraction=%.6e, total_retracted=%d\n', statsB1.nsteps, statsB1.max_retraction, statsB1.total_retracted);
+    fprintf('=== [B] Same-target run [0, %.4f], simulated crash after step %d (opts.max_steps) ===\n', t_final, interrupt_step);
+    opts_b = struct('store_stride', 1, 'track_actuator', true, ...
+        'checkpoint_every_sec', (interrupt_step*h) / 3, 'checkpoint_path', checkpoint_path, ...
+        'max_steps', interrupt_step);
+    [tB_discarded, XB_discarded, statsB_discarded] = projected_rk4_integrate(t_final, h, X0, params, sat_cfg, cfg, opts_b); %#ok<ASGLU>
+    fprintf('  [B] stopped early as intended (simulated crash) at t=%.4f of %.4f -- this output is now DISCARDED, only the checkpoint file survives\n', ...
+        tB_discarded(end), t_final);
+    assert(exist(checkpoint_path, 'file') > 0, 'FAIL: no checkpoint file written during [B]');
+    clear tB_discarded XB_discarded statsB_discarded opts_b; %#ok<CLEARVARS>
 
-    assert(exist(checkpoint_path, 'file') > 0, 'FAIL: no checkpoint file written during [B1]');
-
-    fprintf('=== [B2] Reload checkpoint from disk (NOT from B1''s in-memory variables) and resume to %.4f ===\n', t_final);
-    % NOTE: this drops the in-memory X0/XB1 references so [B2] is provably
-    % driven only by what local_save_checkpoint_atomic actually persisted
-    % to disk -- it does not spawn a literal separate MATLAB process (that
-    % would need system()-level orchestration for marginal extra rigor
-    % over what this already proves: the checkpoint FILE, not any
-    % in-memory state, is sufficient to resume correctly).
-    clear XA XB1 tA tB1; %#ok<CLEARVARS>
-    d = load(checkpoint_path);
-    checkpoint = d.checkpoint;
-    fprintf('  loaded checkpoint: t=%.6f, k=%d/%d\n', checkpoint.t, checkpoint.k, checkpoint.nsteps);
-
-    opts_b2 = struct('store_stride', 1, 'resume', checkpoint);
-    [tB2, XB2, statsB2] = projected_rk4_integrate(t_final, h, checkpoint.X, params, sat_cfg, cfg, opts_b2);
-    fprintf('  resumed segment [%.6f, %.6f], nsteps(cumulative)=%d, max_retraction(cumulative)=%.6e, total_retracted(cumulative)=%d\n', ...
-        tB2(1), tB2(end), statsB2.nsteps, statsB2.max_retraction, statsB2.total_retracted);
-
-    % Re-run A to get concrete arrays back in scope for comparison (the
-    % 'clear' above was only meant to drop B1's in-memory state; re-derive
-    % A's arrays by re-running -- deterministic, so this is just for the
-    % comparison step, not re-testing anything new).
-    [tA, XA, statsA] = projected_rk4_integrate(t_final, h, X0_reconstruct(cfg), params, sat_cfg, cfg, opts_a);
+    fprintf('=== [C] Resume via the PRODUCTION wrapper resume_projected_rk4_run.m ===\n');
+    res = resume_projected_rk4_run(checkpoint_path, t_final, h, params, sat_cfg, cfg);
+    fprintf('  resumed: %d total stitched samples, covering [%.4f, %.4f]\n', numel(res.t), res.t(1), res.t(end));
 
     fprintf('\n=== COMPARISON ===\n');
 
-    % 1. Final state at t_final: uninterrupted vs resumed segment's last point.
-    d_final = max(abs(XA(end,:) - XB2(end,:)));
-    fprintf('max|X_A(t_final) - X_B2(t_final)| = %.6e\n', d_final);
+    d_final = max(abs(XA(end,:) - res.X(end,:)));
+    fprintf('max|X_A(t_final) - X_resumed(t_final)| = %.6e\n', d_final);
     assert(d_final < 1e-9, 'FAIL: final states diverge beyond roundoff tolerance (%.6e >= 1e-9)', d_final);
-    assert(abs(tA(end) - tB2(end)) < 1e-9, 'FAIL: final times do not match');
+    assert(abs(tA(end) - res.t(end)) < 1e-9, 'FAIL: final times do not match');
 
-    % 2. State AT the checkpoint time: uninterrupted run's sample nearest
-    %    checkpoint.t should equal checkpoint.X exactly (both are the same
-    %    deterministic prefix computation from the same X0).
-    [~, idxA] = min(abs(tA - checkpoint.t));
-    d_checkpoint = max(abs(XA(idxA,:) - checkpoint.X(:).'));
-    fprintf('max|X_A(checkpoint.t) - checkpoint.X| = %.6e (t_A=%.6f vs checkpoint.t=%.6f)\n', ...
-        d_checkpoint, tA(idxA), checkpoint.t);
-    assert(d_checkpoint < 1e-9, 'FAIL: state at checkpoint time diverges beyond roundoff tolerance');
+    % Full-history comparison at every timestamp the resumed/stitched
+    % history actually stored (should be every step, since both A and B
+    % used store_stride=1).
+    assert(numel(res.t) == numel(tA), ...
+        'FAIL: stitched history has %d samples, baseline has %d -- stitching lost or duplicated samples', numel(res.t), numel(tA));
+    max_diff = max(max(abs(XA - res.X)));
+    fprintf('max|X_A - X_resumed| across ALL %d shared timestamps = %.6e\n', numel(tA), max_diff);
+    assert(max_diff < 1e-9, 'FAIL: stitched full history diverges from baseline beyond roundoff tolerance');
 
-    % 3. Cumulative integration statistics.
-    fprintf('nsteps:          A=%d  B2(cumulative)=%d\n', statsA.nsteps, statsB2.nsteps);
-    fprintf('max_retraction:  A=%.10e  B2(cumulative)=%.10e\n', statsA.max_retraction, statsB2.max_retraction);
-    fprintf('total_retracted: A=%d  B2(cumulative)=%d\n', statsA.total_retracted, statsB2.total_retracted);
-    assert(statsA.nsteps == statsB2.nsteps, 'FAIL: nsteps mismatch');
-    assert(statsA.total_retracted == statsB2.total_retracted, 'FAIL: total_retracted mismatch (resume did not correctly seed/continue counting)');
-    assert(abs(statsA.max_retraction - statsB2.max_retraction) < 1e-9, 'FAIL: max_retraction mismatch beyond roundoff');
+    fprintf('nsteps:            A=%d  resumed(cumulative)=%d\n', statsA.nsteps, res.stats.nsteps);
+    fprintf('max_retraction:    A=%.10e  resumed(cumulative)=%.10e\n', statsA.max_retraction, res.stats.max_retraction);
+    fprintf('total_retracted:   A=%d  resumed(cumulative)=%d\n', statsA.total_retracted, res.stats.total_retracted);
+    fprintf('max_tau_act force: A=%.6f  resumed(cumulative)=%.6f\n', statsA.max_tau_act_force, res.stats.max_tau_act_force);
+    fprintf('max_tau_act moment:A=%.6f  resumed(cumulative)=%.6f\n', statsA.max_tau_act_moment, res.stats.max_tau_act_moment);
+    assert(statsA.nsteps == res.stats.nsteps, 'FAIL: nsteps mismatch');
+    assert(statsA.total_retracted == res.stats.total_retracted, 'FAIL: total_retracted mismatch');
+    assert(abs(statsA.max_retraction - res.stats.max_retraction) < 1e-9, 'FAIL: max_retraction mismatch beyond roundoff');
+    assert(abs(statsA.max_tau_act_force - res.stats.max_tau_act_force) < 1e-9, ...
+        'FAIL: max_tau_act_force mismatch -- actuator peak not correctly carried forward across resume');
+    assert(abs(statsA.max_tau_act_moment - res.stats.max_tau_act_moment) < 1e-9, ...
+        'FAIL: max_tau_act_moment mismatch -- actuator peak not correctly carried forward across resume');
 
-    fprintf('\nPASS: checkpoint/resume produces a trajectory and cumulative statistics equivalent to an uninterrupted run, at roundoff-level tolerance.\n');
+    fprintf('\nPASS: resume_projected_rk4_run.m produces a FULL stitched trajectory and cumulative statistics (including actuator maxima) equivalent to an uninterrupted run, at roundoff-level tolerance.\n');
+
+    fprintf('\n=== [D] Negative test: wrapper must REJECT a mismatched-target resume ===\n');
+    rejected = false;
+    try
+        resume_projected_rk4_run(checkpoint_path, t_final + 0.1, h, params, sat_cfg, cfg);
+    catch ME
+        rejected = true;
+        fprintf('  correctly rejected with: %s\n', ME.message);
+    end
+    assert(rejected, 'FAIL: wrapper did NOT reject a resume with a mismatched t_final -- config-binding check is not working');
+    fprintf('PASS: config-mismatch rejection confirmed.\n');
 
     delete(checkpoint_path);
-    fprintf('=== END C.0b (checkpoint/resume equivalence CONFIRMED) ===\n');
-end
-
-function X0 = X0_reconstruct(cfg)
-    [eta_init, nu_init] = initial_conditions();
-    omega_aw_mat = zeros(6, 3);
-    Wa_cell = {zeros(cfg.actor_n_nodes, 6), zeros(cfg.actor_n_nodes, 6), zeros(cfg.actor_n_nodes, 6)};
-    Wc_mat = zeros(cfg.critic_n_nodes, 3);
-    X0 = pack_states(eta_init, nu_init, omega_aw_mat, Wa_cell, Wc_mat, cfg);
+    fprintf('=== END C.0b v2 (production wrapper checkpoint/resume equivalence CONFIRMED, including full history stitching, actuator-maxima carryover, and config-mismatch rejection) ===\n');
 end

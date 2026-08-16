@@ -28,32 +28,77 @@ function [t_hot, X_hot, stats] = projected_rk4_integrate(t_hot_final, h, X0, par
 %                            nsteps=1e6 and always-store-every-step needs
 %                            X_hot ~= 1e6 x 549 x 8 bytes ~= 4.4GB -- set
 %                            store_stride>1 for long runs.
-%     .checkpoint_every_sec : if >0, write a .mat checkpoint (t, X, step
-%                            count, running stats) to opts.checkpoint_path
-%                            every this many seconds of SIMULATED time
-%                            (default 0 = disabled). Written ATOMICALLY
-%                            (temp file + rename) so a kill mid-write
-%                            cannot corrupt the last valid checkpoint.
+%     .checkpoint_every_sec : if >0, write a .mat checkpoint to
+%                            opts.checkpoint_path every this many seconds
+%                            of SIMULATED time (default 0 = disabled).
+%                            Written ATOMICALLY (temp file + rename) so a
+%                            kill mid-write cannot corrupt the last valid
+%                            checkpoint. Phase C.0 gate round 2 (GPT
+%                            audit): the checkpoint now carries everything
+%                            needed to resume safely and reconstruct the
+%                            full output history, not just the raw
+%                            physics state:
+%                              .t, .X, .k, .nsteps            (as before)
+%                              .max_retraction, .total_retracted
+%                              .max_tau_act_force, .max_tau_act_moment
+%                                (only if opts.track_actuator; carried
+%                                forward across resume so a crash doesn't
+%                                hide a larger pre-checkpoint peak)
+%                              .t_final_target, .h, .store_stride, .params,
+%                              .sat_cfg, .cfg
+%                                (the EXACT config this run was launched
+%                                with -- resume_projected_rk4_run.m
+%                                hard-fails on any t_final/h/params/
+%                                sat_cfg/cfg mismatch, so an accidental
+%                                config change can't silently produce a
+%                                hybrid trajectory. store_stride is reused
+%                                by default on resume so the stitched
+%                                output has uniform sample density, not a
+%                                density discontinuity at the resume
+%                                boundary -- a real bug the round-2
+%                                acceptance test caught before this fix)
+%                              .t_hist_partial, .X_hist_partial
+%                                (the decimated output accumulated SO FAR
+%                                in this call -- lets a resume stitch a
+%                                complete [0,t_final] history even though
+%                                the pre-crash process's in-memory
+%                                t_hot/X_hot never survived the crash)
 %     .checkpoint_path    : path for the above (default
 %                            'projected_rk4_checkpoint.mat').
-%     .resume             : OPTIONAL struct with fields {t, X, k,
-%                            max_retraction, total_retracted} (exactly the
-%                            shape saved in a checkpoint's `.checkpoint`
-%                            field) -- when given, X0 is ignored and
-%                            integration continues from (resume.t,
-%                            resume.X) at step index resume.k+1, running
-%                            through to the SAME t_hot_final/h as if the
-%                            whole [0, t_hot_final] horizon were run in
-%                            one call. Since RK4 is a one-step method (no
-%                            path memory beyond the current state), the
-%                            resumed trajectory is bit-identical (to
-%                            floating-point roundoff) to an uninterrupted
-%                            run -- verified by
+%     .resume             : OPTIONAL struct in the exact shape saved to a
+%                            checkpoint (see above) -- when given, X0 is
+%                            ignored and integration continues from
+%                            (resume.t, resume.X) at step index
+%                            resume.k+1, running through to the SAME
+%                            t_hot_final/h as if the whole [0, t_hot_final]
+%                            horizon were run in one call. Since RK4 is a
+%                            one-step method (no path memory beyond the
+%                            current state), the resumed trajectory is
+%                            bit-identical (to floating-point roundoff) to
+%                            an uninterrupted run -- verified by
 %                            diagnose_stepC0b_checkpoint_resume_equivalence.m.
-%                            The returned t_hot/X_hot cover only the NEW
-%                            segment [resume.t, t_hot_final]; concatenate
-%                            with the pre-checkpoint segment yourself if a
-%                            full merged history is needed.
+%                            This function itself does NOT validate that
+%                            t_hot_final/h/params/sat_cfg/cfg match what
+%                            the checkpoint was originally launched with
+%                            (that's resume_projected_rk4_run.m's job, the
+%                            production-facing entry point -- calling this
+%                            function directly with a mismatched resume
+%                            struct is a low-level footgun by design, kept
+%                            here only for diagnostic scripts that need
+%                            it). The returned t_hot/X_hot cover only the
+%                            NEW segment [resume.t, t_hot_final]; use
+%                            resume_projected_rk4_run.m if you need the
+%                            full stitched [0,t_final] history.
+%     .max_steps          : OPTIONAL test hook (diagnostic use only) --
+%                            stop the loop after this many total steps
+%                            instead of running to nsteps, simulating a
+%                            mid-run interruption/crash for acceptance
+%                            testing (see
+%                            diagnose_stepC0b_checkpoint_resume_equivalence.m).
+%                            nsteps itself (and hence the checkpoint's
+%                            .nsteps/.t_final_target) still reflects the
+%                            TRUE original t_hot_final target, exactly as
+%                            a real crash would leave it.
 %     .assert_finite      : if true (default), check isfinite(X) after
 %                            every step and error immediately with the
 %                            failing step/time if not (cheap, always on
@@ -102,6 +147,9 @@ function [t_hot, X_hot, stats] = projected_rk4_integrate(t_hot_final, h, X0, par
     if ~isfield(opts, 'track_actuator') || isempty(opts.track_actuator)
         opts.track_actuator = false;
     end
+    if ~isfield(opts, 'max_steps') || isempty(opts.max_steps)
+        opts.max_steps = inf;
+    end
 
     nsteps = ceil(t_hot_final / h);
     n_store_cap = floor(nsteps / opts.store_stride) + 2; % +2: first slot and a safety slot for a non-aligned final step
@@ -115,6 +163,8 @@ function [t_hot, X_hot, stats] = projected_rk4_integrate(t_hot_final, h, X0, par
         k_start = 1;
         max_retraction = 0;
         total_retracted = 0;
+        max_tau_act_force = 0;
+        max_tau_act_moment = 0;
     else
         r = opts.resume;
         X = r.X(:);
@@ -122,6 +172,21 @@ function [t_hot, X_hot, stats] = projected_rk4_integrate(t_hot_final, h, X0, par
         k_start = r.k + 1;
         max_retraction = r.max_retraction;
         total_retracted = r.total_retracted;
+        % Carry forward pre-checkpoint actuator peaks (P1 fix, round 2
+        % follow-up audit) -- these fields only exist if the interrupted
+        % run had opts.track_actuator=true; default to 0 otherwise (same
+        % as a fresh start) rather than erroring, since track_actuator is
+        % opt-in.
+        if isfield(r, 'max_tau_act_force') && ~isempty(r.max_tau_act_force)
+            max_tau_act_force = r.max_tau_act_force;
+        else
+            max_tau_act_force = 0;
+        end
+        if isfield(r, 'max_tau_act_moment') && ~isempty(r.max_tau_act_moment)
+            max_tau_act_moment = r.max_tau_act_moment;
+        else
+            max_tau_act_moment = 0;
+        end
     end
 
     store_idx = 1;
@@ -129,11 +194,10 @@ function [t_hot, X_hot, stats] = projected_rk4_integrate(t_hot_final, h, X0, par
     X_hot(1,:) = X.';
 
     last_checkpoint_t = t;
-    max_tau_act_force = 0;
-    max_tau_act_moment = 0;
+    k_end = min(nsteps, k_start - 1 + opts.max_steps);
 
     tic;
-    for k = k_start:nsteps
+    for k = k_start:k_end
 
         hk = min(h, t_hot_final - t);
 
@@ -165,7 +229,14 @@ function [t_hot, X_hot, stats] = projected_rk4_integrate(t_hot_final, h, X0, par
         if opts.checkpoint_every_sec > 0 && (t - last_checkpoint_t) >= opts.checkpoint_every_sec
             last_checkpoint_t = t;
             checkpoint = struct('t', t, 'X', X, 'k', k, 'nsteps', nsteps, ...
-                'max_retraction', max_retraction, 'total_retracted', total_retracted);
+                'max_retraction', max_retraction, 'total_retracted', total_retracted, ...
+                't_final_target', t_hot_final, 'h', h, 'store_stride', opts.store_stride, ...
+                'params', params, 'sat_cfg', sat_cfg, 'cfg', cfg, ...
+                't_hist_partial', t_hot(1:store_idx), 'X_hist_partial', X_hot(1:store_idx,:));
+            if opts.track_actuator
+                checkpoint.max_tau_act_force = max_tau_act_force;
+                checkpoint.max_tau_act_moment = max_tau_act_moment;
+            end
             local_save_checkpoint_atomic(opts.checkpoint_path, checkpoint);
         end
     end
