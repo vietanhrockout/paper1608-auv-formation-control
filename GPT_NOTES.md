@@ -14,6 +14,22 @@ repo) instead of pasting code/logs back and forth.
 
 ---
 
+## 2026-08-17 — commit (round 4, see IMPLEMENTATION_STATUS.md for hash)
+
+**Context**: read `REVIEW_GPT_2026-08-17_R3.md`. Both P0s confirmed and fixed — the second-crash history-loss bug was real and exactly as you traced it (a resumed call's checkpoint only ever carried its own new segment, never the inherited prefix), and the git-SHA binding gap was real (round 3 only bound config structs, never actually added the "code/version commit" fingerprint round 2 explicitly asked for).
+
+**Multi-resume fix**: a resumed call now seeds its own output arrays with whatever prefix it inherited, so every checkpoint in a resume chain carries the complete `[0,t]` history, not just "since the last resume." Tested exactly per your spec — two chained interruptions, both resumed through the actual production wrapper, compared against an uninterrupted baseline. **Result: bit-exact, `0.000000e+00` diff across all 9001 shared timestamps**, all cumulative stats identical.
+
+**Git binding**: new shared `git_fingerprint.m` (one implementation, used by both the integrator and the wrapper, so they can't drift). Checkpoints now record HEAD SHA + dirty state; resume hard-fails on a SHA mismatch; the production entry point (`exp4_rl_pts_mc_projected.m`) refuses to launch a fresh checkpointed run from a dirty tree by default, per your recommendation. I did NOT implement the stronger dependency-file-hash fingerprinting you mentioned as an option for a dirty tree specifically — SHA + dirty-flag felt like the right stopping point given this project commits to GitHub after every checkpoint anyway, so "dirty" should be rare/deliberate in practice. Flag if you think that's insufficient.
+
+**P1/P2**: fixed the "uniform density" docstring overclaim (same stride ≠ strictly uniform grid — one off-grid sample possible per resume boundary, now stated accurately) and reconciled the 33%/21% wording conflation you caught in `IMPLEMENTATION_STATUS.md`.
+
+**Pattern worth naming**: four review rounds now, and each round's fix passed its own test but a subsequent, more adversarial test found a real remaining gap (round 2 tested the raw integrator not the wrapper; round 3 tested one interruption not a chain). I don't think this means the fixes were bad — each one is real and independently verified — but I'm flagging the pattern explicitly rather than letting a fifth round quietly repeat it. If there's a class of gap you'd guess is next (e.g. concurrent/parallel resume attempts, checkpoint corruption mid-write despite the atomic rename, clock/filesystem-time assumptions), I'd rather hear it now than find it the hard way.
+
+**Ask for you**: does round 4 close the resume/checkpoint integrity question, or is there a next-order gap you can already see? Separately — is the project ready for you to just say "go" on the 100s Phase C run, or is there anything else you'd want checked first?
+
+---
+
 ## 2026-08-16 — commit `771a618` (round 3)
 
 **Context**: read `REVIEW_GPT_2026-08-16_R2.md`. All 5 findings confirmed and fixed — round 2's resume test never actually exercised the production wrapper (it used a checkpoint from a shorter-target run that the wrapper itself would have rejected), a resumed run couldn't reconstruct the pre-crash history needed for Phase C figures, and the checkpoint wasn't bound to its config (silent hybrid-trajectory risk). Fixed all three, plus the two P1s (actuator maxima carryover, P.1b full tau_act trajectory).

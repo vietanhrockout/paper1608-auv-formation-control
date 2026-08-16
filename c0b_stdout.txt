@@ -3,9 +3,14 @@
 === [B] Same-target run [0, 0.6000], simulated crash after step 2400 (opts.max_steps) ===
   [B] stopped early as intended (simulated crash) at t=0.2400 of 0.6000 -- this output is now DISCARDED, only the checkpoint file survives
 === [C] Resume via the PRODUCTION wrapper resume_projected_rk4_run.m ===
+[Warning: resume_projected_rk4_run: the checkpoint was written from a DIRTY working tree (uncommitted changes at checkpoint time) -- the SHA alone does not fully pin down the
+source state that produced it. Treat this run's reproducibility as compromised.] 
+[> In resume_projected_rk4_run (line 113)
+In diagnose_stepC0b_checkpoint_resume_equivalence (line 82)
+In run_c0b (line 4)
+In run (line 112)] 
 resume_projected_rk4_run: resuming from t=0.1601 (step 1601/6000) to t_final=0.6000 ...
-resume_projected_rk4_run: resumed segment [0.1601, 0.6000], 4400 new samples
-resume_projected_rk4_run: stitched with 1602 pre-checkpoint samples -> 6001 total samples covering [0, 0.6000]
+resume_projected_rk4_run: resumed and stitched -> 6001 total samples covering [0, 0.6000] (inherited 1602 pre-checkpoint samples)
   resumed: 6001 total stitched samples, covering [0.0000, 0.6000]
 
 === COMPARISON ===
@@ -20,7 +25,13 @@ max_tau_act moment:A=23.120634  resumed(cumulative)=23.120634
 PASS: resume_projected_rk4_run.m produces a FULL stitched trajectory and cumulative statistics (including actuator maxima) equivalent to an uninterrupted run, at roundoff-level tolerance.
 
 === [D] Negative test: wrapper must REJECT a mismatched-target resume ===
-  correctly rejected with: resume_projected_rk4_run: checkpoint config does NOT match the requested resume config -- refusing to resume (would silently produce a hybrid, invalid trajectory). Mismatches:
+[Warning: resume_projected_rk4_run: the checkpoint was written from a DIRTY working tree (uncommitted changes at checkpoint time) -- the SHA alone does not fully pin down the
+source state that produced it. Treat this run's reproducibility as compromised.] 
+[> In resume_projected_rk4_run (line 113)
+In diagnose_stepC0b_checkpoint_resume_equivalence (line 119)
+In run_c0b (line 4)
+In run (line 112)] 
+  correctly rejected with: resume_projected_rk4_run: checkpoint config/source does NOT match the requested resume -- refusing to resume (would silently produce a hybrid, invalid trajectory). Mismatches:
   t_final: checkpoint=0.6 vs requested=0.7
 Pass force_mismatch=true only for deliberate diagnostic testing, never for a real production resume.
 PASS: config-mismatch rejection confirmed.

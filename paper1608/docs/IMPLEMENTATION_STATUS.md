@@ -82,10 +82,31 @@ pointer into it, updated at verified checkpoints, not every edit.
   4,5 stay provisional and any future report must document eps as an
   explicit numerical-implementation assumption, same tier as
   tau_max/R/B/delta_c/delta_a.
+- **Phase C.0 Gate, round 4** (fourth GPT audit pass,
+  `REVIEW_GPT_2026-08-17_R3.md`): round 3's resume fix only proved a
+  SINGLE interruption; a second crash during an already-resumed call
+  would have lost the original `[0,t1]` history prefix (checkpoints
+  written mid-resume only carried their own new segment). Fixed: a
+  resumed call now seeds its own output arrays with any inherited
+  prefix, so every checkpoint always carries the full history from
+  t=0. Verified with a genuinely harder test than any prior round —
+  `diagnose_stepC0c_multi_resume_equivalence.m`: original launch → crash
+  #1 → resume #1 (production wrapper) → crash #2 → resume #2 (production
+  wrapper) → completion, compared bit-exact (`0.000000e+00`) against an
+  uninterrupted baseline across all 9001 shared timestamps. Also:
+  checkpoints now bind to the git commit SHA + dirty-tree state (shared
+  `git_fingerprint.m` utility) — resume hard-fails on a SHA mismatch,
+  and the production entry point refuses to launch a fresh checkpointed
+  run from a dirty tree by default. Plus two wording fixes: the
+  "uniform density" docstring claim was softened to what round 3's fix
+  actually guarantees (same stride, not a strictly uniform grid — one
+  off-grid sample possible per resume boundary), and the eps-sensitivity
+  "up-to-21%"/"33%" conflation in this file's Known Discrepancies section
+  was reconciled (they're different quantities, now stated separately).
 
 ## In progress
 
-None — Phase C.0 Gate rounds 1, 2, and 3 are all fully addressed with
+None — Phase C.0 Gate rounds 1 through 4 are all fully addressed with
 verified evidence for every finding. Next milestone is the Phase C
 (100s) run itself, pending explicit user go-ahead (real ~2.4hr compute
 commitment).
@@ -118,12 +139,23 @@ commitment).
   not before — there's no data to test the rewrite against yet).
 - **τ_max, R, B, δc, δa**: none are given numeric values by the paper; all
   are project-chosen placeholders (see `final_parameter_table.md`).
-- **inverse_lambda_eps** (Issue P.1b v2): default 1e-6 is fine for
-  closed-loop convergence and physical-state figures, but a documented,
-  non-trivial choice for any FUTURE figure that quantitatively plots
-  `tau_cmd` or the moment-channel `tau_act` (5.4% / up-to-21% relative
-  sensitivity respectively across eps in {1e-8..1e-5}) — treat it as an
-  assumption in that scenario, not a free numerical-safety detail.
+- **inverse_lambda_eps** (Issue P.1b v3; round-4 audit fixed a wording
+  inconsistency here — state both numbers explicitly, they are DIFFERENT
+  quantities, not two measurements of the same thing): default 1e-6 is
+  fine for closed-loop convergence and physical-state figures, but a
+  documented, non-trivial choice for any FUTURE figure that quantitatively
+  plots `tau_cmd` or the moment-channel `tau_act`, across eps in
+  {1e-8..1e-5}:
+    - `tau_cmd` trajectory-level relative spread: **5.4%**
+    - `tau_act` moment-channel trajectory-level relative spread: **33.0%**
+      (P.1b v3's committed metric — max-minus-min across eps, divided by
+      the max, computed over the FULL per-timestep trajectory matrix)
+    - `tau_act` moment-channel RUN-LEVEL maximum: **21.2 → 25.7 Nm**
+      across eps (a single peak value per run, not a trajectory spread —
+      report this raw range, not as a percentage, to avoid conflating it
+      with the trajectory-level metric above)
+  Treat eps as an assumption in any of these scenarios, not a free
+  numerical-safety detail.
 
 ## Last verified commit
 

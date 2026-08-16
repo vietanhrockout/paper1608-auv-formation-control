@@ -1,0 +1,52 @@
+=== [A] Uninterrupted baseline [0, 0.9000] ===
+  nsteps=9000, max_retraction=3.823673e+04, total_retracted=111690, max_tau_act force=150.0000 moment=23.1206
+=== [B] Original launch [0, 0.9000], simulated crash #1 after step 2970 -> checkpoint C1 ===
+  [B] stopped at t=0.2970 (simulated crash #1) -- DISCARDED, only checkpoint C1 survives
+=== [C] Resume #1 via production wrapper, simulated crash #2 after 2970 more steps -> checkpoint C2 ===
+{Error using resume_projected_rk4_run
+Too many output arguments.
+
+Error in diagnose_stepC0c_multi_resume_equivalence (line 73)
+    [tC, XC, statsC] = resume_projected_rk4_run(ckpt_path, t_final, h, params, sat_cfg, cfg, [], false, ...
+
+Error in run_c0c (line 4)
+diagnose_stepC0c_multi_resume_equivalence(0.9, 1e-4);
+
+Error in run (line 112)
+evalin('caller', strcat(scriptStem, ';'));
+} 
+=== [A] Uninterrupted baseline [0, 0.9000] ===
+  nsteps=9000, max_retraction=3.823673e+04, total_retracted=111690, max_tau_act force=150.0000 moment=23.1206
+=== [B] Original launch [0, 0.9000], simulated crash #1 after step 2970 -> checkpoint C1 ===
+  [B] stopped at t=0.2970 (simulated crash #1) -- DISCARDED, only checkpoint C1 survives
+=== [C] Resume #1 via production wrapper, simulated crash #2 after 2970 more steps -> checkpoint C2 ===
+[Warning: resume_projected_rk4_run: the checkpoint was written from a DIRTY working tree (uncommitted changes at checkpoint time) -- the SHA alone does not fully pin down the
+source state that produced it. Treat this run's reproducibility as compromised.] 
+[> In resume_projected_rk4_run (line 113)
+In diagnose_stepC0c_multi_resume_equivalence (line 73)
+In run_c0c (line 4)
+In run (line 112)] 
+resume_projected_rk4_run: resuming from t=0.1981 (step 1981/9000) to t_final=0.9000 ...
+resume_projected_rk4_run: resumed and stitched -> 4952 total samples covering [0, 0.4951] (inherited 1982 pre-checkpoint samples)
+  [C] resume #1 stopped at t=0.4951 (simulated crash #2) -- DISCARDED, only checkpoint C2 (overwritten in place) survives
+=== [D] Resume #2 via production wrapper, runs to completion ===
+[Warning: resume_projected_rk4_run: the checkpoint was written from a DIRTY working tree (uncommitted changes at checkpoint time) -- the SHA alone does not fully pin down the
+source state that produced it. Treat this run's reproducibility as compromised.] 
+[> In resume_projected_rk4_run (line 113)
+In diagnose_stepC0c_multi_resume_equivalence (line 79)
+In run_c0c (line 4)
+In run (line 112)] 
+resume_projected_rk4_run: resuming from t=0.3963 (step 3963/9000) to t_final=0.9000 ...
+resume_projected_rk4_run: resumed and stitched -> 9001 total samples covering [0, 0.9000] (inherited 3964 pre-checkpoint samples)
+  [D] final: 9001 total stitched samples covering [0.0000, 0.9000]
+
+=== COMPARISON ===
+max|X_A - X_resumed_twice| across ALL 9001 shared timestamps = 0.000000e+00
+nsteps:            A=9000  twice-resumed(cumulative)=9000
+max_retraction:    A=3.8236729561e+04  twice-resumed(cumulative)=3.8236729561e+04
+total_retracted:   A=111690  twice-resumed(cumulative)=111690
+max_tau_act force: A=150.000000  twice-resumed(cumulative)=150.000000
+max_tau_act moment:A=23.120634  twice-resumed(cumulative)=23.120634
+
+PASS: a chain of TWO interruptions, both resumed through the production wrapper, produces a FULL stitched trajectory and cumulative statistics equivalent to an uninterrupted run, at roundoff-level tolerance -- the original [0,t1] prefix survives the second crash.
+=== END C.0c (multi-resume equivalence CONFIRMED for a two-interruption chain) ===

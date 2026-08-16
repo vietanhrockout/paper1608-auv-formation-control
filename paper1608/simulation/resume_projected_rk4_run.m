@@ -1,48 +1,47 @@
-function res = resume_projected_rk4_run(checkpoint_path, t_final, h, params, sat_cfg, cfg, store_stride_override, force_mismatch)
+function res = resume_projected_rk4_run(checkpoint_path, t_final, h, params, sat_cfg, cfg, store_stride_override, force_mismatch, max_steps, checkpoint_every_sec)
 % RESUME_PROJECTED_RK4_RUN Continue a production run from a saved checkpoint.
 %
-% Phase C.0 gate follow-up (P0 findings from BOTH GPT audit rounds):
+% Phase C.0 gate follow-up (P0 findings across THREE GPT audit rounds):
 %   Round 1: the original checkpoint was a diagnostic snapshot only, not
 %   usable to actually continue a crashed run.
-%   Round 2: the round-1 fix's own acceptance test (diagnose_stepC0b_*)
-%   exercised the raw integrator's resume path directly, not this
-%   wrapper, and used a checkpoint whose .nsteps reflected a DIFFERENT
-%   (shorter) target than the eventual resume -- exactly the mismatch
-%   this wrapper is supposed to catch, so round 1's test would not have
-%   caught a real bug here. Round 2 also found: (a) nothing bound a
-%   checkpoint to the params/h/t_final it was produced under, so an
-%   accidental config change on resume could silently produce a hybrid,
-%   invalid trajectory; (b) a resumed run had no way to reconstruct the
-%   pre-crash decimated output history needed for Phase C figures, only
-%   the post-resume tail segment.
+%   Round 2: round 1's acceptance test exercised the raw integrator's
+%   resume path directly, not this wrapper, using a checkpoint whose
+%   .nsteps reflected a DIFFERENT (shorter) target than the eventual
+%   resume -- exactly the mismatch this wrapper is supposed to catch, so
+%   round 1's test would not have caught a real bug here. Round 2 also
+%   found: (a) nothing bound a checkpoint to the params/h/t_final it was
+%   produced under; (b) a resumed run had no way to reconstruct the
+%   pre-crash decimated output history.
+%   Round 3: round 2's own fix, tested properly this time, revealed a
+%   FOURTH gap: a checkpoint written DURING an already-resumed call only
+%   ever contained ITS OWN new segment's history -- so a SECOND crash,
+%   resumed from that second checkpoint, would silently lose the
+%   original prefix. Also: nothing bound a checkpoint to the actual
+%   source-code state (only to config structs), so a source change
+%   between crash and resume could silently produce a hybrid trajectory
+%   at the code level even with identical params.
 %
-% This version fixes both, PLUS a third bug the round-2 acceptance test
-% (rewritten to actually exercise this wrapper) caught during its own
-% first run: resuming used to always recompute a FRESH store_stride
-% targeting ~1001 samples for the remaining steps, regardless of what
-% stride the pre-crash run was actually using -- producing a stitched
-% history with a jarring density discontinuity right at the resume
-% boundary (e.g. dense pre-crash samples, then suddenly 4x-sparser
-% post-resume samples). Fixed: the checkpoint now records
-% .store_stride, and resume reuses it BY DEFAULT so the stitched output
-% has uniform density throughout; pass store_stride_override explicitly
-% only if you deliberately want a different density for the remaining
-% segment (falls back to old checkpoints without a saved store_stride
-% too, via a 1001-sample-target heuristic, with a warning).
-%
+% This version:
 %   - HARD-FAILS unless the checkpoint's saved t_final_target/h/params/
-%     sat_cfg/cfg exactly match (via isequal) what's passed here, unless
+%     sat_cfg/cfg AND git commit SHA exactly match (via isequal /
+%     string comparison) what's passed here / the current HEAD, unless
 %     force_mismatch=true is passed explicitly (diagnostic override only
 %     -- never use this for a real production resume).
-%   - Returns the FULL stitched [0, t_final] history (checkpoint's
-%     persisted t_hist_partial/X_hist_partial concatenated with the new
-%     resumed segment, with the shared boundary sample de-duplicated if
-%     present), not just the tail.
+%   - WARNS if git isn't available to verify the SHA (can't confirm
+%     safety either way) and WARNS if the checkpoint was itself written
+%     from a dirty tree (the exact source state at checkpoint time can't
+%     be reconstructed from the SHA alone in that case).
+%   - Returns the FULL [0, t_final] history directly from
+%     projected_rk4_integrate.m, which (as of the round-3 fix) seeds its
+%     own output arrays with whatever prefix its opts.resume carries --
+%     so this wrapper no longer needs to do its own post-hoc stitching,
+%     and the result is correct even across a CHAIN of multiple crashes
+%     and resumes, not just a single interruption.
 %
-% Equivalence to an uninterrupted run -- using this exact wrapper, with a
-% checkpoint produced by a run whose ORIGINAL target matches the resume
-% target (i.e. an artificially-interrupted single run, not two runs with
-% different targets) -- is verified by
+% Equivalence to an uninterrupted run across a chain of TWO interruptions
+% (not just one) is verified by
+% paper1608/verify/diagnose_stepC0c_multi_resume_equivalence.m; the
+% original single-interruption case remains covered by
 % paper1608/verify/diagnose_stepC0b_checkpoint_resume_equivalence.m.
 
     if nargin < 4 || isempty(params)
@@ -59,6 +58,12 @@ function res = resume_projected_rk4_run(checkpoint_path, t_final, h, params, sat
     end
     if nargin < 8 || isempty(force_mismatch)
         force_mismatch = false;
+    end
+    if nargin < 9 || isempty(max_steps)
+        max_steps = inf; % TEST HOOK ONLY (diagnose_stepC0c_*): simulate a second interruption mid-resume. Never set in real production use.
+    end
+    if nargin < 10 || isempty(checkpoint_every_sec)
+        checkpoint_every_sec = 10; % production default; override only for short-horizon acceptance tests that need a checkpoint to fire within a small window
     end
 
     if ~exist(checkpoint_path, 'file')
@@ -92,13 +97,35 @@ function res = resume_projected_rk4_run(checkpoint_path, t_final, h, params, sat
         mismatches{end+1} = 'cfg struct differs (NN architecture/bounds)';
     end
 
+    % Round-3 fix: bind to the actual source-code state, not just config
+    % structs (a source change between crash and resume could otherwise
+    % silently produce a hybrid trajectory even with identical params).
+    if isfield(checkpoint, 'git_sha') && isfield(checkpoint, 'git_available')
+        current_fp = git_fingerprint();
+        if ~current_fp.available || ~checkpoint.git_available
+            warning(['resume_projected_rk4_run: git SHA could not be verified for this checkpoint or the ' ...
+                     'current tree (git unavailable at checkpoint time and/or now) -- proceeding WITHOUT ' ...
+                     'source-code verification. This is a real gap in the safety guarantee, not a pass.']);
+        elseif ~strcmp(checkpoint.git_sha, current_fp.sha)
+            mismatches{end+1} = sprintf('git commit SHA: checkpoint=%s vs current=%s', checkpoint.git_sha, current_fp.sha);
+        end
+        if checkpoint.git_available && checkpoint.git_dirty
+            warning(['resume_projected_rk4_run: the checkpoint was written from a DIRTY working tree ' ...
+                     '(uncommitted changes at checkpoint time) -- the SHA alone does not fully pin down ' ...
+                     'the source state that produced it. Treat this run''s reproducibility as compromised.']);
+        end
+    else
+        warning(['resume_projected_rk4_run: checkpoint predates the round-3 git-fingerprint fix -- ' ...
+                 'source-code state cannot be verified for this resume.']);
+    end
+
     if ~isempty(mismatches) && ~force_mismatch
-        error(['resume_projected_rk4_run: checkpoint config does NOT match the requested resume config -- ' ...
+        error(['resume_projected_rk4_run: checkpoint config/source does NOT match the requested resume -- ' ...
                'refusing to resume (would silently produce a hybrid, invalid trajectory). Mismatches:\n  %s\n' ...
                'Pass force_mismatch=true only for deliberate diagnostic testing, never for a real production resume.'], ...
               strjoin(mismatches, '\n  '));
     elseif ~isempty(mismatches) && force_mismatch
-        warning('resume_projected_rk4_run: FORCING resume despite config mismatch(es):\n  %s', strjoin(mismatches, '\n  '));
+        warning('resume_projected_rk4_run: FORCING resume despite mismatch(es):\n  %s', strjoin(mismatches, '\n  '));
     end
 
     fprintf('resume_projected_rk4_run: resuming from t=%.4f (step %d/%d) to t_final=%.4f ...\n', ...
@@ -125,31 +152,27 @@ function res = resume_projected_rk4_run(checkpoint_path, t_final, h, params, sat
 
     opts = struct();
     opts.store_stride = store_stride;
-    opts.checkpoint_every_sec = 10;
+    opts.checkpoint_every_sec = checkpoint_every_sec;
     opts.checkpoint_path = checkpoint_path;
     opts.resume = checkpoint;
     opts.assert_finite = true;
     opts.track_actuator = isfield(checkpoint, 'max_tau_act_force');
+    opts.max_steps = max_steps;
 
-    [t_seg, X_seg, stats] = projected_rk4_integrate(t_final, h, checkpoint.X, params, sat_cfg, cfg, opts);
+    % projected_rk4_integrate.m (round-3 fix) seeds its own output with
+    % checkpoint.t_hist_partial/X_hist_partial itself now, so t_full/X_full
+    % returned here are ALREADY the complete [0,t_final] history -- no
+    % separate stitching step needed (and doing one would double-prepend).
+    [t_full, X_full, stats] = projected_rk4_integrate(t_final, h, checkpoint.X, params, sat_cfg, cfg, opts);
 
-    fprintf('resume_projected_rk4_run: resumed segment [%.4f, %.4f], %d new samples\n', ...
-        checkpoint.t, t_seg(end), numel(t_seg));
-
-    % Stitch the pre-crash persisted history (if present) with the new
-    % segment into one monotone, non-duplicated history (P0 fix, round 2).
-    if isfield(checkpoint, 't_hist_partial') && isfield(checkpoint, 'X_hist_partial') ...
-            && ~isempty(checkpoint.t_hist_partial)
-        [t_full, X_full] = local_stitch(checkpoint.t_hist_partial(:), checkpoint.X_hist_partial, t_seg, X_seg);
-        fprintf('resume_projected_rk4_run: stitched with %d pre-checkpoint samples -> %d total samples covering [0, %.4f]\n', ...
-            numel(checkpoint.t_hist_partial), numel(t_full), t_full(end));
+    if isfield(checkpoint, 't_hist_partial') && ~isempty(checkpoint.t_hist_partial)
+        fprintf('resume_projected_rk4_run: resumed and stitched -> %d total samples covering [0, %.4f] (inherited %d pre-checkpoint samples)\n', ...
+            numel(t_full), t_full(end), numel(checkpoint.t_hist_partial));
     else
         warning(['resume_projected_rk4_run: checkpoint has no persisted pre-crash history ' ...
                  '(t_hist_partial/X_hist_partial) -- returning ONLY the resumed tail segment ' ...
                  '[%.4f, %.4f]. This checkpoint predates the round-2 history-persistence fix.'], ...
-                checkpoint.t, t_seg(end));
-        t_full = t_seg;
-        X_full = X_seg;
+                checkpoint.t, t_full(end));
     end
 
     res = struct();
@@ -160,14 +183,4 @@ function res = resume_projected_rk4_run(checkpoint_path, t_final, h, params, sat
     res.h = h;
     res.stats = stats;
     res.resumed_from_t = checkpoint.t;
-end
-
-function [full_t, full_X] = local_stitch(hist_t, hist_X, seg_t, seg_X)
-    if ~isempty(hist_t) && abs(hist_t(end) - seg_t(1)) < 1e-9
-        full_t = [hist_t(1:end-1); seg_t];
-        full_X = [hist_X(1:end-1, :); seg_X];
-    else
-        full_t = [hist_t; seg_t];
-        full_X = [hist_X; seg_X];
-    end
 end

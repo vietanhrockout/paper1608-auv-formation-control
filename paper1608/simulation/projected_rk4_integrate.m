@@ -53,16 +53,45 @@ function [t_hot, X_hot, stats] = projected_rk4_integrate(t_hot_final, h, X0, par
 %                                config change can't silently produce a
 %                                hybrid trajectory. store_stride is reused
 %                                by default on resume so the stitched
-%                                output has uniform sample density, not a
-%                                density discontinuity at the resume
-%                                boundary -- a real bug the round-2
-%                                acceptance test caught before this fix)
+%                                output does NOT have the ~4x-density-jump
+%                                bug a round-2 acceptance test caught
+%                                before this fix (recomputing a fresh
+%                                stride for the remaining steps, ignoring
+%                                what the pre-crash run had been using).
+%                                NOTE (round-3 audit, precision correction):
+%                                this reuse gives the same store_stride on
+%                                both sides of a resume boundary, NOT a
+%                                strictly uniform sample grid -- resume.t
+%                                is always stored as the first sample of a
+%                                resumed segment regardless of whether it
+%                                falls on a "step mod store_stride==0"
+%                                boundary, so one extra off-grid sample is
+%                                possible at each resume boundary. Harmless
+%                                for plotting/physics (the sample is a
+%                                genuine, correctly-computed state, just
+%                                not evenly spaced from its neighbors) but
+%                                do not read "reused store_stride" as a
+%                                stronger uniformity guarantee than that.
+%                              .git_sha, .git_dirty, .git_available
+%                                (git HEAD commit SHA and working-tree
+%                                dirty state at checkpoint time --
+%                                resume_projected_rk4_run.m refuses to
+%                                resume on a SHA mismatch, and refuses to
+%                                LAUNCH a fresh checkpointed run from a
+%                                dirty tree by default, since round 2's
+%                                config-struct binding alone can't detect
+%                                a source-code change that leaves every
+%                                config struct byte-identical)
 %                              .t_hist_partial, .X_hist_partial
-%                                (the decimated output accumulated SO FAR
-%                                in this call -- lets a resume stitch a
-%                                complete [0,t_final] history even though
-%                                the pre-crash process's in-memory
-%                                t_hot/X_hot never survived the crash)
+%                                (the FULL decimated output from t=0 up to
+%                                this checkpoint -- round 3 follow-up fix:
+%                                a resumed call now seeds its own
+%                                t_hot/X_hot with whatever prefix IT was
+%                                given, so this is never just "since the
+%                                last resume" -- a checkpoint written
+%                                after N chained resumes still carries the
+%                                complete [0,t] history, so a crash at any
+%                                point in a resume chain never loses data)
 %     .checkpoint_path    : path for the above (default
 %                            'projected_rk4_checkpoint.mat').
 %     .resume             : OPTIONAL struct in the exact shape saved to a
@@ -85,10 +114,18 @@ function [t_hot, X_hot, stats] = projected_rk4_integrate(t_hot_final, h, X0, par
 %                            function directly with a mismatched resume
 %                            struct is a low-level footgun by design, kept
 %                            here only for diagnostic scripts that need
-%                            it). The returned t_hot/X_hot cover only the
-%                            NEW segment [resume.t, t_hot_final]; use
-%                            resume_projected_rk4_run.m if you need the
-%                            full stitched [0,t_final] history.
+%                            it). Round 3 follow-up fix: if resume.t_hist_
+%                            partial/X_hist_partial are present, the
+%                            returned t_hot/X_hot cover the FULL history
+%                            from t=0 (the inherited prefix plus the new
+%                            segment), not just the new segment -- this is
+%                            what makes chained resumes (crash, resume,
+%                            crash again, resume again, ...) never lose
+%                            data. If the resume struct has no
+%                            t_hist_partial (e.g. an old-format checkpoint,
+%                            or a resume struct built by hand for a
+%                            diagnostic), the return is just the new
+%                            segment as before.
 %     .max_steps          : OPTIONAL test hook (diagnostic use only) --
 %                            stop the loop after this many total steps
 %                            instead of running to nsteps, simulating a
@@ -152,10 +189,6 @@ function [t_hot, X_hot, stats] = projected_rk4_integrate(t_hot_final, h, X0, par
     end
 
     nsteps = ceil(t_hot_final / h);
-    n_store_cap = floor(nsteps / opts.store_stride) + 2; % +2: first slot and a safety slot for a non-aligned final step
-
-    t_hot = zeros(n_store_cap, 1);
-    X_hot = zeros(n_store_cap, numel(X0(:)));
 
     if isempty(opts.resume)
         X = X0(:);
@@ -165,6 +198,8 @@ function [t_hot, X_hot, stats] = projected_rk4_integrate(t_hot_final, h, X0, par
         total_retracted = 0;
         max_tau_act_force = 0;
         max_tau_act_moment = 0;
+        prefix_t = [];
+        prefix_X = [];
     else
         r = opts.resume;
         X = r.X(:);
@@ -187,11 +222,49 @@ function [t_hot, X_hot, stats] = projected_rk4_integrate(t_hot_final, h, X0, par
         else
             max_tau_act_moment = 0;
         end
+        % Round-3 follow-up audit (P0): carry the INHERITED history prefix
+        % into THIS call's own t_hot/X_hot, not just into the caller's
+        % post-hoc stitch. Without this, a checkpoint written DURING a
+        % resumed call only ever contained that call's own new segment
+        % (t_hot/X_hot started fresh at resume.t) -- so a second crash,
+        % resumed from THAT checkpoint, would return [t1,t_final] with the
+        % original [0,t1] prefix silently gone. Seeding it here means
+        % EVERY checkpoint (and the final return value) always carries the
+        % complete history back to t=0, no matter how many times a run has
+        % been interrupted and resumed. Verified for a two-interruption
+        % chain by diagnose_stepC0c_multi_resume_equivalence.m.
+        if isfield(r, 't_hist_partial') && ~isempty(r.t_hist_partial)
+            prefix_t = r.t_hist_partial(:);
+            prefix_X = r.X_hist_partial;
+        else
+            prefix_t = [];
+            prefix_X = [];
+        end
     end
 
-    store_idx = 1;
-    t_hot(1) = t;
-    X_hot(1,:) = X.';
+    n_prefix = numel(prefix_t);
+    n_store_cap = n_prefix + floor(nsteps / opts.store_stride) + 2; % +2: first slot and a safety slot for a non-aligned final step
+
+    t_hot = zeros(n_store_cap, 1);
+    X_hot = zeros(n_store_cap, numel(X(:)));
+
+    if n_prefix > 0
+        t_hot(1:n_prefix) = prefix_t;
+        X_hot(1:n_prefix, :) = prefix_X;
+        store_idx = n_prefix;
+        % Avoid a duplicate sample if the inherited prefix's last entry is
+        % already exactly resume.t (the common case when store_stride=1 or
+        % the checkpoint boundary happened to land on a stored sample).
+        if abs(prefix_t(end) - t) > 1e-9
+            store_idx = store_idx + 1;
+            t_hot(store_idx) = t;
+            X_hot(store_idx, :) = X.';
+        end
+    else
+        store_idx = 1;
+        t_hot(1) = t;
+        X_hot(1,:) = X.';
+    end
 
     last_checkpoint_t = t;
     k_end = min(nsteps, k_start - 1 + opts.max_steps);
@@ -228,10 +301,12 @@ function [t_hot, X_hot, stats] = projected_rk4_integrate(t_hot_final, h, X0, par
 
         if opts.checkpoint_every_sec > 0 && (t - last_checkpoint_t) >= opts.checkpoint_every_sec
             last_checkpoint_t = t;
+            git_fp = git_fingerprint();
             checkpoint = struct('t', t, 'X', X, 'k', k, 'nsteps', nsteps, ...
                 'max_retraction', max_retraction, 'total_retracted', total_retracted, ...
                 't_final_target', t_hot_final, 'h', h, 'store_stride', opts.store_stride, ...
                 'params', params, 'sat_cfg', sat_cfg, 'cfg', cfg, ...
+                'git_sha', git_fp.sha, 'git_dirty', git_fp.dirty, 'git_available', git_fp.available, ...
                 't_hist_partial', t_hot(1:store_idx), 'X_hist_partial', X_hot(1:store_idx,:));
             if opts.track_actuator
                 checkpoint.max_tau_act_force = max_tau_act_force;

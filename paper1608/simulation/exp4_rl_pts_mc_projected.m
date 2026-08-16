@@ -1,4 +1,4 @@
-function res = exp4_rl_pts_mc_projected(t_final, h, params, sat_cfg, cfg, n_target)
+function res = exp4_rl_pts_mc_projected(t_final, h, params, sat_cfg, cfg, n_target, allow_dirty_launch)
 % EXP4_RL_PTS_MC_PROJECTED Production simulation entry point using the
 % fixed-step, per-stage-projected RK4 integrator for the ENTIRE horizon
 % (Step K.7).
@@ -40,6 +40,15 @@ function res = exp4_rl_pts_mc_projected(t_final, h, params, sat_cfg, cfg, n_targ
 % Online per-step finiteness assertion (opts.assert_finite) and
 % per-channel (force/moment) actuator saturation tracking
 % (opts.track_actuator) are both enabled for the production path.
+%
+% DIRTY-TREE LAUNCH GUARD (Phase C.0 gate round 3, GPT audit): checkpoints
+% are now bound to the git commit SHA at write time (see
+% projected_rk4_integrate.m/git_fingerprint.m), but a SHA alone doesn't
+% pin down an uncommitted (dirty) working tree's exact state -- so this
+% function refuses to LAUNCH a fresh checkpointed run from a dirty tree
+% by default (a multi-hour Phase C run should be reproducible from its
+% recorded SHA). Pass allow_dirty_launch=true only for deliberate
+% diagnostic/development runs where that guarantee doesn't matter.
 
     if nargin < 1 || isempty(t_final)
         t_final = 15.0;
@@ -58,6 +67,20 @@ function res = exp4_rl_pts_mc_projected(t_final, h, params, sat_cfg, cfg, n_targ
     end
     if nargin < 6 || isempty(n_target)
         n_target = 1001;
+    end
+    if nargin < 7 || isempty(allow_dirty_launch)
+        allow_dirty_launch = false;
+    end
+
+    git_fp = git_fingerprint();
+    if ~git_fp.available
+        warning('exp4_rl_pts_mc_projected: git unavailable -- launching without a verifiable source-code fingerprint for this run''s checkpoints.');
+    elseif git_fp.dirty && ~allow_dirty_launch
+        error(['exp4_rl_pts_mc_projected: refusing to launch a checkpointed production run from a DIRTY git tree ' ...
+               '(uncommitted changes) -- a multi-hour run should be reproducible from its recorded commit SHA. ' ...
+               'Commit your changes first, or pass allow_dirty_launch=true for a deliberate diagnostic/dev run.']);
+    elseif git_fp.dirty
+        warning('exp4_rl_pts_mc_projected: launching from a DIRTY git tree with allow_dirty_launch=true -- this run''s exact source state is not fully reproducible from its SHA alone.');
     end
 
     [eta_init, nu_init] = initial_conditions();
