@@ -1,0 +1,17 @@
+=== [A] Uninterrupted run [0, 0.6000] ===
+  nsteps=6000, max_retraction=3.823673e+04, total_retracted=74108
+=== [B1] Checkpointed run [0, 0.3000] (checkpoint_every_sec small enough to fire before t_mid) ===
+  nsteps=3000, max_retraction=3.823673e+04, total_retracted=36522
+=== [B2] Reload checkpoint from disk (NOT from B1's in-memory variables) and resume to 0.6000 ===
+  loaded checkpoint: t=0.200100, k=2001/3000
+  resumed segment [0.200100, 0.600000], nsteps(cumulative)=6000, max_retraction(cumulative)=3.823673e+04, total_retracted(cumulative)=74108
+
+=== COMPARISON ===
+max|X_A(t_final) - X_B2(t_final)| = 0.000000e+00
+max|X_A(checkpoint.t) - checkpoint.X| = 0.000000e+00 (t_A=0.200100 vs checkpoint.t=0.200100)
+nsteps:          A=6000  B2(cumulative)=6000
+max_retraction:  A=3.8236729561e+04  B2(cumulative)=3.8236729561e+04
+total_retracted: A=74108  B2(cumulative)=74108
+
+PASS: checkpoint/resume produces a trajectory and cumulative statistics equivalent to an uninterrupted run, at roundoff-level tolerance.
+=== END C.0b (checkpoint/resume equivalence CONFIRMED) ===

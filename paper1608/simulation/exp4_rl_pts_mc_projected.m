@@ -31,8 +31,15 @@ function res = exp4_rl_pts_mc_projected(t_final, h, params, sat_cfg, cfg, n_targ
 % kept, computed as a store_stride passed into projected_rk4_integrate
 % BEFORE integration starts, so the oversized array is never allocated.
 % A periodic checkpoint (every 10s of simulated time, see
-% checkpoint_every_sec below) is also written for crash/kill recovery
-% diagnostics.
+% checkpoint_every_sec below) is also written ATOMICALLY (temp file +
+% rename) for crash/kill recovery -- resumable via
+% resume_projected_rk4_run.m (Phase C.0 gate follow-up: the original
+% checkpoint was a diagnostic snapshot only; equivalence to an
+% uninterrupted run is verified in
+% paper1608/verify/diagnose_stepC0b_checkpoint_resume_equivalence.m).
+% Online per-step finiteness assertion (opts.assert_finite) and
+% per-channel (force/moment) actuator saturation tracking
+% (opts.track_actuator) are both enabled for the production path.
 
     if nargin < 1 || isempty(t_final)
         t_final = 15.0;
@@ -70,11 +77,15 @@ function res = exp4_rl_pts_mc_projected(t_final, h, params, sat_cfg, cfg, n_targ
     opts.store_stride = store_stride;
     opts.checkpoint_every_sec = 10;
     opts.checkpoint_path = 'projected_rk4_checkpoint.mat';
+    opts.assert_finite = true;
+    opts.track_actuator = true;
 
     [t_full, X_full, stats] = projected_rk4_integrate(t_final, h, X0, params, sat_cfg, cfg, opts);
 
     fprintf('exp4_rl_pts_mc_projected: done, %d steps, %.1fs wall, max_retraction=%.3e, %d stored samples\n', ...
         stats.nsteps, stats.elapsed, stats.max_retraction, numel(t_full));
+    fprintf('exp4_rl_pts_mc_projected: max|tau_act| force=%.4f N (limit %.1f), moment=%.4f Nm (limit %.1f) -- tracked online at EVERY step, not just decimated samples\n', ...
+        stats.max_tau_act_force, sat_cfg.force_max, stats.max_tau_act_moment, sat_cfg.moment_max);
 
     res = struct();
     res.t = t_full;

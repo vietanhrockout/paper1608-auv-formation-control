@@ -1,0 +1,15 @@
+=== (1) store_stride=1, no checkpoint (baseline) ===
+  5001 stored samples, nsteps=5000, max_retraction=3.8236729561e+04, total_retracted=61567
+=== (2) store_stride=7, no checkpoint ===
+  716 stored samples, nsteps=5000, max_retraction=3.8236729561e+04, total_retracted=61567
+=== (3) store_stride=7, WITH checkpointing every 0.125s ===
+  716 stored samples, nsteps=5000, max_retraction=3.8236729561e+04, total_retracted=61567
+
+=== COMPARISON ===
+stats identical across (1)/(2)/(3): nsteps=5000, total_retracted=61567, max_retraction=3.8236729561e+04 -- PASS
+
+max state diff (2) vs (1) at common timestamps: 0.000000e+00
+max state diff (3) vs (1) at common timestamps: 0.000000e+00
+
+PASS: decimation and checkpointing produce EXACTLY the same physical trajectory as store_stride=1, verified at every shared timestamp, not just endpoints.
+=== END C.0a (decimation/checkpoint equivalence CONFIRMED) ===

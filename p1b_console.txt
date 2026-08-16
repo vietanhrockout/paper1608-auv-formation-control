@@ -29,3 +29,33 @@ absolute spread across eps = 2.119422e-06, relative spread = 7.8561e-07
 RESULT: closed-loop trajectory is NOT meaningfully sensitive to eps in this range (<1% relative spread). Default eps=1e-6 is fine.
 
 === END P.1b (result saved to p1b_result.mat) ===
+=== eps=1.0e-08, t_final=1.00, h=1.0e-04 ===
+  10000 steps, 137.1s wall, max_retraction=3.916947e+04, total_retracted=124285
+  E_chi(end)=14.330666, E_s(end)=2930.438447, max|tau_cmd|(traj)=6.029032e+07
+  max|tau_act| force=150.0000 moment=21.2056
+  min|vel_err| encountered = 0.000000e+00, cancellation multiplier there = 0.000000 (1.0=exact -F, 0.0=total loss)
+=== eps=1.0e-07, t_final=1.00, h=1.0e-04 ===
+  10000 steps, 118.1s wall, max_retraction=3.908103e+04, total_retracted=124273
+  E_chi(end)=14.330666, E_s(end)=2930.438463, max|tau_cmd|(traj)=6.028603e+07
+  max|tau_act| force=150.0000 moment=21.5865
+  min|vel_err| encountered = 0.000000e+00, cancellation multiplier there = 0.000000 (1.0=exact -F, 0.0=total loss)
+=== eps=1.0e-06, t_final=1.00, h=1.0e-04 ===
+  10000 steps, 101.4s wall, max_retraction=3.823673e+04, total_retracted=124250
+  E_chi(end)=14.330667, E_s(end)=2930.438530, max|tau_cmd|(traj)=6.024370e+07
+  max|tau_act| force=150.0000 moment=23.1206
+  min|vel_err| encountered = 0.000000e+00, cancellation multiplier there = 0.000000 (1.0=exact -F, 0.0=total loss)
+=== eps=1.0e-05, t_final=1.00, h=1.0e-04 ===
+  10000 steps, 128.7s wall, max_retraction=3.239989e+04, total_retracted=124289
+  E_chi(end)=14.330670, E_s(end)=2930.439573, max|tau_cmd|(traj)=5.985930e+07
+  max|tau_act| force=150.0000 moment=25.6767
+  min|vel_err| encountered = 0.000000e+00, cancellation multiplier there = 0.000000 (1.0=exact -F, 0.0=total loss)
+
+=== CROSS-EPSILON COMPARISON (trajectory-level, all runs share common timestamps since h is fixed) ===
+max trajectory-wide spread across eps: E_chi=3.401923e-06 (rel 2.1258e-07), E_s=1.126177e-03 (rel 3.2242e-07), tau_cmd=3.265261e+06 (rel 5.4159e-02)
+max|tau_act| force across eps: [150.0000  150.0000  150.0000  150.0000]
+max|tau_act| moment across eps: [21.2056   21.5865   23.1206   25.6767]
+max_retraction across eps: [3.9169e+04  3.9081e+04  3.8237e+04  3.2400e+04]
+total_retracted across eps: [124285  124273  124250  124289]
+
+VERDICT: FAIL -- at least one trajectory-level metric exceeds the 1.0% relative-spread tolerance across eps. Needs further investigation before treating eps as a non-issue.
+=== END P.1b v2 (structured verdict saved to p1b_result.mat) ===

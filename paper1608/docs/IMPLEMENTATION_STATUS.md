@@ -24,22 +24,51 @@ pointer into it, updated at verified checkpoints, not every edit.
   user-confirmed). Full 15s validation (Phase B.3) passed with a real
   assert-based checker: `E_chi` collapses 16.0 → 0.0037 over 15s, converging
   shortly after the paper's own claimed `T1*=5s`.
-- **Phase C.0 Gate (GPT audit, all 4 items fixed & verified)**: stale
+- **Phase C.0 Gate, round 1** (first GPT audit pass): stale
   `exp4_rl_pts_mc_hybrid`/`exp4_rl_pts_mc` (ode45) references removed from
   `handoff.md` and `run_all_experiments.m` in favor of the sole production
   path `exp4_rl_pts_mc_projected`; integrator made memory-safe (decimated
-  storage + periodic checkpointing, was ~4.4GB at h=1e-4/100s); Issue
-  P.1b epsilon-regularization sweep found no meaningful sensitivity
-  (relative spread 7.86e-7 across eps in {1e-8..1e-5}); Phase B.3's
+  storage + checkpointing, was ~4.4GB at h=1e-4/100s); Phase B.3's
   convergence-neighborhood check upgraded from a print to a real assert;
   `generate_all_paper_figures.m` guarded against accidental use (wrong
-  figure numbering, only Fig.2 matches the real paper).
+  figure numbering, only Fig.2 matches the real paper). **This round's own
+  "complete" claim was itself premature** — see round 2.
+- **Phase C.0 Gate, round 2** (second GPT audit pass,
+  `REVIEW_GPT_2026-08-16.md`, committed directly to the repo): checkpoint
+  is now genuinely resumable (`opts.resume`, atomic writes, verified
+  bit-exact equivalence to an uninterrupted run in
+  `diagnose_stepC0b_checkpoint_resume_equivalence.m`); decimation/
+  checkpointing verified bit-exact equivalent to `store_stride=1` at every
+  shared timestamp (`diagnose_stepC0a_decimation_equivalence.m`); `main.m`
+  no longer crashes uncaught at Step 3; the integrator now has true
+  online (every-step) finiteness assertion and per-channel-group
+  (force/moment) actuator tracking, consumed by the B.3 checker in
+  addition to its decimated-sample checks; P.1b rewritten as a
+  trajectory-level, all-AUV, multi-metric audit with a structured saved
+  verdict (see result below once the run completes).
+
+- **P.1b v2** result: structured verdict is **FAIL** against a 1%
+  relative-spread tolerance across eps in {1e-8..1e-5} — but the failure
+  is entirely in `max|tau_cmd|` (5.4% relative spread, the UNSATURATED
+  command) and the moment-channel `tau_act` (21.2→25.7 Nm trend, still
+  under the 30Nm limit). `E_chi`/`E_s` (the actual physical trajectory)
+  show negligible spread (~2-3e-7 relative). Mechanistically expected:
+  eps regularizes a near-singularity in the unsaturated command; force
+  channels are protected by saturation (pegged at 150N regardless of
+  eps), the moment channel isn't always saturated so it inherits some of
+  tau_cmd's eps-sensitivity directly. **Conclusion**: eps=1e-6 remains
+  fine for closed-loop convergence and physical-state figures (2,3,6,7,
+  8,9); a FUTURE figure that quantitatively plots tau_cmd or the moment
+  channel would need to treat eps as a documented assumption, like
+  tau_max/R/B/delta_c/delta_a. See `handoff.md`'s Phase C.0 Gate Round 2
+  section for full numbers.
 
 ## In progress
 
-- **Phase C (100s full-horizon run)**: unblocked on both correctness
-  (Issue O/P) and infrastructure (Phase C.0 Gate) fronts. Not yet
-  launched — pending explicit user go-ahead given the ~2.4hr compute cost.
+None — Phase C.0 Gate rounds 1 and 2 are both fully addressed with
+verified evidence for every finding. Next milestone is the Phase C
+(100s) run itself, pending explicit user go-ahead (real ~2.4hr compute
+commitment).
 
 ## Known discrepancies / open questions
 
@@ -69,6 +98,12 @@ pointer into it, updated at verified checkpoints, not every edit.
   not before — there's no data to test the rewrite against yet).
 - **τ_max, R, B, δc, δa**: none are given numeric values by the paper; all
   are project-chosen placeholders (see `final_parameter_table.md`).
+- **inverse_lambda_eps** (Issue P.1b v2): default 1e-6 is fine for
+  closed-loop convergence and physical-state figures, but a documented,
+  non-trivial choice for any FUTURE figure that quantitatively plots
+  `tau_cmd` or the moment-channel `tau_act` (5.4% / up-to-21% relative
+  sensitivity respectively across eps in {1e-8..1e-5}) — treat it as an
+  assumption in that scenario, not a free numerical-safety detail.
 
 ## Last verified commit
 

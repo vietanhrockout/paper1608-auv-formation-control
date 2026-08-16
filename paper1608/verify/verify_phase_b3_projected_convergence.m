@@ -8,10 +8,31 @@ function result = verify_phase_b3_projected_convergence(t_final, h, require_neig
     % asserted on convergence -- an independent audit flagged that gap
     % (Phase B.2 "succeeded" numerically while silently failing on the
     % actual control objective). This script asserts on:
-    %   1. No NaN/Inf anywhere in the state history.
+    %   1. No NaN/Inf anywhere in the state history. NOTE (Phase C.0 gate
+    %      follow-up, second GPT audit pass): res.X only holds the
+    %      DECIMATED (~1001-sample) output; a stronger, genuinely
+    %      every-RK4-step finiteness check now runs INSIDE the integrator
+    %      itself (opts.assert_finite, on by default in
+    %      exp4_rl_pts_mc_projected.m) and would already have thrown
+    %      before this function ever saw a bad state. This assert is a
+    %      redundant confirmation on the decimated output, not the only
+    %      line of defense.
     %   2. ||Wc_i|| <= delta_c (+tol) and ||Wa_i||_F <= delta_a (+tol) for
-    %      every AUV at every sample (structural NN-weight-projection bound).
-    %   3. |tau_act| never exceeds tau_max (actuator saturation respected).
+    %      every AUV at every DECIMATED sample. Unlike NaN/Inf above, this
+    %      bound is actually enforced EXACTLY by construction on EVERY
+    %      RK4 stage of EVERY step (not just decimated samples) by
+    %      projected_rk4_integrate.m's local_project_nn_state -- this
+    %      assert is a confirmatory re-check at the samples we happen to
+    %      have, not the mechanism that guarantees the bound.
+    %   3. |tau_act| never exceeds tau_max, checked TWO ways: (a) a true
+    %      online, every-RK4-step, per-channel-group (force vs moment)
+    %      maximum from res.stats.max_tau_act_force/max_tau_act_moment
+    %      (opts.track_actuator, on by default in
+    %      exp4_rl_pts_mc_projected.m -- this is what actually
+    %      demonstrates the 30 Nm rotational limit specifically, which a
+    %      single collapsed scalar cannot); and (b) a per-AUV recomputation
+    %      at each DECIMATED sample (weaker coverage, but per-AUV
+    %      granularity that the aggregate online stat doesn't have).
     %   4. GENUINE CONVERGENCE: max|chi_i| across all 3 AUVs at t_final is
     %      below a "small neighborhood of the origin" threshold, AND is
     %      meaningfully smaller than at t=0 (not just numerically finite).
@@ -86,13 +107,33 @@ function result = verify_phase_b3_projected_convergence(t_final, h, require_neig
         E_s(k) = max(e_s_k);
     end
 
-    assert(~any(isnan(res.X(:))) && ~any(isinf(res.X(:))), 'NaN/Inf found in state history');
+    assert(~any(isnan(res.X(:))) && ~any(isinf(res.X(:))), 'NaN/Inf found in decimated state history (redundant check -- opts.assert_finite inside the integrator should already have caught this online)');
+
+    % Online, every-RK4-step, per-channel-group actuator check (Phase C.0
+    % gate follow-up) -- only meaningful if the run was produced with
+    % opts.track_actuator=true (true for exp4_rl_pts_mc_projected.m's
+    % default; res.stats will simply lack these fields otherwise).
+    if isfield(res.stats, 'max_tau_act_force') && isfield(res.stats, 'max_tau_act_moment')
+        assert(res.stats.max_tau_act_force <= sat_cfg.force_max + 1e-9, ...
+            'FAIL: online force-channel actuator max %.6f exceeds limit %.4f', res.stats.max_tau_act_force, sat_cfg.force_max);
+        assert(res.stats.max_tau_act_moment <= sat_cfg.moment_max + 1e-9, ...
+            'FAIL: online moment-channel actuator max %.6f exceeds limit %.4f', res.stats.max_tau_act_moment, sat_cfg.moment_max);
+        online_actuator_checked = true;
+    else
+        online_actuator_checked = false;
+    end
 
     fprintf('\n=== PHASE B.3 SUMMARY (Issue P fix, t_final=%.2f, h=%.1e) ===\n', t_final, h);
     fprintf('nsteps=%d, wall=%.1fs, max_retraction=%.4e, total_retracted=%d\n', ...
         res.stats.nsteps, res.stats.elapsed, res.stats.max_retraction, res.stats.total_retracted);
-    fprintf('max tau_act = %.4f N/Nm (limit 150/30)\n', max_tau_act);
-    fprintf('max ||Wc|| = %.4f (limit %.1f), max ||Wa||_F = %.4f (limit %.1f)\n', ...
+    fprintf('max tau_act (decimated-sample, per-AUV recompute) = %.4f N/Nm (limit 150/30)\n', max_tau_act);
+    if online_actuator_checked
+        fprintf('max tau_act (TRUE online, every RK4 step, per channel group) = force %.4f N (limit %.1f), moment %.4f Nm (limit %.1f)\n', ...
+            res.stats.max_tau_act_force, sat_cfg.force_max, res.stats.max_tau_act_moment, sat_cfg.moment_max);
+    else
+        fprintf('WARNING: res.stats has no online actuator tracking (opts.track_actuator was not enabled for this run) -- only the weaker decimated-sample check above applies.\n');
+    end
+    fprintf('max ||Wc|| = %.4f (limit %.1f, enforced exactly by construction every RK4 stage), max ||Wa||_F = %.4f (limit %.1f, same)\n', ...
         max_Wc_norm, cfg.delta_c, max_Wa_norm, cfg.delta_a);
     sample_t = unique([0, t_final*0.1, t_final*0.25, t_final*(5/t_final), t_final*0.5, t_final*0.75, t_final]);
     for st = sample_t
@@ -125,5 +166,9 @@ function result = verify_phase_b3_projected_convergence(t_final, h, require_neig
     result.stats = res.stats;
     save(sprintf('phase_b3_checker_result_t%.0f.mat', t_final), 'result');
 
-    fprintf('=== END PHASE B.3 (all structural asserts PASSED; see convergence verdict above) ===\n');
+    if online_actuator_checked
+        fprintf('=== END PHASE B.3 (all structural asserts PASSED, INCLUDING true every-step online actuator check; see convergence verdict above) ===\n');
+    else
+        fprintf('=== END PHASE B.3 (structural asserts PASSED on decimated-sample checks only -- re-run with track_actuator enabled for the stronger online guarantee; see convergence verdict above) ===\n');
+    end
 end
