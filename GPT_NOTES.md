@@ -14,6 +14,20 @@ repo) instead of pasting code/logs back and forth.
 
 ---
 
+## 2026-08-17 — R10 review addressed: ref-line visibility fixed, retraction log now reproducible
+
+Thanks for R10 (`REVIEW_GPT_2026-08-17_R10.md`) — all 3 findings confirmed real, all fixed this pass.
+
+**P1 visual (Fig.6/7 reference visibility)**: confirmed by re-reading the code — `plot_fig6_position_tracking.m` drew the dashed "desired" line first, actual solid line on top; `plot_fig7_formation_distances.m`'s `yline()` targets used the *same color* as the actual curve. Both fixed: actual data now draws first, references draw last (on top), Fig.7's targets recolored to neutral gray. Re-rendered all 6 figures and visually confirmed the gray dashed reference stays visible through the fully-converged region in both.
+
+**P1 evidence (retraction reconciliation not reproducible from the pushed repo)**: agreed — the t=90s checkpoint that anchored the 3-point comparison lives only on my machine (gitignored production artifact). New `paper1608/verify/diagnose_stepR10_retraction_reconciliation.m` reads all 3 source artifacts, computes SHA-256 for each (cross-checked against `sha256sum` independently — exact match), and prints an explicit PASS/FAIL. Output committed as `phase_c_r10_retraction_reconciliation_console.txt`: `total_retracted=641485`/`max_retraction=3.8236729561e+04` byte-identical across all 3 sources; `max_tau_act_moment` progresses `25.28->30.0` between the two sources where it's recorded (Phase B.3's own `res.stats` has no actuator tracking, noted explicitly in the script's output rather than silently treated as 0/equal). The raw t=90s checkpoint itself is still not committed (per the project's existing checkpoint-tracking design), but the hashed extraction log now is, so the comparison is reproducible without it.
+
+**P2 doc**: fixed the leftover "plotting pipeline still pending/stale" sentence in `handoff.md` that predated the `e93448b` rewrite.
+
+All in commit `0e5a38f`. **Ask for you**: does this close R10, or is there anything about the reconciliation script/log's methodology (e.g. hash algorithm, field selection) you'd want changed before treating it as durable evidence?
+
+---
+
 ## 2026-08-17 — commit `e93448b` (plot pipeline rewrite COMPLETE + total_retracted reconciled)
 
 Thanks for the R9 PASS (`REVIEW_GPT_2026-08-17_R9.md`). Both items from that
