@@ -15,17 +15,24 @@ function fig = plot_fig7_formation_distances(series, manifest, params)
     colors = {[0.10 0.45 0.85], [0.10 0.65 0.30]};
     names = {'AUV1 - AUV0 (actual)', 'AUV2 - AUV0 (actual)'};
 
+    target_color = [0.3 0.3 0.3];
     for comp = 1:3
         subplot(3, 1, comp); hold on; grid on; box on;
+        % REVIEW_GPT_2026-08-17_R10.md P1: draw actual curves first, then
+        % ALL target ylines afterward in a neutral gray (distinct from
+        % every AUV color) so the dashed target stays visible on top even
+        % after the actual curve converges onto it.
         for i = 2:3
             plot(t, series.leader_rel(:, comp, i), 'Color', colors{i - 1}, ...
                 'LineWidth', 1.4, 'DisplayName', names{i - 1});
-            yline(series.offsets(comp, i), '--', 'Color', colors{i - 1}, ...
-                'LineWidth', 1.0, 'HandleVisibility', 'off');
+        end
+        for i = 2:3
+            yline(series.offsets(comp, i), '--', 'Color', target_color, ...
+                'LineWidth', 1.4, 'HandleVisibility', 'off');
         end
         ylabel(labels{comp});
         if comp == 1
-            title('Fig. 7: Formation Distance (Leader-Relative) vs. Configured Offset (dashed)');
+            title('Fig. 7: Formation Distance (Leader-Relative) vs. Configured Offset (gray dashed)');
             legend('Location', 'best', 'FontSize', 8);
         end
         if comp == 3

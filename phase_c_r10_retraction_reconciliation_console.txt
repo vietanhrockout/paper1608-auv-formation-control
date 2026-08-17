@@ -1,0 +1,33 @@
+=== Step R10: total_retracted / max_retraction reconciliation ===
+
+[1] t=15s (Phase B.3)
+    file: phase_b3_result_t15.mat
+    sha256: 8b36e0b30232b57622387538beae4a9df3cb4f37ca8da4e6fe9218577874ef99
+    t=15.000000  nsteps=150000
+    total_retracted=641485  max_retraction=3.8236729561e+04
+    max_tau_act_moment=NaN
+
+[2] t=90.0003s (Phase C intermediate checkpoint, gitignored/disk-only)
+    file: projected_rk4_checkpoint.mat
+    sha256: d1b3d891f566e4fd7929a159fc9b408b313f8fee5c86f7b66992194ae87964c4
+    t=90.000300  nsteps=900003
+    total_retracted=641485  max_retraction=3.8236729561e+04
+    max_tau_act_moment=25.2805291820
+
+[3] t=100s (Phase C final manifest)
+    file: phase_c_manifest_t100.mat
+    sha256: 0317fff1d2df16bdda175ecd4f46b7876d60b9b4f8498d7544134bb931c2e3ec
+    t=100.000000  nsteps=1000000
+    total_retracted=641485  max_retraction=3.8236729561e+04
+    max_tau_act_moment=30.0000000000
+
+=== Comparison ===
+total_retracted identical across all 3 available sources: YES ([641485 641485 641485])
+max_retraction identical across all 3 available sources: YES ([38236.7295605 38236.7295605 38236.7295605])
+max_tau_act_moment recorded in 2/3 sources (Phase B.3's res.stats has no actuator tracking): [25.280529 30]
+max_tau_act_moment VARIES among sources where recorded (proves live, not frozen, snapshots): YES
+
+VERDICT: PASS -- total_retracted/max_retraction are byte-identical across all available
+time points while max_tau_act_moment progresses between the sources where it is
+recorded, confirming a genuine counter freeze (not a copy-paste artifact and not a
+frozen/stale checkpoint).

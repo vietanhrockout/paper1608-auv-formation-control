@@ -13,8 +13,11 @@ function fig = plot_fig6_position_tracking(series, manifest, params)
         desired = series.eta_d0(:, 1:3) + series.offsets(1:3, i).';
         for comp = 1:3
             subplot(3, 3, (comp - 1) * 3 + i);
-            plot(t, desired(:, comp), 'k--', 'LineWidth', 1.1, 'DisplayName', 'desired'); hold on;
-            plot(t, series.eta(:, comp, i), 'b-', 'LineWidth', 1.2, 'DisplayName', 'actual');
+            % REVIEW_GPT_2026-08-17_R10.md P1: draw "actual" first, then the
+            % neutral dashed "desired" reference LAST (on top) so it stays
+            % visible instead of being fully covered once tracking converges.
+            plot(t, series.eta(:, comp, i), 'b-', 'LineWidth', 1.2, 'DisplayName', 'actual'); hold on;
+            plot(t, desired(:, comp), '--', 'Color', [0.3 0.3 0.3], 'LineWidth', 1.4, 'DisplayName', 'desired');
             grid on; box on;
             if comp == 1
                 title(names{i});
