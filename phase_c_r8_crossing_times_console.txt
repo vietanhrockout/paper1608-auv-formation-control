@@ -1,0 +1,18 @@
+=== Exact-sample values at declared deadlines ===
+T1*=5s     -> nearest sample t=4.9950: E_chi=4.934126, E_s=542.577353
+T1*+T2*=10s -> nearest sample t=9.9900: E_chi=0.002583, E_s=0.008188
+
+=== First-entry and sustained-entry times ===
+(sustained = index i such that E(j) <= thresh for ALL j >= i)
+E_chi <= 1 : first entry t=6.6933, sustained from t=6.6933 onward
+E_chi <= 0.1 : first entry t=7.0929, sustained from t=7.0929 onward
+E_chi <= 0.05 : first entry t=7.0929, sustained from t=7.3926 onward
+E_chi <= 0.02 : first entry t=7.4925, sustained from t=7.4925 onward
+E_s <= 1 : first entry t=7.1928, sustained from t=7.1928 onward
+E_s <= 0.1 : first entry t=7.3926, sustained from t=99.8001 onward
+E_s <= 0.01 : first entry t=7.3926, but NOT sustained (re-exceeds threshold later, last sample still above)
+
+=== Post-10s window statistics (declared combined horizon) ===
+max E_chi over [10,100] = 1.642859e-02
+max E_s   over [10,100] = 1.343522e-01
+E_chi(end) = 1.460165e-02, E_s(end) = 8.188394e-02

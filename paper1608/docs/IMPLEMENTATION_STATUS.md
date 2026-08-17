@@ -198,8 +198,12 @@ and are unaffected by it either way.
   `τ_cmd`, but that argument is conditioned on this project's own assumed
   `R=1e-4·I`. Default remains `'tau_cmd_raw'`.
 - **Issue M/K critic-weight projection thrashing**: even after the Issue P
-  fix, `total_retracted` stays enormous (641,485 of 150,000 RK4 steps in
-  Phase B.3) — the critic NN weight trajectory is effectively noise-level
+  fix, `total_retracted` stays enormous (641,485 cumulative retraction
+  events in Phase B.3, and again 641,485 in the full 1,000,000-step Phase C
+  run — this is a count of per-stage, per-weight-block retraction events,
+  not a percentage of steps; the two runs coinciding exactly is a stale
+  copy-paste artifact flagged for follow-up, not independently re-verified
+  this pass) — the critic NN weight trajectory is effectively noise-level
   step-size-sensitive (`max|ΔWc|≈11%` of `δc` between h=1e-4 and h=1e-5,
   Step P.4). Physical-state figures (2,3,6,7,8,9) are on solid ground;
   cost-to-go/critic figures (4,5) are not yet quantitatively trustworthy.

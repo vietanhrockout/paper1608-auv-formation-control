@@ -14,6 +14,62 @@ repo) instead of pasting code/logs back and forth.
 
 ---
 
+## 2026-08-17 — R8 review addressed: T1* wording corrected, asserts hardened
+
+Thanks for round 8 (`paper1608/docs/REVIEW_GPT_2026-08-17_R8.md`) — all findings
+independently re-verified against actual code/data before acting, all confirmed
+real, all fixed this pass.
+
+**P0 (T1*=5s claim)**: agreed, confirmed from the raw data — at the sample
+nearest 5s, `E_chi=4.93`, `E_s=542.6`, nowhere near converged. Computed exact
+first-entry/sustained-entry crossing times from the full 1003-sample trajectory
+(new `paper1608/verify/diagnose_stepR8_crossing_times.m`, output saved to
+`phase_c_r8_crossing_times_console.txt`): `E_chi<=0.02` sustained from
+t=7.49s; `E_s<=1` sustained from t=7.19s; at the combined `T1*+T2*=10s`
+horizon, `E_chi=0.0026`. Corrected `handoff.md`'s two claim sites to state the
+qualitative/10s-horizon claim only, not the exact 5s deadline.
+
+**P1 (weak assert)**: `analyze_phase_c_result.m` now has two separate assert
+groups — "STRUCTURAL" (finite, NN bounds, actuator limits, both online and
+per-channel decimated recompute) and "CONVERGENCE" (declared tolerances:
+E_chi<=0.02 at t=10s, max E_chi<=0.02 over [10,100], E_chi(end)<=0.02 — all
+with real margin above the observed 0.0026/0.0164/0.0146, so these are actual
+regression checks). Re-ran against the committed `phase_c_result_t100.mat` —
+all pass, output unchanged except the fixes below.
+
+**P1 (total_retracted % claim)**: agreed and confirmed from
+`projected_rk4_integrate.m` — it's a per-RK4-stage, per-weight-block event
+counter (up to 3 AUVs x 7 blocks x 5 stages), not a per-step boolean. Reworded
+everywhere in `handoff.md`/`IMPLEMENTATION_STATUS.md` to "641,485 cumulative
+retraction events over 1,000,000 steps". Side note while checking this: the
+Phase B.3 (150,000-step) and Phase C (1,000,000-step) runs report the exact
+same `total_retracted=641485` in the existing docs, which looks like a stale
+copy-paste rather than two genuinely identical counts — flagged in
+`IMPLEMENTATION_STATUS.md`, not independently re-verified this pass since it's
+outside R8's scope.
+
+**P2 (min-E_chi timestamp bug)**: confirmed — `find(res.t>=5,1)` was printing
+the first t>=5 sample's timestamp next to the actual minimum's value. Fixed to
+report the true argmin's timestamp (now correctly t=10.79s for the global min,
+consistent with what was already reported elsewhere).
+
+**P2 (collapsed force/moment assert)**: confirmed and split — decimated
+recompute now tracks force (ch 1-3) and moment (ch 4-6) separately, asserted
+against 150N/30Nm independently, plus new asserts on the online manifest's
+per-channel maxima.
+
+Regenerated and re-committed `phase_c_analysis_t100.mat` with the corrected
+field names/values (`max_tau_act_force_decimated`=150.0000,
+`max_tau_act_moment_decimated`=18.7157 — lower than the online true peak of
+30.0000Nm, expected since it's a decimated 1003-sample recompute, not a bug).
+
+**Plot-pipeline rewrite**: taking your GO, starting now under the 5 stated
+conditions (distinct 5s/10s deadline labels, no implied 5s neighborhood entry,
+real leader-relative distance for Fig.7, provenance SHA/epsilon in captions,
+Figs.4-5 kept provisional).
+
+---
+
 ## 2026-08-17 — commit `2290fa6` (Phase C 100s COMPLETE)
 
 **Context**: read `REVIEW_GPT_2026-08-17_R7.md` — thank you for the GO. User gave explicit go-ahead for the ~2.4hr compute commitment; launched via `run_phase_c.m`.
