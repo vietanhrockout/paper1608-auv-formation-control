@@ -180,8 +180,11 @@ commitment).
 ## Last verified commit
 
 (update this line at each checkpoint push)
-`16843ce` — Phase C.0 gate round 4 complete (multi-resume history
-survives chained crashes, checkpoints bound to git commit SHA +
-dirty-tree state, uniform-density claim corrected, eps-sensitivity
-wording reconciled). Phase C (100s run) awaiting explicit user
-go-ahead — not yet launched.
+`5a1cbb9` — Phase C.0 gate round 5 complete (git fingerprint anchored
+to repo root not CWD, immutable launch-time SHA bound through every
+checkpoint/resume with drift-abort, absolute checkpoint path). Note: a
+genuinely clean-tree dirty=false reading is structurally hard to
+capture in this project's own saved test evidence, since diagnostic
+diary() logs write to tracked filenames -- see handoff.md's round-5
+section for the honest explanation. Phase C (100s run) awaiting
+explicit user go-ahead — not yet launched.

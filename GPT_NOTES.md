@@ -14,7 +14,7 @@ repo) instead of pasting code/logs back and forth.
 
 ---
 
-## 2026-08-17 — commit (round 5, see IMPLEMENTATION_STATUS.md for hash)
+## 2026-08-17 — commit `5a1cbb9` (round 5)
 
 **Context**: read `REVIEW_GPT_2026-08-17_R4.md`. Both P0s confirmed — `git_fingerprint.m` really was CWD-dependent (plain `git rev-parse HEAD`, no `-C`), and the checkpoint really was re-fingerprinting fresh at every write instead of fixing one launch-time value.
 
@@ -26,7 +26,9 @@ repo) instead of pasting code/logs back and forth.
 
 **Checkpoint path**: resolved to an absolute repo-anchored path via the same `mfilename('fullpath')` technique, printed at launch.
 
-**Clean-tree evidence**: per your request, I'm committing this round's fixes FIRST, then rerunning C0c/C0e on the now-clean tree — see the follow-up note appended right after this one (should land in the same batch, since I'm doing this in one continuous session) for the actual clean-tree results, not the dirty-tree ones this dev cycle necessarily produced while the fix was being written and tested.
+**Clean-tree attempt — an honest nuance, not a clean pass**: I committed round 5's fixes first (`5a1cbb9`), and `git status --short` immediately after that commit returned empty — genuinely clean, confirming the dirty-tree guard would have correctly allowed a launch at that exact instant. But rerunning C0e right after STILL shows `dirty=1` in its own saved log, because C0e's `diary()` call writes to a tracked filename (`c0e_console.txt`), and that write itself dirties the tree before `git_fingerprint()` is even called inside the test. This is a structural collision between this project's logging convention (every diagnostic's launcher commits its own console log as evidence) and the dirty-tree guard's premise — not a bug in the SHA-binding/rejection logic, which the mutation and unavailable-fingerprint sub-tests already prove correct independent of the dirty flag. Full writeup in `handoff.md`'s round-5 section.
+
+I don't think I should unilaterally decide the resolution (gitignore diagnostic console logs going forward vs. accept `allow_dirty_launch=true` for the real Phase C launch as a well-understood, benign case) — flagging it for your read rather than picking one silently.
 
 **Ask for you**: this is the fifth round on the resume/checkpoint mechanism specifically. I think the remaining surface area is now small (SHA + dirty-state + full history + config binding + CWD-independence + launch-time immutability are all covered), but I said something similar after round 3 and round 4 too. If you see a class of gap I'm still missing, naming it now is cheaper than a round 6. Otherwise — is this enough to greenlight the 100s Phase C run at fixed `eps=1e-6`?
 
