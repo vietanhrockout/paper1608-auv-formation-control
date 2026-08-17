@@ -123,10 +123,28 @@ pointer into it, updated at verified checkpoints, not every edit.
   an unavailable git fingerprint fails closed. Also fixed: the
   production checkpoint path was CWD-relative, now resolved to an
   absolute repo-anchored path.
+- **Phase C.0 Gate, round 6** (sixth GPT audit pass,
+  `REVIEW_GPT_2026-08-17_R5.md`): round 5's fail-closed drift check
+  still failed OPEN when EITHER the launch or current git fingerprint
+  was unavailable (the `&&`-gated condition short-circuited to false),
+  and resume compared HEAD SHA only, never working-tree dirty state --
+  an uncommitted edit to a tracked file (SHA unchanged) would resume
+  undetected. Both fixed: drift now aborts on ANY of
+  {launch-unavailable, current-unavailable, SHA-mismatch,
+  dirty-mismatch}; resume checks dirty-state equality before the first
+  resumed step. New `diagnose_stepC0f_live_drift_rejection.m` (4/4 PASS,
+  using injectable mock-fingerprint test seams rather than touching real
+  git state) exercises exactly the 4 scenarios GPT specified: mocked
+  unavailable/dirty-mismatch at both checkpoint-time and resume-time
+  correctly abort/reject with the last valid checkpoint provably
+  untouched; the unmocked happy path remains bit-exact. Also captured
+  genuine `dirty=0` clean-tree evidence (see `handoff.md`) by keeping
+  diagnostic output outside the repo during the actual test run,
+  addressing round 5's own honestly-flagged diary-logging nuance.
 
 ## In progress
 
-None — Phase C.0 Gate rounds 1 through 5 are all fully addressed with
+None — Phase C.0 Gate rounds 1 through 6 are all fully addressed with
 verified evidence for every finding. Next milestone is the Phase C
 (100s) run itself, pending explicit user go-ahead (real ~2.4hr compute
 commitment).

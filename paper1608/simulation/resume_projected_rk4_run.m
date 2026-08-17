@@ -1,4 +1,4 @@
-function res = resume_projected_rk4_run(checkpoint_path, t_final, h, params, sat_cfg, cfg, store_stride_override, force_mismatch, max_steps, checkpoint_every_sec)
+function res = resume_projected_rk4_run(checkpoint_path, t_final, h, params, sat_cfg, cfg, store_stride_override, force_mismatch, max_steps, checkpoint_every_sec, mock_current_git_fp)
 % RESUME_PROJECTED_RK4_RUN Continue a production run from a saved checkpoint.
 %
 % Phase C.0 gate follow-up (P0 findings across THREE GPT audit rounds):
@@ -80,6 +80,9 @@ function res = resume_projected_rk4_run(checkpoint_path, t_final, h, params, sat
     if nargin < 10 || isempty(checkpoint_every_sec)
         checkpoint_every_sec = 10; % production default; override only for short-horizon acceptance tests that need a checkpoint to fire within a small window
     end
+    if nargin < 11
+        mock_current_git_fp = []; % TEST SEAM ONLY (diagnose_stepC0f_*): inject a fake "current" fingerprint to test live-drift rejection without touching real git state. Never set in production use.
+    end
 
     if ~exist(checkpoint_path, 'file')
         error('resume_projected_rk4_run: checkpoint file not found: %s', checkpoint_path);
@@ -120,7 +123,20 @@ function res = resume_projected_rk4_run(checkpoint_path, t_final, h, params, sat
     % verified at all, instead of round 3's warn-and-continue -- an
     % unverifiable source state is exactly the case this binding exists
     % to catch, not a case to silently wave through.
-    current_fp = git_fingerprint();
+    %
+    % Round-5 follow-up fix (P0, GPT audit): this used to compare ONLY
+    % the git commit SHA, never the working-tree DIRTY state -- so an
+    % uncommitted edit to a tracked dependency file (SHA unchanged, tree
+    % now dirty) would resume completely undetected here, only possibly
+    % caught later at the resumed run's own next periodic checkpoint (or
+    % never, if the run finished before reaching one). Fixed: dirty-state
+    % equality is now checked HERE, before the first resumed RK4 step,
+    % not deferred to a later checkpoint boundary.
+    if ~isempty(mock_current_git_fp)
+        current_fp = mock_current_git_fp; % TEST SEAM ONLY, see nargin<11 above
+    else
+        current_fp = git_fingerprint();
+    end
     launch_git_fp = []; % propagated forward to the resumed segment's own checkpoints, see below
     if isfield(checkpoint, 'git_sha') && isfield(checkpoint, 'git_available')
         if ~current_fp.available || ~checkpoint.git_available
@@ -128,6 +144,10 @@ function res = resume_projected_rk4_run(checkpoint_path, t_final, h, params, sat
                 'current.available=%d) -- an unverifiable source state, not a pass'], checkpoint.git_available, current_fp.available);
         elseif ~strcmp(checkpoint.git_sha, current_fp.sha)
             mismatches{end+1} = sprintf('git commit SHA: checkpoint=%s vs current=%s', checkpoint.git_sha, current_fp.sha);
+        elseif current_fp.dirty ~= checkpoint.git_dirty
+            mismatches{end+1} = sprintf(['git working-tree dirty-state: checkpoint launch dirty=%d vs current dirty=%d ' ...
+                '-- source may have been edited without committing (SHA unchanged) since launch'], ...
+                checkpoint.git_dirty, current_fp.dirty);
         else
             launch_git_fp = struct('sha', checkpoint.git_sha, 'dirty', checkpoint.git_dirty, ...
                 'available', checkpoint.git_available, 'repo_root', current_fp.repo_root);

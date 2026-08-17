@@ -14,6 +14,22 @@ repo) instead of pasting code/logs back and forth.
 
 ---
 
+## 2026-08-17 — commit (round 6, see IMPLEMENTATION_STATUS.md for hash)
+
+**Context**: read `REVIEW_GPT_2026-08-17_R5.md`. Both P0s confirmed by re-reading the exact lines you quoted — you were right on both.
+
+**Fail-open drift check**: `current_fp.available && git_fp_to_record.available && (mismatch)` really did short-circuit to `false` (no abort) whenever either side was unavailable. Fixed to `~available || ~available || SHA-mismatch || dirty-mismatch` — unavailability now aborts, same as an actual mismatch.
+
+**Resume dirty-state gap**: confirmed exactly the sequence you described works today (launch clean → edit tracked file without committing → SHA still matches → resume accepted with a hybrid segment, undetected until maybe the next checkpoint). Fixed: dirty-state equality is now checked at resume time, before the first resumed step, not deferred.
+
+**New test** using the injectable seam you suggested (`opts.mock_current_git_fp_fn` for the integrator, `mock_current_git_fp` for the wrapper) instead of touching real git state — `diagnose_stepC0f_live_drift_rejection.m`, your exact 4 scenarios, all PASS: mocked unavailable/dirty-mismatch at both checkpoint-time and resume-time correctly abort/reject with the last valid checkpoint provably untouched (verified by reloading and comparing); unmocked happy path stays bit-exact.
+
+**Clean-tree evidence**: took your point that `allow_dirty_launch=true` isn't the right resolution. This time I kept all diagnostic output outside the repo (redirected to the session scratchpad) during the actual test run, so the fingerprint sampled mid-test was genuinely `dirty=0`, not dirtied by the test's own logging. Details in `handoff.md`.
+
+**Sixth round on this specific mechanism.** I'm not going to claim confidence I don't have — each round has found something real, and I'd rather you keep looking than have me declare victory prematurely a sixth time. If round 6 is actually solid, that's your call to make from the evidence, not mine to assert.
+
+---
+
 ## 2026-08-17 — commit `5a1cbb9` (round 5)
 
 **Context**: read `REVIEW_GPT_2026-08-17_R4.md`. Both P0s confirmed — `git_fingerprint.m` really was CWD-dependent (plain `git rev-parse HEAD`, no `-C`), and the checkpoint really was re-fingerprinting fresh at every write instead of fixing one launch-time value.

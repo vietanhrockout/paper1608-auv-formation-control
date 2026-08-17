@@ -338,16 +338,35 @@ function [t_hot, X_hot, stats] = projected_rk4_integrate(t_hot_final, h, X0, par
                 % CURRENT state fresh and abort (without touching the
                 % last valid checkpoint) if source has drifted since
                 % launch, per the GPT audit's explicit request.
+                %
+                % Round-5 follow-up fix (P0, GPT audit): the original
+                % `current_fp.available && git_fp_to_record.available &&
+                % (...)` condition FAILED OPEN whenever EITHER side was
+                % unavailable -- e.g. git becoming unavailable mid-run
+                % (disk issue, PATH change, etc.) short-circuited the
+                % whole expression to false, so no abort fired and a new
+                % checkpoint was silently written carrying the OLD launch
+                % fingerprint as if nothing had changed, with no way to
+                % actually verify that claim anymore. Fixed: abort on ANY
+                % of {launch unavailable, current unavailable, SHA
+                % mismatch, dirty-state mismatch} -- unavailability is
+                % itself a failure to verify, not a free pass.
                 git_fp_to_record = opts.launch_git_fp;
-                current_fp = git_fingerprint();
-                drifted = current_fp.available && git_fp_to_record.available && ...
-                    (~strcmp(current_fp.sha, git_fp_to_record.sha) || current_fp.dirty ~= git_fp_to_record.dirty);
+                if isfield(opts, 'mock_current_git_fp_fn') && ~isempty(opts.mock_current_git_fp_fn)
+                    current_fp = opts.mock_current_git_fp_fn(); % TEST SEAM ONLY (diagnose_stepC0f_*) -- never set in production
+                else
+                    current_fp = git_fingerprint();
+                end
+                drifted = ~current_fp.available || ~git_fp_to_record.available || ...
+                    ~strcmp(current_fp.sha, git_fp_to_record.sha) || current_fp.dirty ~= git_fp_to_record.dirty;
                 if drifted
-                    error(['projected_rk4_integrate: git source state has DRIFTED since launch ' ...
-                           '(launch sha=%s dirty=%d, now sha=%s dirty=%d) -- aborting BEFORE writing a new ' ...
-                           'checkpoint so the last valid one is not overwritten by a run of ambiguous provenance. ' ...
-                           'Do not edit/commit this repo while a checkpointed production run is in progress.'], ...
-                          git_fp_to_record.sha, git_fp_to_record.dirty, current_fp.sha, current_fp.dirty);
+                    error(['projected_rk4_integrate: git source state has DRIFTED (or become UNVERIFIABLE) since ' ...
+                           'launch (launch: available=%d sha=%s dirty=%d; now: available=%d sha=%s dirty=%d) -- ' ...
+                           'aborting BEFORE writing a new checkpoint so the last valid one is not overwritten by a ' ...
+                           'run of ambiguous provenance. Do not edit/commit this repo while a checkpointed ' ...
+                           'production run is in progress, and do not let git itself become unavailable mid-run.'], ...
+                          git_fp_to_record.available, git_fp_to_record.sha, git_fp_to_record.dirty, ...
+                          current_fp.available, current_fp.sha, current_fp.dirty);
                 end
             else
                 % No launch fingerprint supplied (e.g. a raw diagnostic
