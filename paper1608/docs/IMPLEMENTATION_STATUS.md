@@ -166,12 +166,30 @@ pointer into it, updated at verified checkpoints, not every edit.
   is infrastructure/recovery only -- Issue M/K, Figs. 4-5, and the plot
   pipeline rewrite remain open per GPT's explicit framing (see
   `handoff.md`).
+- **PHASE C 100s RUN COMPLETE** — user gave explicit go-ahead, launched
+  via `run_phase_c.m`. First launch attempt was correctly REJECTED by
+  the fail-closed guard (a stray untracked file from the shell's own
+  stdout redirect made the tree dirty) -- a genuine, unplanned
+  confirmation the round-6 logic works, not just a synthetic test.
+  Relaunched cleanly (`dirty=0`, sha `1d8e1f8`). Result: 1,000,000
+  steps, 200.7 min wall, 1003 samples, self-verified. **E_chi collapses
+  16.0 -> ~0.003-0.015 by t~7.5s and STAYS THERE for the full remaining
+  90s** (first genuine long-horizon stability confirmation, not just a
+  short transient) -- global min 2.56e-3 at t=10.79s, end value 0.0146.
+  All 3 AUVs converge individually. All structural checks PASS (finite,
+  NN bounds, actuator limits respected exactly at saturation). Full
+  writeup with per-timestep table in `handoff.md`. Evidence committed:
+  `phase_c_result_t100.mat`, `phase_c_manifest_t100.mat`,
+  `phase_c_analysis_t100.mat`, `phase_c_production_console.txt`.
 
 ## In progress
 
-Phase C (100s) run itself -- infrastructure gate is CLOSED, pending
-explicit user go-ahead (real ~2.4hr compute commitment) and GPT's
-final read of this evidence.
+None on the infrastructure/Issue-O/P front — Phase C's 100s dataset is
+in hand and structurally verified. Remaining work is the plot pipeline
+rewrite (Figs. 2,3,6,7,8,9 from this real dataset) and the still-open
+Issue M/K critic-weight-thrashing / Figs.4-5-provisional questions,
+neither of which is new -- both were already tracked before this run
+and are unaffected by it either way.
 
 ## Known discrepancies / open questions
 

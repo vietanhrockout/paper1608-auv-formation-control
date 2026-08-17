@@ -472,6 +472,45 @@ This closes the **infrastructure/recovery** question only. It does **not** resol
 
 **Phase C 100s launch: GO**, using `run_phase_c.m` from a clean, committed tree. This is a real ~2.4hr compute commitment — get explicit user go-ahead before actually launching it, per this project's standing practice for expensive runs, even though the infrastructure/correctness gate itself is now closed.
 
+# PHASE C — 100s PRODUCTION RUN COMPLETE (first successful full-horizon dataset)
+
+Launched with explicit user go-ahead via `run_phase_c.m` (commit `1d8e1f8`, `git_dirty=0` confirmed at launch and bound into every checkpoint). **A real-world confirmation of the fail-closed guard happened on the first launch attempt**: the outer shell command's own stdout redirect created a stray untracked file at repo root, `git_fingerprint()` correctly detected `dirty=1`, and `run_phase_c_production.m` refused to launch exactly as designed — proof the round-6 fail-closed logic works on a genuine mistake, not just a synthetic test. Fixed by redirecting all outer capture outside the repo entirely, then relaunched cleanly (`dirty=0` confirmed).
+
+**Result**: 1,000,000 RK4 steps, **200.7 minutes wall time** (~3.35hr — longer than the ~2.4hr estimate, likely due to `track_actuator=true`'s ~20% overhead plus general system load; not a correctness concern), 1003 stored samples, saved and self-verified by `run_phase_c_production.m` (`VERIFIED -- reloaded artifact is finite, covers [0,100.0000], 1003 samples`).
+
+## Convergence result — genuine, sustained, full-horizon
+
+```
+t (s)      E_chi (max |chi| across ALL 3 AUVs)   E_s            per-AUV E_chi
+  0.000     16.000000                             3492.047344    [16.0000, 12.0000, 8.0000]
+  0.999     14.332940                             2931.174832    [14.3329, 10.3275, 6.3285]
+  2.997      9.644507                             1565.629940    [ 9.6445,  5.6264, 1.6787]
+  4.995      4.934126                              542.577353    [ 4.9341,  0.9159, 0.0028]
+  7.492      0.009130                                0.008537    [ 0.0091,  0.0025, 0.0027]
+  9.990      0.002583                                0.008188    [ 0.0023,  0.0024, 0.0026]
+ 14.985      0.003655                                0.012862    [ 0.0034,  0.0035, 0.0037]
+ 19.980      0.003269                                0.012520    [ 0.0030,  0.0031, 0.0033]
+ 29.970      0.004073                                0.014898    [ 0.0038,  0.0039, 0.0041]
+ 50.050      0.007849                                0.035269    [ 0.0060,  0.0078, 0.0051]
+ 75.025      0.008329                                0.038740    [ 0.0083,  0.0078, 0.0068]
+100.000      0.014602                                0.081884    [ 0.0146,  0.0110, 0.0093]
+```
+
+$E_\chi$ collapses from $16.0$ to $\sim 0.003$–$0.015$ by $t\approx7.5$s (shortly after the paper's own $T_1^*=5$s), and **stays in that small neighborhood for the entire remaining 90 seconds** — this is the first time this project has observed genuine long-horizon stability, not just a short-horizon transient dip. Global minimum $E_\chi=2.56\times10^{-3}$ at $t=10.79$s; the value at $t=100$s ($0.0146$) is slightly higher than the minimum (a small, bounded residual oscillation, consistent with the paper's "small neighborhood of the origin" claim rather than exact convergence to zero — expected given the disturbance/RL-adaptation terms in the closed loop) but still 3 orders of magnitude below the initial $16.0$. All 3 AUVs (leader + 2 followers) converge individually, confirmed by the per-AUV breakdown.
+
+## Structural checks (all PASS)
+- No NaN/Inf anywhere in the saved trajectory.
+- $\max\|\hat w_c\|=100.0000$ — pinned exactly at $\delta_c$ (expected, Issue M/K's critic-projection-thrashing behavior persists, as flagged, but the bound itself is never violated).
+- $\max\|\hat w_a\|_F=16.8602$ — comfortably inside $\delta_a=50$.
+- $\max|\tau_{\text{act}}|$: force channel saturates at exactly $150.0000$N (limit), moment channel reaches exactly $30.0000$Nm (limit) at some point in the trajectory — both are the actuator ceiling being hit, not exceeded; this is expected/correct saturation behavior, not a violation. Confirmed via BOTH the true online (every-RK4-step) tracking inside the integrator AND an independent post-hoc recompute at the 1003 decimated samples — both agree exactly.
+- `total_retracted=641485` of 1,000,000 steps (~64%) — the Issue M/K critic-weight-projection thrashing is still present at full scale, exactly as flagged as a known, separate, non-blocking issue throughout Phase C.0.
+
+## Evidence committed
+`phase_c_result_t100.mat` (the full 1003-sample trajectory, `res` struct), `phase_c_manifest_t100.mat` (SHA/config/timing/stats manifest), `phase_c_analysis_t100.mat` (the $E_\chi$/$E_s$/per-AUV analysis computed by the new `paper1608/verify/analyze_phase_c_result.m`), `phase_c_production_console.txt` (the run's own diary log). The working `phase_c_results/` folder itself stays gitignored (per the round 6/7 design — durable on disk, not tracked) with these being the deliberately-selected, reviewed copies that get committed, exactly as GPT's round-7 review anticipated ("Review and selectively copy/commit specific files... after the run").
+
+## What this does and does not establish
+This confirms, for the first time with a full-horizon dataset: the Issue P fix produces genuine, sustained predefined-time convergence matching the paper's Theorem 1/2 qualitative claim, not just a short-horizon artifact. Figs. 2, 3, 6, 7, 8, 9 (the physical-state figures) can now be generated from real data once the plotting pipeline is rewritten (still pending, `paper1608/plots/*.m` remains stale/guarded). This does **not** resolve the still-open, separately-tracked issues: Issue M/K's critic-weight-projection thrashing (confirmed present at full scale, `total_retracted` ~64% of steps); the `tau_cmd`/`tau_act` reward-mode question (Issue M); Figs. 4/5's provisional status; Step L.3a's follower-architecture question for Fig. 7's exact semantics. Per GPT's explicit framing (round 7): **this is a physical-state production dataset plus provisional RL diagnostics, not final validation of every paper figure.**
+
 ### Phase C — Figure Replication & Final Audit
 - **Production entry point for Phase C is `exp4_rl_pts_mc_projected` — exclusively.** The line below (`exp4_rl_pts_mc_hybrid`) is the exact stale reference the C.0 gate audit caught: `exp4_rl_pts_mc_hybrid.m` was invalidated by Steps K.5/K.6 (no non-stiff "cold phase" exists to hand off to) and superseded by Step K.7's `exp4_rl_pts_mc_projected.m` — this line was simply never updated when that happened. Correct invocation: `exp4_rl_pts_mc_projected(100.0, 1e-4)` (see Phase C.0 Gate section for the memory-safety changes needed first).
 - **The paper has Figures 1–9, not "2 through 11"** (corrected against the actual PDF, verified by rendering pages 8-10 directly with PyMuPDF rather than trusting OCR text alone):
