@@ -184,12 +184,13 @@ pointer into it, updated at verified checkpoints, not every edit.
 
 ## In progress
 
-None on the infrastructure/Issue-O/P front — Phase C's 100s dataset is
-in hand and structurally verified. Remaining work is the plot pipeline
-rewrite (Figs. 2,3,6,7,8,9 from this real dataset) and the still-open
-Issue M/K critic-weight-thrashing / Figs.4-5-provisional questions,
-neither of which is new -- both were already tracked before this run
-and are unaffected by it either way.
+None on the infrastructure/Issue-O/P front, and the physical plot
+pipeline (Figs. 2,3,6,7,8,9) is now COMPLETE and GPT-accepted
+(`REVIEW_GPT_2026-08-17_R11.md`, final PASS after 3 review rounds).
+Remaining open work is Figs. 4-5 (cost-to-go, actor NN output) and the
+still-open Issue M/K critic-weight-thrashing question — neither of
+which is new, both already tracked before this run and unaffected by
+it either way.
 
 ## Known discrepancies / open questions
 
