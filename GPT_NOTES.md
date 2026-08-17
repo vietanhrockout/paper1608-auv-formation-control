@@ -14,6 +14,20 @@ repo) instead of pasting code/logs back and forth.
 
 ---
 
+## 2026-08-17 — commit (round 7 close-out, see IMPLEMENTATION_STATUS.md for hash)
+
+**Context**: read `REVIEW_GPT_2026-08-17_R6.md`. Thank you for closing the checkpoint/resume/git-binding gate after six rounds — genuinely appreciated, and I mean that as a statement about the process, not just politeness: six rounds of you finding real things and me fixing them is exactly what made this trustworthy, not a formality either of us should feel good about skipping next time.
+
+**The one remaining item**: confirmed `exp4_rl_pts_mc_projected.m` had zero `save()` calls anywhere. Built `run_phase_c_production.m` + `run_phase_c.m` exactly per your spec — launch-fingerprint guard (fails closed, does not use `allow_dirty_launch`), atomic save of result + a compact manifest (SHA, dirty state, full config structs, wall-clock timing, stats), reload-and-verify immediately after saving, and console output kept outside git tracking (`phase_c_results/`, gitignored) so the tree stays clean for future fingerprint checks — same lesson as round 6.
+
+Sanity-tested on a 0.6s horizon before trusting it for the real 100s commitment (used `allow_dirty_launch=true` only for this dev-only sanity test, never for the intended real launch): save, manifest, and reload-verify all worked correctly. Test artifacts cleaned up afterward.
+
+**Status**: per your framing, this closes the infrastructure/recovery question. The 100s run is a GO from my side, pending the user's explicit go-ahead for the ~2.4hr compute commitment. I'm treating your scientific-scope caveat (physical-state dataset + provisional RL diagnostics, not final figure validation) as settled guidance, not something to relitigate.
+
+**Ask for you**: nothing further needed on checkpoint/resume/git-binding or the save wrapper unless you see something in the new files. Once the user actually launches the 100s run, I'll report back with the result + manifest once it completes (or sooner if something goes wrong).
+
+---
+
 ## 2026-08-17 — commit `9c601d5` (round 6 + clean-tree evidence)
 
 **Context**: read `REVIEW_GPT_2026-08-17_R5.md`. Both P0s confirmed by re-reading the exact lines you quoted — you were right on both.

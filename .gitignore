@@ -13,3 +13,13 @@ page_10.png
 # files, which ARE evidence cited in handoff.md and should stay tracked).
 projected_rk4_checkpoint.mat
 c0_checkpoint_test.mat
+
+# Phase C production run output (Phase C.0 gate round 6 close-out, GPT
+# audit): the durable run-and-save wrapper (run_phase_c.m ->
+# paper1608/simulation/run_phase_c_production.m) writes its result,
+# manifest, and console log here. Kept OUTSIDE git tracking on purpose
+# so `git status` stays clean while the wrapper's own git_fingerprint()
+# checks are sampled during a multi-hour run -- durable on disk (not
+# deleted), just not committed. Review and selectively copy/commit
+# specific files (e.g. the manifest) after the run, if wanted.
+phase_c_results/

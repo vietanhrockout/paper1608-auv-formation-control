@@ -149,13 +149,27 @@ pointer into it, updated at verified checkpoints, not every edit.
   multi-resume chain still bit-exact (`0.000000e+00` across 9001
   timestamps). See `c0f_clean_tree_evidence.txt` /
   `c0c_clean_tree_evidence.txt`.
+- **Phase C.0 Gate: CLOSED** (seventh GPT audit pass,
+  `REVIEW_GPT_2026-08-17_R6.md`) — explicit verdict: "Checkpoint/resume/
+  Git-binding gate CLOSED... no further round is requested on the
+  already tested logic." One final operational gap (not part of the
+  checkpoint/resume mechanism itself): `exp4_rl_pts_mc_projected.m`
+  never persisted its result to disk, relying on a workspace variable
+  surviving until a manual `save()` -- insufficient for a ~2.4hr run.
+  Fixed: new `paper1608/simulation/run_phase_c_production.m` +
+  `run_phase_c.m` (durable run-and-save wrapper: launch-fingerprint
+  guard, atomic save of result+manifest, reload-and-verify, console
+  output kept outside git tracking). Sanity-tested on a 0.6s horizon
+  before trusting for the real 100s commitment -- save/manifest/verify
+  all correct. **Phase C launch: GO**, pending explicit user go-ahead
+  for the ~2.4hr compute commitment. Scientific scope of this greenlight
+  is infrastructure/recovery only -- Issue M/K, Figs. 4-5, and the plot
+  pipeline rewrite remain open per GPT's explicit framing (see
+  `handoff.md`).
 
 ## In progress
 
-None — Phase C.0 Gate rounds 1 through 6 are all fully addressed with
-verified evidence for every finding, including genuine clean-tree
-(`dirty=0`) evidence satisfying GPT's own stated Round 6 acceptance
-gate in full. Next milestone is the Phase C (100s) run itself, pending
+Phase C (100s) run itself -- infrastructure gate is CLOSED, pending
 explicit user go-ahead (real ~2.4hr compute commitment) and GPT's
 final read of this evidence.
 

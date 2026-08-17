@@ -451,6 +451,27 @@ This satisfies every item of GPT's own stated Round 6 acceptance gate:
 
 Evidence copied into the repo (post-hoc, after each run completed, so committing them does not retroactively affect what was sampled during the actual runs): `c0f_clean_tree_evidence.txt`, `c0c_clean_tree_evidence.txt`.
 
+## Phase C.0 Gate — CLOSED (Seventh GPT Audit Pass, `REVIEW_GPT_2026-08-17_R6.md`)
+
+GPT's verdict: **"Checkpoint/resume/Git-binding gate CLOSED. Phase C physical-state run is conditionally greenlit after adding a durable run-and-save wrapper."** After six rounds, the checkpoint/resume/git-binding mechanism itself is no longer in question — GPT explicitly stated "no further round is requested on the already tested logic." One concrete operational gap remained before the actual 100s launch:
+
+**[P0 operational, confirmed] No durable save of the final Phase C result.** `exp4_rl_pts_mc_projected.m` returns `res` to the MATLAB workspace but never persists it — confirmed by direct inspection, zero `save()` calls anywhere in that file. For a ~2.4hr run, an interactive workspace variable surviving until someone manually calls `save()` is not a sufficient completion contract; a session failure right after integration finishes (but before that manual save) would lose the entire final artifact. The periodic checkpoint reduces *recovery* cost during the run but doesn't replace a named final dataset.
+
+**Fixed**: new `paper1608/simulation/run_phase_c_production.m` (the orchestration function) + `run_phase_c.m` (thin repo-root launcher), implementing every item of GPT's spec:
+1. Asserts/prints the clean launch fingerprint and parameters (a second, redundant fail-closed check at the orchestration level, same policy as `exp4_rl_pts_mc_projected.m`'s own guard).
+2. Calls `exp4_rl_pts_mc_projected` with the exact production args.
+3. Saves the result via temp-file + atomic `movefile` rename (same pattern as the integrator's own checkpoint writes) to a deterministic path.
+4. Saves a compact manifest alongside it: SHA, dirty state, `t_final`/`h`/`n_target`, full `params`/`sat_cfg`/`cfg` structs, start/end wall-clock time, elapsed seconds, stored sample count, online actuator/retraction statistics.
+5. Writes console output to `phase_c_results/phase_c_console.txt` — **not** a tracked repo-root filename like every other `run_*.m` launcher in this project — specifically so `git status` stays clean while the fingerprint checks run, per the round 5/6 clean-tree lesson. `phase_c_results/` is gitignored (durable on disk, not tracked).
+6. Reloads and verifies the saved artifact immediately after saving: finite states, starts at `t=0`, reaches `t_final`, matching sample count.
+
+**Verified** with a short-horizon (0.6s) sanity run before trusting it for the real 100s commitment: save/manifest/reload-verify all worked correctly (`t_final=0.6`, `668` stored samples, `git_dirty=1` correctly detected and required `allow_dirty_launch=true` to proceed for this deliberate dev-only test — the real launch must NOT use that flag, per GPT's explicit instruction). Sanity-test artifacts cleaned up afterward; `git status` confirmed clean (only the two new source files + `.gitignore` update staged).
+
+### Scientific scope of the greenlight (GPT's explicit framing, adopted)
+This closes the **infrastructure/recovery** question only. It does **not** resolve the already-documented scientific caveats: critic projection thrashing and step-size sensitivity (Issue M/K); provisional status of cost-to-go/actor Figs. 4–5; the `tau_cmd` vs `tau_act` reward interpretation (Issue M); formation-distance/formation-error plotting semantics (Step L.3a, Fig. 7 in particular); the stale figure-generation pipeline. **The 100s run should be labeled a physical-state production dataset plus provisional RL diagnostics, not final validation of every paper figure.**
+
+**Phase C 100s launch: GO**, using `run_phase_c.m` from a clean, committed tree. This is a real ~2.4hr compute commitment — get explicit user go-ahead before actually launching it, per this project's standing practice for expensive runs, even though the infrastructure/correctness gate itself is now closed.
+
 ### Phase C — Figure Replication & Final Audit
 - **Production entry point for Phase C is `exp4_rl_pts_mc_projected` — exclusively.** The line below (`exp4_rl_pts_mc_hybrid`) is the exact stale reference the C.0 gate audit caught: `exp4_rl_pts_mc_hybrid.m` was invalidated by Steps K.5/K.6 (no non-stiff "cold phase" exists to hand off to) and superseded by Step K.7's `exp4_rl_pts_mc_projected.m` — this line was simply never updated when that happened. Correct invocation: `exp4_rl_pts_mc_projected(100.0, 1e-4)` (see Phase C.0 Gate section for the memory-safety changes needed first).
 - **The paper has Figures 1–9, not "2 through 11"** (corrected against the actual PDF, verified by rendering pages 8-10 directly with PyMuPDF rather than trusting OCR text alone):
