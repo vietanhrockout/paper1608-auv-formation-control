@@ -152,6 +152,33 @@ function [t_hot, X_hot, stats] = projected_rk4_integrate(t_hot_final, h, X0, par
 %                            (4:6), so the 30 Nm rotational limit can
 %                            actually be checked, not just the 150N force
 %                            limit via a single scalar max.
+%     .launch_git_fp      : OPTIONAL struct in git_fingerprint.m's output
+%                            shape ({sha,dirty,available,repo_root}).
+%                            Round-4 follow-up fix (P0, GPT audit): every
+%                            checkpoint now records THIS SAME, IMMUTABLE
+%                            fingerprint (captured once at the true launch
+%                            of a multi-checkpoint run), not a fresh
+%                            git_fingerprint() call at each checkpoint --
+%                            the old per-checkpoint approach meant a
+%                            mid-run commit would silently relabel LATER
+%                            checkpoints with a new SHA even though the
+%                            running process's loaded code never changed.
+%                            At each checkpoint, the CURRENT git state is
+%                            still checked fresh and compared against this
+%                            launch fingerprint -- on any drift (SHA or
+%                            dirty-state change), the run ABORTS before
+%                            writing the new checkpoint, leaving the last
+%                            valid one untouched. If omitted (e.g. a raw
+%                            diagnostic call not going through
+%                            exp4_rl_pts_mc_projected.m), falls back to a
+%                            fresh git_fingerprint() call per checkpoint
+%                            (the round-3 behavior) with no drift check.
+%                            On resume, exp4_rl_pts_mc_projected.m /
+%                            resume_projected_rk4_run.m are responsible
+%                            for propagating the ORIGINAL launch
+%                            fingerprint forward (from the checkpoint
+%                            being resumed), not re-anchoring to the
+%                            resume moment -- see resume_projected_rk4_run.m.
 %
 % Outputs:
 %   t_hot : column vector of stored time points (length depends on
@@ -186,6 +213,9 @@ function [t_hot, X_hot, stats] = projected_rk4_integrate(t_hot_final, h, X0, par
     end
     if ~isfield(opts, 'max_steps') || isempty(opts.max_steps)
         opts.max_steps = inf;
+    end
+    if ~isfield(opts, 'launch_git_fp')
+        opts.launch_git_fp = [];
     end
 
     nsteps = ceil(t_hot_final / h);
@@ -301,12 +331,38 @@ function [t_hot, X_hot, stats] = projected_rk4_integrate(t_hot_final, h, X0, par
 
         if opts.checkpoint_every_sec > 0 && (t - last_checkpoint_t) >= opts.checkpoint_every_sec
             last_checkpoint_t = t;
-            git_fp = git_fingerprint();
+
+            if ~isempty(opts.launch_git_fp)
+                % Round-4 fix: record the IMMUTABLE launch fingerprint,
+                % not a fresh per-checkpoint one -- but still check the
+                % CURRENT state fresh and abort (without touching the
+                % last valid checkpoint) if source has drifted since
+                % launch, per the GPT audit's explicit request.
+                git_fp_to_record = opts.launch_git_fp;
+                current_fp = git_fingerprint();
+                drifted = current_fp.available && git_fp_to_record.available && ...
+                    (~strcmp(current_fp.sha, git_fp_to_record.sha) || current_fp.dirty ~= git_fp_to_record.dirty);
+                if drifted
+                    error(['projected_rk4_integrate: git source state has DRIFTED since launch ' ...
+                           '(launch sha=%s dirty=%d, now sha=%s dirty=%d) -- aborting BEFORE writing a new ' ...
+                           'checkpoint so the last valid one is not overwritten by a run of ambiguous provenance. ' ...
+                           'Do not edit/commit this repo while a checkpointed production run is in progress.'], ...
+                          git_fp_to_record.sha, git_fp_to_record.dirty, current_fp.sha, current_fp.dirty);
+                end
+            else
+                % No launch fingerprint supplied (e.g. a raw diagnostic
+                % call not going through exp4_rl_pts_mc_projected.m) --
+                % fall back to a fresh per-checkpoint fingerprint, same as
+                % round 3, with no drift check.
+                git_fp_to_record = git_fingerprint();
+            end
+
             checkpoint = struct('t', t, 'X', X, 'k', k, 'nsteps', nsteps, ...
                 'max_retraction', max_retraction, 'total_retracted', total_retracted, ...
                 't_final_target', t_hot_final, 'h', h, 'store_stride', opts.store_stride, ...
                 'params', params, 'sat_cfg', sat_cfg, 'cfg', cfg, ...
-                'git_sha', git_fp.sha, 'git_dirty', git_fp.dirty, 'git_available', git_fp.available, ...
+                'git_sha', git_fp_to_record.sha, 'git_dirty', git_fp_to_record.dirty, ...
+                'git_available', git_fp_to_record.available, ...
                 't_hist_partial', t_hot(1:store_idx), 'X_hist_partial', X_hot(1:store_idx,:));
             if opts.track_actuator
                 checkpoint.max_tau_act_force = max_tau_act_force;

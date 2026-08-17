@@ -103,10 +103,30 @@ pointer into it, updated at verified checkpoints, not every edit.
   off-grid sample possible per resume boundary), and the eps-sensitivity
   "up-to-21%"/"33%" conflation in this file's Known Discrepancies section
   was reconciled (they're different quantities, now stated separately).
+- **Phase C.0 Gate, round 5** (fifth GPT audit pass,
+  `REVIEW_GPT_2026-08-17_R4.md`): round 4's git-binding was CWD-dependent
+  (`git rev-parse HEAD` resolves relative to MATLAB's working directory,
+  not this repo specifically) and re-sampled the fingerprint fresh at
+  every checkpoint instead of fixing it once at launch (a mid-run commit
+  could silently relabel later checkpoints). Fixed: `git_fingerprint.m`
+  now anchors to its own file location via `mfilename('fullpath')`
+  (`git -C <dir>`), verified CWD-independent by
+  `diagnose_stepC0d_cwd_independent_fingerprint.m` (changes CWD to a
+  temp dir outside the repo, confirms the SHA is unchanged). The launch
+  fingerprint is now captured once and threaded through every
+  checkpoint/resume in a chain, with a fresh re-check at each checkpoint
+  that ABORTS (before overwriting the last valid checkpoint) on any
+  drift. New `diagnose_stepC0e_git_binding_integrity.m` (4/4 sub-tests
+  PASS): anchored SHA available; SHA identical across an entire resume
+  chain (not just coincidentally matching); a mutated/fake SHA is
+  rejected on resume with the on-disk checkpoint file left untouched;
+  an unavailable git fingerprint fails closed. Also fixed: the
+  production checkpoint path was CWD-relative, now resolved to an
+  absolute repo-anchored path.
 
 ## In progress
 
-None — Phase C.0 Gate rounds 1 through 4 are all fully addressed with
+None — Phase C.0 Gate rounds 1 through 5 are all fully addressed with
 verified evidence for every finding. Next milestone is the Phase C
 (100s) run itself, pending explicit user go-ahead (real ~2.4hr compute
 commitment).

@@ -1,0 +1,38 @@
+=== [1] Anchored repo SHA availability ===
+  available=1, sha=64fd10d6eee932b419c1e4f5e26705d77fe51ffc, dirty=1, repo_root=C:\Users\ADMIN\Documents\Control\1608 simulation
+  PASS (note: dirty=1 -- for genuine Phase-C-readiness evidence this should be run from a CLEAN committed tree)
+
+=== [2] SHA consistency across a resume chain ===
+  checkpoint C1: git_sha=64fd10d6eee932b419c1e4f5e26705d77fe51ffc
+[Warning: resume_projected_rk4_run: the checkpoint's ORIGINAL LAUNCH was from a DIRTY working tree (uncommitted changes at launch time) -- the SHA alone does not fully pin down the
+source state that produced it. Treat this run's reproducibility as compromised.] 
+[> In resume_projected_rk4_run (line 136)
+In diagnose_stepC0e_git_binding_integrity (line 68)
+In run_c0e (line 4)
+In run (line 112)] 
+resume_projected_rk4_run: resuming from t=0.1601 (step 1601/6000) to t_final=0.6000 ...
+resume_projected_rk4_run: resumed and stitched -> 6001 total samples covering [0, 0.6000] (inherited 1602 pre-checkpoint samples)
+  final checkpoint on disk: git_sha=64fd10d6eee932b419c1e4f5e26705d77fe51ffc
+  PASS: every checkpoint in the chain recorded the SAME launch SHA (64fd10d6eee932b419c1e4f5e26705d77fe51ffc)
+
+=== [3] Negative test: mutated/mismatched SHA must be rejected ===
+  mutated checkpoint on disk to a fake SHA (deadbeef...)
+[Warning: resume_projected_rk4_run: the checkpoint's ORIGINAL LAUNCH was from a DIRTY working tree (uncommitted changes at launch time) -- the SHA alone does not fully pin down the
+source state that produced it. Treat this run's reproducibility as compromised.] 
+[> In resume_projected_rk4_run (line 136)
+In diagnose_stepC0e_git_binding_integrity (line 96)
+In run_c0e (line 4)
+In run (line 112)] 
+  correctly rejected with: resume_projected_rk4_run: checkpoint config/source does NOT match the requested resume -- refusing to resume (would silently produce a hybrid, invalid trajectory). Mismatches:
+  git commit SHA: checkpoint=deadbeefdeadbeefdeadbeefdeadbeefdeadbeef vs current=64fd10d6eee932b419c1e4f5e26705d77fe51ffc
+Pass force_mismatch=true only for deliberate diagnostic testing, never for a real production resume.
+  PASS: checkpoint file on disk is untouched by the rejected resume attempt (still holds the mutated SHA, proving no accidental overwrite)
+
+=== [4] Negative test: unavailable git fingerprint must fail closed ===
+  wrote a checkpoint with git_available=false (simulating git having been unavailable at launch)
+  correctly rejected with: resume_projected_rk4_run: checkpoint config/source does NOT match the requested resume -- refusing to resume (would silently produce a hybrid, invalid trajectory). Mismatches:
+  git fingerprint could not be verified (checkpoint.git_available=0, current.available=1) -- an unverifiable source state, not a pass
+Pass force_mismatch=true only for deliberate diagnostic testing, never for a real production resume.
+  PASS: unavailable git fingerprint correctly fails closed by default.
+
+=== END C.0e (git-binding integrity CONFIRMED: SHA consistency across a chain, mutated-SHA rejection with no on-disk side effect, and fail-closed on unavailable git) ===

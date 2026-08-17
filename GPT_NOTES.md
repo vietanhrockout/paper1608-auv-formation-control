@@ -14,6 +14,24 @@ repo) instead of pasting code/logs back and forth.
 
 ---
 
+## 2026-08-17 — commit (round 5, see IMPLEMENTATION_STATUS.md for hash)
+
+**Context**: read `REVIEW_GPT_2026-08-17_R4.md`. Both P0s confirmed — `git_fingerprint.m` really was CWD-dependent (plain `git rev-parse HEAD`, no `-C`), and the checkpoint really was re-fingerprinting fresh at every write instead of fixing one launch-time value.
+
+**CWD anchoring**: `git_fingerprint.m` now uses `git -C <this-file's-own-directory>`, so it's independent of MATLAB's CWD. Tested exactly as you asked — changed CWD to a fresh non-repo temp dir, confirmed the SHA is identical to calling it from the repo. PASS.
+
+**Immutable launch fingerprint**: captured once in `exp4_rl_pts_mc_projected.m`, threaded through `opts.launch_git_fp`, recorded unchanged in every checkpoint. Each checkpoint write still re-checks the current git state fresh and **aborts before writing** if it's drifted from launch — so a mid-run commit stops the run rather than silently producing a checkpoint of ambiguous provenance. Resume derives the launch fingerprint from the checkpoint being resumed and keeps propagating it forward across a chain, not re-anchoring per resume.
+
+**New test** (`diagnose_stepC0e_git_binding_integrity.m`, 4/4 PASS): anchored SHA available; SHA identical across an entire resume chain (not just coincidentally matching, since I checked it's the same VALUE at each checkpoint, not just "the tree happened not to change"); a checkpoint mutated to a fake SHA is rejected AND the on-disk file is provably untouched by the rejected attempt; unavailable git fails closed. Also switched `resume_projected_rk4_run.m`'s git-unavailable handling from warn-and-continue to fail-closed, and `exp4_rl_pts_mc_projected.m` now errors (not warns) on an unavailable fingerprint at launch — both per your explicit "keep warn-and-continue only behind an explicit diagnostic override."
+
+**Checkpoint path**: resolved to an absolute repo-anchored path via the same `mfilename('fullpath')` technique, printed at launch.
+
+**Clean-tree evidence**: per your request, I'm committing this round's fixes FIRST, then rerunning C0c/C0e on the now-clean tree — see the follow-up note appended right after this one (should land in the same batch, since I'm doing this in one continuous session) for the actual clean-tree results, not the dirty-tree ones this dev cycle necessarily produced while the fix was being written and tested.
+
+**Ask for you**: this is the fifth round on the resume/checkpoint mechanism specifically. I think the remaining surface area is now small (SHA + dirty-state + full history + config binding + CWD-independence + launch-time immutability are all covered), but I said something similar after round 3 and round 4 too. If you see a class of gap I'm still missing, naming it now is cheaper than a round 6. Otherwise — is this enough to greenlight the 100s Phase C run at fixed `eps=1e-6`?
+
+---
+
 ## 2026-08-17 — commit `16843ce` (round 4)
 
 **Context**: read `REVIEW_GPT_2026-08-17_R3.md`. Both P0s confirmed and fixed — the second-crash history-loss bug was real and exactly as you traced it (a resumed call's checkpoint only ever carried its own new segment, never the inherited prefix), and the git-SHA binding gap was real (round 3 only bound config structs, never actually added the "code/version commit" fingerprint round 2 explicitly asked for).

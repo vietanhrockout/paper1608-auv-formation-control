@@ -3,9 +3,9 @@
 === [B] Same-target run [0, 0.6000], simulated crash after step 2400 (opts.max_steps) ===
   [B] stopped early as intended (simulated crash) at t=0.2400 of 0.6000 -- this output is now DISCARDED, only the checkpoint file survives
 === [C] Resume via the PRODUCTION wrapper resume_projected_rk4_run.m ===
-[Warning: resume_projected_rk4_run: the checkpoint was written from a DIRTY working tree (uncommitted changes at checkpoint time) -- the SHA alone does not fully pin down the
+[Warning: resume_projected_rk4_run: the checkpoint's ORIGINAL LAUNCH was from a DIRTY working tree (uncommitted changes at launch time) -- the SHA alone does not fully pin down the
 source state that produced it. Treat this run's reproducibility as compromised.] 
-[> In resume_projected_rk4_run (line 113)
+[> In resume_projected_rk4_run (line 136)
 In diagnose_stepC0b_checkpoint_resume_equivalence (line 82)
 In run_c0b (line 4)
 In run (line 112)] 
@@ -25,9 +25,9 @@ max_tau_act moment:A=23.120634  resumed(cumulative)=23.120634
 PASS: resume_projected_rk4_run.m produces a FULL stitched trajectory and cumulative statistics (including actuator maxima) equivalent to an uninterrupted run, at roundoff-level tolerance.
 
 === [D] Negative test: wrapper must REJECT a mismatched-target resume ===
-[Warning: resume_projected_rk4_run: the checkpoint was written from a DIRTY working tree (uncommitted changes at checkpoint time) -- the SHA alone does not fully pin down the
+[Warning: resume_projected_rk4_run: the checkpoint's ORIGINAL LAUNCH was from a DIRTY working tree (uncommitted changes at launch time) -- the SHA alone does not fully pin down the
 source state that produced it. Treat this run's reproducibility as compromised.] 
-[> In resume_projected_rk4_run (line 113)
+[> In resume_projected_rk4_run (line 136)
 In diagnose_stepC0b_checkpoint_resume_equivalence (line 119)
 In run_c0b (line 4)
 In run (line 112)] 

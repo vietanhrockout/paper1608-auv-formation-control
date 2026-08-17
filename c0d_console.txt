@@ -1,0 +1,6 @@
+From repo CWD (C:\Users\ADMIN\Documents\Control\1608 simulation): available=1, sha=64fd10d6eee932b419c1e4f5e26705d77fe51ffc, dirty=1
+Changed CWD to non-repository temp dir: C:\Users\ADMIN\AppData\Local\Temp\tp790eef6a_6b5b_4347_bde6_4647f0e9306b
+From non-repo CWD: available=1, sha=64fd10d6eee932b419c1e4f5e26705d77fe51ffc, dirty=1, repo_root=C:\Users\ADMIN\Documents\Control\1608 simulation
+
+PASS: git_fingerprint() returns the SAME Paper 1608 repo SHA/dirty-state regardless of MATLAB's current working directory.
+=== END C.0d (CWD-independent git fingerprint CONFIRMED) ===

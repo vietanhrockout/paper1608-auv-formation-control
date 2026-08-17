@@ -49,6 +49,16 @@ function res = exp4_rl_pts_mc_projected(t_final, h, params, sat_cfg, cfg, n_targ
 % by default (a multi-hour Phase C run should be reproducible from its
 % recorded SHA). Pass allow_dirty_launch=true only for deliberate
 % diagnostic/development runs where that guarantee doesn't matter.
+%
+% Round 4 follow-up (P0, GPT audit): two more fixes to the git-binding
+% story. (1) Also FAILS CLOSED (errors, does not just warn) if the git
+% fingerprint is UNAVAILABLE at all, same allow_dirty_launch override --
+% round 3 only warned in this case and continued, which defeats the whole
+% source-binding guarantee silently. (2) Computes the fingerprint exactly
+% ONCE here (the true "launch" moment) and threads it through to every
+% checkpoint via opts.launch_git_fp, instead of letting the integrator
+% re-fingerprint fresh at each checkpoint (which could silently relabel
+% later checkpoints if the repo was edited mid-run).
 
     if nargin < 1 || isempty(t_final)
         t_final = 15.0;
@@ -72,15 +82,22 @@ function res = exp4_rl_pts_mc_projected(t_final, h, params, sat_cfg, cfg, n_targ
         allow_dirty_launch = false;
     end
 
-    git_fp = git_fingerprint();
-    if ~git_fp.available
-        warning('exp4_rl_pts_mc_projected: git unavailable -- launching without a verifiable source-code fingerprint for this run''s checkpoints.');
-    elseif git_fp.dirty && ~allow_dirty_launch
+    launch_git_fp = git_fingerprint();
+    if ~launch_git_fp.available && ~allow_dirty_launch
+        error(['exp4_rl_pts_mc_projected: refusing to launch a checkpointed production run -- git fingerprint is ' ...
+               'UNAVAILABLE (repo_root=%s), so checkpoints could not be bound to a verifiable source-code state at ' ...
+               'all. Fix the git availability issue, or pass allow_dirty_launch=true for a deliberate diagnostic/ ' ...
+               'dev run where that guarantee doesn''t matter.'], launch_git_fp.repo_root);
+    elseif ~launch_git_fp.available
+        warning('exp4_rl_pts_mc_projected: launching with allow_dirty_launch=true and an UNAVAILABLE git fingerprint -- this run''s checkpoints carry no verifiable source-code binding at all.');
+    elseif launch_git_fp.dirty && ~allow_dirty_launch
         error(['exp4_rl_pts_mc_projected: refusing to launch a checkpointed production run from a DIRTY git tree ' ...
                '(uncommitted changes) -- a multi-hour run should be reproducible from its recorded commit SHA. ' ...
                'Commit your changes first, or pass allow_dirty_launch=true for a deliberate diagnostic/dev run.']);
-    elseif git_fp.dirty
+    elseif launch_git_fp.dirty
         warning('exp4_rl_pts_mc_projected: launching from a DIRTY git tree with allow_dirty_launch=true -- this run''s exact source state is not fully reproducible from its SHA alone.');
+    else
+        fprintf('exp4_rl_pts_mc_projected: launch git fingerprint sha=%s (clean tree) -- bound into every checkpoint for this run.\n', launch_git_fp.sha);
     end
 
     [eta_init, nu_init] = initial_conditions();
@@ -96,12 +113,22 @@ function res = exp4_rl_pts_mc_projected(t_final, h, params, sat_cfg, cfg, n_targ
     fprintf('exp4_rl_pts_mc_projected: integrating [0, %.4f]s at h=%.2e (%d steps, storing every %d-th step -> ~%d samples) ...\n', ...
         t_final, h, nsteps, store_stride, floor(nsteps/store_stride)+1);
 
+    % Round-4 fix (P1, GPT audit): resolve the checkpoint file to an
+    % ABSOLUTE, repo-anchored path -- the old CWD-relative filename had
+    % the same ambiguity class as the git-fingerprint CWD bug (recovery
+    % after a crash shouldn't depend on remembering which directory
+    % MATLAB happened to be launched from).
+    repo_root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+    checkpoint_path = fullfile(repo_root, 'projected_rk4_checkpoint.mat');
+    fprintf('exp4_rl_pts_mc_projected: checkpoint path = %s\n', checkpoint_path);
+
     opts = struct();
     opts.store_stride = store_stride;
     opts.checkpoint_every_sec = 10;
-    opts.checkpoint_path = 'projected_rk4_checkpoint.mat';
+    opts.checkpoint_path = checkpoint_path;
     opts.assert_finite = true;
     opts.track_actuator = true;
+    opts.launch_git_fp = launch_git_fp;
 
     [t_full, X_full, stats] = projected_rk4_integrate(t_final, h, X0, params, sat_cfg, cfg, opts);
 

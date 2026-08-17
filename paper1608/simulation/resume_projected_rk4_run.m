@@ -20,6 +20,15 @@ function res = resume_projected_rk4_run(checkpoint_path, t_final, h, params, sat
 %   source-code state (only to config structs), so a source change
 %   between crash and resume could silently produce a hybrid trajectory
 %   at the code level even with identical params.
+%   Round 4: round 3's git-binding fix used plain `git rev-parse HEAD`
+%   (CWD-dependent -- wrong/unavailable if MATLAB's CWD isn't inside this
+%   repo) and re-fingerprinted at EVERY checkpoint instead of capturing
+%   one immutable value at launch (so a mid-run commit could silently
+%   relabel later checkpoints). Both fixed: git_fingerprint.m now anchors
+%   to this file's own directory via mfilename('fullpath'), and the
+%   ORIGINAL launch fingerprint is threaded through every
+%   checkpoint/resume in a chain (see opts.launch_git_fp in
+%   projected_rk4_integrate.m).
 %
 % This version:
 %   - HARD-FAILS unless the checkpoint's saved t_final_target/h/params/
@@ -27,10 +36,14 @@ function res = resume_projected_rk4_run(checkpoint_path, t_final, h, params, sat
 %     string comparison) what's passed here / the current HEAD, unless
 %     force_mismatch=true is passed explicitly (diagnostic override only
 %     -- never use this for a real production resume).
-%   - WARNS if git isn't available to verify the SHA (can't confirm
-%     safety either way) and WARNS if the checkpoint was itself written
-%     from a dirty tree (the exact source state at checkpoint time can't
-%     be reconstructed from the SHA alone in that case).
+%   - Round 4: also FAILS CLOSED (treated as a mismatch, same
+%     force_mismatch gate) if the git fingerprint cannot be verified at
+%     all (unavailable at checkpoint time and/or now) -- round 3 only
+%     warned in this case, which defeats the whole point of the binding.
+%     WARNS (does not fail) if the checkpoint's ORIGINAL LAUNCH was from
+%     a dirty tree -- the SHA alone can't fully pin that down, but
+%     refusing every resume of an already-dirty-launched run would be
+%     overly strict for legitimate dev/diagnostic use.
 %   - Returns the FULL [0, t_final] history directly from
 %     projected_rk4_integrate.m, which (as of the round-3 fix) seeds its
 %     own output arrays with whatever prefix its opts.resume carries --
@@ -42,7 +55,9 @@ function res = resume_projected_rk4_run(checkpoint_path, t_final, h, params, sat
 % (not just one) is verified by
 % paper1608/verify/diagnose_stepC0c_multi_resume_equivalence.m; the
 % original single-interruption case remains covered by
-% paper1608/verify/diagnose_stepC0b_checkpoint_resume_equivalence.m.
+% paper1608/verify/diagnose_stepC0b_checkpoint_resume_equivalence.m;
+% CWD-independence of the git fingerprint is verified by
+% paper1608/verify/diagnose_stepC0d_cwd_independent_fingerprint.m.
 
     if nargin < 4 || isempty(params)
         params = simulation_params();
@@ -97,26 +112,33 @@ function res = resume_projected_rk4_run(checkpoint_path, t_final, h, params, sat
         mismatches{end+1} = 'cfg struct differs (NN architecture/bounds)';
     end
 
-    % Round-3 fix: bind to the actual source-code state, not just config
-    % structs (a source change between crash and resume could otherwise
-    % silently produce a hybrid trajectory even with identical params).
+    % Bind to the actual source-code state, not just config structs (a
+    % source change between crash and resume could otherwise silently
+    % produce a hybrid trajectory even with identical params). Round 4
+    % fix (GPT audit): FAIL CLOSED (treat as a mismatch, gated by
+    % force_mismatch like everything else) when the fingerprint can't be
+    % verified at all, instead of round 3's warn-and-continue -- an
+    % unverifiable source state is exactly the case this binding exists
+    % to catch, not a case to silently wave through.
+    current_fp = git_fingerprint();
+    launch_git_fp = []; % propagated forward to the resumed segment's own checkpoints, see below
     if isfield(checkpoint, 'git_sha') && isfield(checkpoint, 'git_available')
-        current_fp = git_fingerprint();
         if ~current_fp.available || ~checkpoint.git_available
-            warning(['resume_projected_rk4_run: git SHA could not be verified for this checkpoint or the ' ...
-                     'current tree (git unavailable at checkpoint time and/or now) -- proceeding WITHOUT ' ...
-                     'source-code verification. This is a real gap in the safety guarantee, not a pass.']);
+            mismatches{end+1} = sprintf(['git fingerprint could not be verified (checkpoint.git_available=%d, ' ...
+                'current.available=%d) -- an unverifiable source state, not a pass'], checkpoint.git_available, current_fp.available);
         elseif ~strcmp(checkpoint.git_sha, current_fp.sha)
             mismatches{end+1} = sprintf('git commit SHA: checkpoint=%s vs current=%s', checkpoint.git_sha, current_fp.sha);
+        else
+            launch_git_fp = struct('sha', checkpoint.git_sha, 'dirty', checkpoint.git_dirty, ...
+                'available', checkpoint.git_available, 'repo_root', current_fp.repo_root);
         end
         if checkpoint.git_available && checkpoint.git_dirty
-            warning(['resume_projected_rk4_run: the checkpoint was written from a DIRTY working tree ' ...
-                     '(uncommitted changes at checkpoint time) -- the SHA alone does not fully pin down ' ...
+            warning(['resume_projected_rk4_run: the checkpoint''s ORIGINAL LAUNCH was from a DIRTY working tree ' ...
+                     '(uncommitted changes at launch time) -- the SHA alone does not fully pin down ' ...
                      'the source state that produced it. Treat this run''s reproducibility as compromised.']);
         end
     else
-        warning(['resume_projected_rk4_run: checkpoint predates the round-3 git-fingerprint fix -- ' ...
-                 'source-code state cannot be verified for this resume.']);
+        mismatches{end+1} = 'checkpoint predates the round-3 git-fingerprint fix -- source-code state cannot be verified for this resume';
     end
 
     if ~isempty(mismatches) && ~force_mismatch
@@ -158,6 +180,7 @@ function res = resume_projected_rk4_run(checkpoint_path, t_final, h, params, sat
     opts.assert_finite = true;
     opts.track_actuator = isfield(checkpoint, 'max_tau_act_force');
     opts.max_steps = max_steps;
+    opts.launch_git_fp = launch_git_fp; % propagate the ORIGINAL launch fingerprint forward (empty only in the force_mismatch diagnostic path)
 
     % projected_rk4_integrate.m (round-3 fix) seeds its own output with
     % checkpoint.t_hist_partial/X_hist_partial itself now, so t_full/X_full
