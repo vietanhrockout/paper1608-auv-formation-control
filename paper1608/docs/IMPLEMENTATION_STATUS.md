@@ -180,7 +180,7 @@ commitment).
 ## Last verified commit
 
 (update this line at each checkpoint push)
-`5a1cbb9` — Phase C.0 gate round 5 complete (git fingerprint anchored
+`b204679` — Phase C.0 gate round 5 complete (git fingerprint anchored
 to repo root not CWD, immutable launch-time SHA bound through every
 checkpoint/resume with drift-abort, absolute checkpoint path). Note: a
 genuinely clean-tree dirty=false reading is structurally hard to
