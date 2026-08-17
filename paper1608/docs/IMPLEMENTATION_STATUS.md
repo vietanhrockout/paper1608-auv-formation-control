@@ -197,30 +197,48 @@ and are unaffected by it either way.
   reproduction choice. Fig. 4's `O(10^8)` cost-to-go magnitude favors raw
   `τ_cmd`, but that argument is conditioned on this project's own assumed
   `R=1e-4·I`. Default remains `'tau_cmd_raw'`.
-- **Issue M/K critic-weight projection thrashing**: even after the Issue P
-  fix, `total_retracted` stays enormous (641,485 cumulative retraction
-  events in Phase B.3, and again 641,485 in the full 1,000,000-step Phase C
-  run — this is a count of per-stage, per-weight-block retraction events,
-  not a percentage of steps; the two runs coinciding exactly is a stale
-  copy-paste artifact flagged for follow-up, not independently re-verified
-  this pass) — the critic NN weight trajectory is effectively noise-level
-  step-size-sensitive (`max|ΔWc|≈11%` of `δc` between h=1e-4 and h=1e-5,
-  Step P.4). Physical-state figures (2,3,6,7,8,9) are on solid ground;
-  cost-to-go/critic figures (4,5) are not yet quantitatively trustworthy.
+- **Issue M/K critic-weight projection thrashing — RECONCILED (not a
+  copy-paste artifact; a genuine, verified early-transient-only effect)**:
+  `total_retracted=641,485` / `max_retraction=3.8237e4` are **byte-identical**
+  across three independent measurement points read directly from the raw
+  `.mat` artifacts (not docs): Phase B.3's t=15s end state (150,000 steps),
+  an intermediate checkpoint from the actual Phase C run at t=90.0003s
+  (900,003 steps, recovered from the gitignored `projected_rk4_checkpoint.mat`
+  left on disk), and the Phase C run's final t=100s manifest (1,000,000
+  steps). This means hard weight-retraction events (and the running max
+  correction magnitude) stopped occurring **somewhere at or before t=15s and
+  never recurred through t=100s** — 850,000+ further RK4 steps with zero
+  additional retraction. Cross-checked for confidence: the same t=90s
+  checkpoint's `max_tau_act_moment` (25.28 Nm) differs from the t=100s
+  manifest's (30.0 Nm), proving the checkpoint mechanism captures genuinely
+  live intermediate state rather than a frozen/stale snapshot, so the
+  `total_retracted` freeze is real, not a logging bug. Exact freeze time
+  before t=15s not pinned down (no earlier intermediate checkpoint survives
+  from the B.3 run). **Practical implication**: Issue M/K's critic-weight
+  thrashing is confined to the initial transient (≤15s), not an ongoing
+  full-horizon problem — a materially better picture than previously
+  documented. The critic NN weight trajectory is still effectively
+  noise-level step-size-sensitive during that early transient
+  (`max|ΔWc|≈11%` of `δc` between h=1e-4 and h=1e-5, Step P.4). Physical-state
+  figures (2,3,6,7,8,9) are on solid ground; cost-to-go/critic figures (4,5)
+  are not yet quantitatively trustworthy.
 - **Step L.3a** (follower formation-error architecture): paper-literal
   Candidate A (`χᵢ=ηᵢ-η_d0-η^l_0i`, current code) now converges cleanly
   under the Issue P fix. Candidate B (`χᵢ=ηᵢ-η₀-η^l_0i`, actual-leader-
   relative) was found to better match Fig. 7–8's sign/scale in an earlier
-  pass but has not been re-tested under the fix. For Fig. 7 specifically
-  (paper describes it as "formation distance between follower and leader"),
-  Phase C's plotting code should compute actual `η₁-η₀`/`η₂-η₀` directly
-  rather than relabeling the literal `χ` — see `EQUATION_MAPPING.md`.
-- **`paper1608/plots/*.m`**: entire figure-generation pipeline predates the
-  Issue I–P audit and its figure numbering does not match the real paper
-  (only Fig. 2 happens to line up). Guarded with a hard error in
-  `generate_all_paper_figures.m` to prevent accidental misuse. Needs a full
-  rewrite against a real Phase C dataset (planned as a post-Phase-C step,
-  not before — there's no data to test the rewrite against yet).
+  pass but has not been re-tested under the fix — deprioritized, since the
+  controller itself uses Candidate A and converges fine; only Fig. 7's
+  *plotting* needed the actual leader-relative quantity, which is now done
+  (`compute_phase_c_series.m` computes `η₁-η₀`/`η₂-η₀` directly, verified
+  to converge to the configured `[3,4,2]`/`[6,1,4]` offsets — see
+  `handoff.md`'s "Plot pipeline rewrite" subsection).
+- **`paper1608/plots/*.m` Figs. 2,3,6,7,8,9 — REWRITTEN and generated from
+  the real `phase_c_result_t100.mat` dataset** (see `handoff.md`'s "Plot
+  pipeline rewrite" subsection). `generate_all_paper_figures.m` no longer
+  needs the old stale-pipeline guard for these 6. Figs. 4/5
+  (`plot_fig4_attitude_errors.m`/`plot_fig5_control_inputs.m`) remain the
+  old placeholders, intentionally untouched and not called — out of scope
+  pending Issue M/K.
 - **τ_max, R, B, δc, δa**: none are given numeric values by the paper; all
   are project-chosen placeholders (see `final_parameter_table.md`).
 - **inverse_lambda_eps** (Issue P.1b v3; round-4 audit fixed a wording
@@ -244,16 +262,20 @@ and are unaffected by it either way.
 ## Last verified commit
 
 (update this line at each checkpoint push)
-`2290fa6` — **Phase C 100s production run COMPLETE.** E_chi converges
-16.0 -> ~0.003-0.015 by t~7.5s and stays there through t=100s (genuine
-long-horizon stability, not a short transient). All structural checks
-pass. Evidence: `phase_c_result_t100.mat` / `phase_c_manifest_t100.mat`
-/ `phase_c_analysis_t100.mat` / `phase_c_production_console.txt`. Next
-milestone: plot pipeline rewrite (Figs. 2,3,6,7,8,9) against this real
-dataset. Issue M/K and Figs.4-5 remain provisional, unaffected by this
-run.
+Plot pipeline rewrite COMPLETE and smoke-tested. `paper1608/plots/*.m`
+rewritten per the R8/R9 GO (5 stated conditions all satisfied, verified
+by direct inspection of the rendered PNGs): Figs. 2,3,6,7,8,9 regenerated
+from the real `phase_c_result_t100.mat`/`phase_c_manifest_t100.mat`
+dataset, ran end-to-end with no errors
+(`plot_smoke_test_console.txt`). Also this checkpoint: reconciled R9's
+flagged `total_retracted` coincidence — confirmed genuine (not a
+copy-paste bug) via a third independent data point, an intermediate
+Phase C checkpoint at t=90.0003s recovered from disk; see "Known
+discrepancies" above. Figs. 4-5 remain intentionally out of scope
+(provisional, gated on Issue M/K).
 
-(Prior: `1281d58` — Phase C.0 Gate CLOSED after 7 GPT review rounds.
-`b204679` — round 5, which first flagged the diary-logging/
-clean-tree-evidence nuance that round 6 above resolved by running
-tests with output kept outside the repo entirely.)
+(Prior: `2290fa6` — Phase C 100s production run COMPLETE. `1281d58` —
+Phase C.0 Gate CLOSED after 7 GPT review rounds. `b204679` — round 5,
+which first flagged the diary-logging/clean-tree-evidence nuance that
+round 6 resolved by running tests with output kept outside the repo
+entirely.)

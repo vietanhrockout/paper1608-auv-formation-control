@@ -1,33 +1,28 @@
-function fig = plot_fig2_3d_trajectory(res)
-    % PLOT_FIG2_3D_TRAJECTORY Reproduces Figure 2: 3D Trajectory in Earth Frame
-    
-    fig = figure('Name', 'Figure 2: 3D Trajectory', 'Visible', 'off');
+function fig = plot_fig2_3d_trajectory(series, manifest, params)
+    % PLOT_FIG2_3D_TRAJECTORY
+    % Paper Fig. 2: 3D operational trajectory of the 3 AUVs (leader +
+    % 2 followers) plus the virtual leader reference path, t in [0,100]s.
+
+    fig = figure('Visible', 'off', 'Position', [100 100 900 700]);
     hold on; grid on; box on;
-    
-    t = res.t;
-    X = res.X;
-    cfg = nn_config();
-    
-    % Extract trajectories
-    pos_d0 = zeros(length(t), 3);
-    pos_auv = zeros(length(t), 3, 3);
-    
-    for k = 1:length(t)
-        [eta_d0, ~, ~] = reference_1608(t(k));
-        pos_d0(k, :) = eta_d0(1:3)';
-        [eta_mat, ~, ~, ~, ~] = unpack_states(X(k, :)', cfg);
-        for i = 1:3
-            pos_auv(k, :, i) = eta_mat(1:3, i)';
-        end
+
+    colors = {[0.85 0.10 0.10], [0.10 0.45 0.85], [0.10 0.65 0.30]};
+    names = {'AUV0 (leader)', 'AUV1 (follower)', 'AUV2 (follower)'};
+
+    for i = 1:3
+        x = series.eta(:, 1, i); y = series.eta(:, 2, i); z = series.eta(:, 3, i);
+        plot3(x, y, z, 'Color', colors{i}, 'LineWidth', 1.6, 'DisplayName', names{i});
+        plot3(x(1), y(1), z(1), 'o', 'Color', colors{i}, 'MarkerFaceColor', colors{i}, ...
+            'MarkerSize', 7, 'HandleVisibility', 'off');
+        plot3(x(end), y(end), z(end), 's', 'Color', colors{i}, 'MarkerFaceColor', 'w', ...
+            'MarkerSize', 8, 'LineWidth', 1.5, 'HandleVisibility', 'off');
     end
-    
-    plot3(pos_d0(:, 1), pos_d0(:, 2), pos_d0(:, 3), 'k--', 'LineWidth', 2, 'DisplayName', 'Virtual Leader');
-    plot3(pos_auv(:, 1, 1), pos_auv(:, 2, 1), pos_auv(:, 3, 1), 'r-', 'LineWidth', 1.5, 'DisplayName', 'AUV 0');
-    plot3(pos_auv(:, 1, 2), pos_auv(:, 2, 2), pos_auv(:, 3, 2), 'b-', 'LineWidth', 1.5, 'DisplayName', 'AUV 1');
-    plot3(pos_auv(:, 1, 3), pos_auv(:, 2, 3), pos_auv(:, 3, 3), 'g-', 'LineWidth', 1.5, 'DisplayName', 'AUV 2');
-    
-    xlabel('X (m)'); ylabel('Y (m)'); zlabel('Z (m)');
-    title('Figure 2: 3D Trajectory of Leader and AUV Formation');
+    plot3(series.eta_d0(:, 1), series.eta_d0(:, 2), series.eta_d0(:, 3), 'k--', ...
+        'LineWidth', 1.2, 'DisplayName', 'virtual leader reference \eta_{d0}(t)');
+
+    xlabel('x (m)'); ylabel('y (m)'); zlabel('z (m)');
+    title('Fig. 2: 3D Operational Trajectory (circle = start, square = end)');
     legend('Location', 'best');
-    view(3);
+    view(-35, 20);
+    subtitle(phase_c_provenance_string(manifest, params), 'FontSize', 8, 'Interpreter', 'none');
 end
