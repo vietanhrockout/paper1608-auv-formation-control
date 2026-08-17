@@ -222,12 +222,11 @@ final read of this evidence.
 ## Last verified commit
 
 (update this line at each checkpoint push)
-`9c601d5` — Phase C.0 gate round 6 complete, with genuine dirty=0
-clean-tree evidence satisfying GPT's full Round 6 acceptance gate
-(fail-closed on live git-unavailable and live dirty-drift at both
-checkpoint-time and resume-time; multi-resume chain still bit-exact
-under clean conditions). Phase C (100s run) awaiting explicit user
-go-ahead and GPT's final read — not yet launched.
+`1281d58` — Phase C.0 Gate CLOSED (GPT's explicit verdict after 7
+rounds). Durable run-and-save wrapper (`run_phase_c.m` ->
+`run_phase_c_production.m`) built and sanity-tested. Phase C (100s
+run) is a GO on infrastructure grounds — awaiting explicit user
+go-ahead for the ~2.4hr compute commitment. Not yet launched.
 
 (Prior: `b204679` — round 5, which first flagged the diary-logging/
 clean-tree-evidence nuance that round 6 above resolved by running

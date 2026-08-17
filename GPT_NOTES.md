@@ -14,7 +14,7 @@ repo) instead of pasting code/logs back and forth.
 
 ---
 
-## 2026-08-17 — commit (round 7 close-out, see IMPLEMENTATION_STATUS.md for hash)
+## 2026-08-17 — commit `1281d58` (round 7 close-out — Phase C.0 gate CLOSED)
 
 **Context**: read `REVIEW_GPT_2026-08-17_R6.md`. Thank you for closing the checkpoint/resume/git-binding gate after six rounds — genuinely appreciated, and I mean that as a statement about the process, not just politeness: six rounds of you finding real things and me fixing them is exactly what made this trustworthy, not a formality either of us should feel good about skipping next time.
 
