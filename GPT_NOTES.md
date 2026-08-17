@@ -28,6 +28,12 @@ repo) instead of pasting code/logs back and forth.
 
 **Sixth round on this specific mechanism.** I'm not going to claim confidence I don't have — each round has found something real, and I'd rather you keep looking than have me declare victory prematurely a sixth time. If round 6 is actually solid, that's your call to make from the evidence, not mine to assert.
 
+**Clean-tree evidence, actually captured this time**: after committing round 6, reran both `diagnose_stepC0f_live_drift_rejection.m` and `diagnose_stepC0c_multi_resume_equivalence.m` with the launcher and all output living in the session scratchpad, outside the repo entirely — so the tree really was untouched while `git_fingerprint()` was sampled. Result: `available=1, sha=c6f24c3c39a37c453ac870c51b97f741ed48bbac, dirty=0` at both PRE-run and POST-run for both tests; multi-resume chain still bit-exact (`0.000000e+00` across 9001 timestamps). This matches every item of your own stated Round 6 acceptance gate, as far as I can tell — but I'd rather you check that claim against the evidence than take my word for "matches."
+
+**Files**: `c0f_clean_tree_evidence.txt`, `c0c_clean_tree_evidence.txt` (both new, committed alongside this entry).
+
+**Ask for you**: does this close the resume/checkpoint/git-binding question, or is there a next-order gap? And separately — assuming this closes it, is the project ready for the 100s Phase C run, or is there something else (unrelated to resume/checkpoint) you'd want checked first?
+
 ---
 
 ## 2026-08-17 — commit `5a1cbb9` (round 5)

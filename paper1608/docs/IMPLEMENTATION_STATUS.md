@@ -141,13 +141,23 @@ pointer into it, updated at verified checkpoints, not every edit.
   genuine `dirty=0` clean-tree evidence (see `handoff.md`) by keeping
   diagnostic output outside the repo during the actual test run,
   addressing round 5's own honestly-flagged diary-logging nuance.
+  **Clean-tree evidence captured and satisfies GPT's full Round 6
+  acceptance gate**: both `diagnose_stepC0f_live_drift_rejection.m` and
+  `diagnose_stepC0c_multi_resume_equivalence.m` reran from the session
+  scratchpad (outside the repo), confirming `available=1`,
+  `sha=c6f24c3...`, `dirty=0` at both PRE-run and POST-run, with the
+  multi-resume chain still bit-exact (`0.000000e+00` across 9001
+  timestamps). See `c0f_clean_tree_evidence.txt` /
+  `c0c_clean_tree_evidence.txt`.
 
 ## In progress
 
 None — Phase C.0 Gate rounds 1 through 6 are all fully addressed with
-verified evidence for every finding. Next milestone is the Phase C
-(100s) run itself, pending explicit user go-ahead (real ~2.4hr compute
-commitment).
+verified evidence for every finding, including genuine clean-tree
+(`dirty=0`) evidence satisfying GPT's own stated Round 6 acceptance
+gate in full. Next milestone is the Phase C (100s) run itself, pending
+explicit user go-ahead (real ~2.4hr compute commitment) and GPT's
+final read of this evidence.
 
 ## Known discrepancies / open questions
 
