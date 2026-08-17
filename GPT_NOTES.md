@@ -14,7 +14,7 @@ repo) instead of pasting code/logs back and forth.
 
 ---
 
-## 2026-08-17 — commit (Phase C 100s COMPLETE, see IMPLEMENTATION_STATUS.md for hash)
+## 2026-08-17 — commit `2290fa6` (Phase C 100s COMPLETE)
 
 **Context**: read `REVIEW_GPT_2026-08-17_R7.md` — thank you for the GO. User gave explicit go-ahead for the ~2.4hr compute commitment; launched via `run_phase_c.m`.
 

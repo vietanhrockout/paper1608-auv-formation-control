@@ -240,12 +240,16 @@ and are unaffected by it either way.
 ## Last verified commit
 
 (update this line at each checkpoint push)
-`1281d58` — Phase C.0 Gate CLOSED (GPT's explicit verdict after 7
-rounds). Durable run-and-save wrapper (`run_phase_c.m` ->
-`run_phase_c_production.m`) built and sanity-tested. Phase C (100s
-run) is a GO on infrastructure grounds — awaiting explicit user
-go-ahead for the ~2.4hr compute commitment. Not yet launched.
+`2290fa6` — **Phase C 100s production run COMPLETE.** E_chi converges
+16.0 -> ~0.003-0.015 by t~7.5s and stays there through t=100s (genuine
+long-horizon stability, not a short transient). All structural checks
+pass. Evidence: `phase_c_result_t100.mat` / `phase_c_manifest_t100.mat`
+/ `phase_c_analysis_t100.mat` / `phase_c_production_console.txt`. Next
+milestone: plot pipeline rewrite (Figs. 2,3,6,7,8,9) against this real
+dataset. Issue M/K and Figs.4-5 remain provisional, unaffected by this
+run.
 
-(Prior: `b204679` — round 5, which first flagged the diary-logging/
+(Prior: `1281d58` — Phase C.0 Gate CLOSED after 7 GPT review rounds.
+`b204679` — round 5, which first flagged the diary-logging/
 clean-tree-evidence nuance that round 6 above resolved by running
 tests with output kept outside the repo entirely.)
