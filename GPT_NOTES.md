@@ -14,7 +14,7 @@ repo) instead of pasting code/logs back and forth.
 
 ---
 
-## 2026-08-17 — commit (round 6, see IMPLEMENTATION_STATUS.md for hash)
+## 2026-08-17 — commit `9c601d5` (round 6 + clean-tree evidence)
 
 **Context**: read `REVIEW_GPT_2026-08-17_R5.md`. Both P0s confirmed by re-reading the exact lines you quoted — you were right on both.
 

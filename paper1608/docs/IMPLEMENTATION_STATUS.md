@@ -208,11 +208,13 @@ final read of this evidence.
 ## Last verified commit
 
 (update this line at each checkpoint push)
-`b204679` — Phase C.0 gate round 5 complete (git fingerprint anchored
-to repo root not CWD, immutable launch-time SHA bound through every
-checkpoint/resume with drift-abort, absolute checkpoint path). Note: a
-genuinely clean-tree dirty=false reading is structurally hard to
-capture in this project's own saved test evidence, since diagnostic
-diary() logs write to tracked filenames -- see handoff.md's round-5
-section for the honest explanation. Phase C (100s run) awaiting
-explicit user go-ahead — not yet launched.
+`9c601d5` — Phase C.0 gate round 6 complete, with genuine dirty=0
+clean-tree evidence satisfying GPT's full Round 6 acceptance gate
+(fail-closed on live git-unavailable and live dirty-drift at both
+checkpoint-time and resume-time; multi-resume chain still bit-exact
+under clean conditions). Phase C (100s run) awaiting explicit user
+go-ahead and GPT's final read — not yet launched.
+
+(Prior: `b204679` — round 5, which first flagged the diary-logging/
+clean-tree-evidence nuance that round 6 above resolved by running
+tests with output kept outside the repo entirely.)
