@@ -14,6 +14,70 @@ repo) instead of pasting code/logs back and forth.
 
 ---
 
+## 2026-08-18 — commit `987c539`: R12 addressed (all 5 findings confirmed real)
+
+Verified every finding against source before changing anything. All five held
+up. Two of them are things my own "full-project audit" claimed to have covered
+and didn't — worth saying plainly rather than burying.
+
+**[P1] `verify_step52` false oracle — you're right, and I missed it.** Confirmed
+by reading it: header advertises four criteria, body runs
+`exp4_rl_pts_mc(0.5,...)` (0.5s, on the legacy stalling path) and checks ONLY
+actuator bounds at one final sample. Criteria 1-3 are evaluated by no line of
+code. And its criterion 3 asserts the literal T1*=5s deadline — which our own
+accepted Phase-C evidence says is missed, so had it ever run as advertised it
+would have contradicted us. Rewritten artifact-based over the committed
+`phase_c_analysis_t100.mat`/`phase_c_manifest_t100.mat` exactly as you asked:
+10s combined-horizon neighborhood entry, `[10,100]` tail boundedness, bounded
+final error, force/moment asserted SEPARATELY off the online manifest. Runs in
+seconds in the fast block, no simulation, never touches `exp4_rl_pts_mc`. I put
+an explicit in-file note that the missing 5s assertion is a decision, not an
+oversight.
+
+**[P1] The blanket "Issue K" bucket was factually wrong — confirmed each case.**
+`verify_step41` does one controller evaluation and no integration (moved to the
+fast block). `verify_step23/24` use `ode15s` on model-based RHS and `exp0/1/2/3/5`
+are model-based/conventional — **no critic weights anywhere**, so the
+critic-projection mechanism genuinely cannot be their cause; I had asserted a
+root cause I hadn't checked. `phase_b3` is the production projected-RK4 path,
+not ode45. `phase_b2` targets the invalidated hybrid. Now four classes
+(`stalling-rl` / `slow-mb` / `slow-valid` / `invalidated`) with a per-test
+reason string, and the summary line now says outright that a green fast block is
+NOT a green full suite. For step23 specifically I now record "observed
+non-terminating, cause NOT established" rather than attributing it.
+
+**[P1] Fig.4 relabelled.** Agreed "shape only" still overstated it — the curve
+goes strongly negative, oscillates, then settles to ONE common level ~8.2 against
+the paper's monotone rise to THREE distinct plateaus. It is now titled a
+PROVISIONAL DIAGNOSTIC showing qualitative AND quantitative mismatch. I also
+narrowed the causal wording as you asked: `delta_c=100` is stated as a
+**sufficient** scale obstruction, explicitly **not** shown to be the only one,
+with B/R, basis normalization, the Issue M reward choice and learning dynamics
+named as unexcluded; and nothing claims raising `delta_c` alone would recover
+the paper. Same treatment for the negative `Chat` — real approximation
+invalidity, projection thrashing consistent but not established as unique cause.
+
+**No `delta_c` sweep.** Taking your recommendation; I won't spend compute on it.
+Agreed it would alter the learned dynamics and invalidate the production config.
+If it's ever revisited it needs a theory/parameter-identification plan with
+invariants and abort gates defined up front, not a blind scan.
+
+**[P2] Fig.5 extrapolation removed.** Caption now states the observation only
+(still drifting at t=100s, `||Wa||_F` under `delta_a` across the whole observed
+run) and explicitly says whether the drift persists past 100s is not established.
+
+**[P2] Opt-in hint fixed** — it printed `generate_all_paper_figures(res, man, true)`
+but the function takes PATHS and `load`s them, so that call would fail. Now
+prints `generate_all_paper_figures([], [], true)`.
+
+Suite now: **46 passed, 0 failed, 14 deferred** (was 44/0/16 — step41 and the
+rewritten step52 moved into the fast block).
+
+Both figures stay committed as provisional mismatch diagnostics only, not
+reproductions. No 100s re-run was performed.
+
+---
+
 ## 2026-08-17 — commit `228388f`: Figs. 4/5 generated (provisional) + full-project audit
 
 Two things this pass: a fresh whole-project audit (user asked for one after
