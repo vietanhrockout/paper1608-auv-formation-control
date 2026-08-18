@@ -2,7 +2,7 @@
   Paper 1608 Verification Suite
 =====================================================
 
---- Algebra-level oracles (46) ---
+--- Fast / no-simulation oracles (46) ---
 PASS   verify_step01_structure
 PASS   verify_step02_notation
 PASS   verify_step03_audit
@@ -55,7 +55,7 @@ PASS   verify_step72_tuning
   [stalling-rl] genuine Issue K (adaptive solver + RL/critic dynamics)
   SKIP   verify_step44_numerical_stability          ode45 on rhs_3auv_rl -- adaptive solver + critic dynamics, genuine Issue K
   SKIP   verify_step49_exp4                         exp4_rl_pts_mc = legacy ode45 RL path, genuine Issue K
-  SKIP   verify_step51_exp_runner                   run_all_experiments includes the exp4 ode45 RL path
+  SKIP   verify_step55_pt_validation                sweep_initial_conditions integrates rhs_3auv_rl via ode15s with packed actor/critic weights -- adaptive solver + critic dynamics (R13 [P1]: the earlier slow-mb/no-critic label was wrong, inferred without following the call chain)
   SKIP   verify_phase_b1_behavioral_sanity          exp4_rl_pts_mc = legacy ode45 RL path, genuine Issue K
 
   [slow-mb] model-based/conventional, no critic -- cost real, cause NOT attributed to Issue K
@@ -66,9 +66,9 @@ PASS   verify_step72_tuning
   SKIP   verify_step47_exp2                         exp2_sat_no_antiwindup, model-based (no critic)
   SKIP   verify_step48_exp3                         exp3_sat_antiwindup, model-based (no critic)
   SKIP   verify_step50_exp5                         exp5_comparison_smc, conventional SMC (no critic)
-  SKIP   verify_step55_pt_validation                sweep_initial_conditions -- repeated trajectory sweeps
 
   [slow-valid] production projected-RK4 path -- valid, just a full re-simulation
+  SKIP   verify_step51_exp_runner                   COMPOSITE: run_all_experiments runs exp0/1/2/3/5 (model-based) plus exp4_rl_pts_mc_projected -- the PRODUCTION projected-RK4 path, not the legacy ode45 one (R13 [P1] corrected an earlier reason string that described code no longer called)
   SKIP   verify_phase_b3_projected_convergence      production projected-RK4 path -- valid and expected to pass, but a full re-simulation
 
   [invalidated] targets an already-invalidated path -- legacy, not a current regression

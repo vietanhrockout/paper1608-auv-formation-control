@@ -1,8 +1,9 @@
 function results = run_all_verifications(include_integration)
     % RUN_ALL_VERIFICATIONS Master runner for the verify_step*.m oracle suite.
     %
-    % include_integration (default false): also run the oracles that
-    %   integrate a trajectory. See the Issue K note below before enabling.
+    % include_integration (default false): also attempt the DEFERRED
+    %   oracles. Read their per-test reasons first -- some of them are not
+    %   expected to terminate on this system.
     %
     % CHANGES MADE DURING THE POST-R11 FULL-PROJECT AUDIT
     % -------------------------------------------------------------------
@@ -12,27 +13,36 @@ function results = run_all_verifications(include_integration)
     % could not detect it and nothing automated could gate on this file.
     % Three concrete problems fixed here:
     %   1. It now ERRORS when any oracle fails, so exit status is meaningful.
-    %   2. The fast (algebra-level) and slow (integration-level) blocks are
-    %      separated, because the integration block does not terminate on
-    %      this system -- see Issue K below.
+    %   2. Fast (no-simulation) oracles are separated from deferred ones.
     %   3. It now returns a structured per-test result instead of only
     %      printing, so callers can inspect what ran.
     %
-    % ISSUE K GATING (why include_integration defaults to false)
+    % WHY DEFERRED ORACLES ARE DEFERRED -- FOUR DISTINCT REASONS
     % -------------------------------------------------------------------
-    % Oracles that integrate a trajectory invoke ode45-based paths. Those
-    % are exactly the paths Issue K proved cannot complete here: ode45, the
-    % K.5 hybrid hot/cold split, and ode15s all stall near the critic-weight
-    % projection boundary; only the fixed-step Projected RK4 production path
-    % completes. Two audit runs confirmed the stall is current, not
-    % historical: a full-suite sweep reached verify_step22 in seconds then
-    % made no progress at verify_step23 for over half an hour, and this
-    % runner's own previous (subset) form reached STEP 43 and then hung on
-    % the integration tests behind it. Both were killed, not completed.
+    % An earlier revision of this header claimed that every trajectory
+    % oracle invokes an ode45-based path and that ode45/hybrid/ode15s all
+    % stall near the critic-weight projection boundary. That blanket claim
+    % was WRONG and is withdrawn (REVIEW_GPT_2026-08-18_R12/R13.md): most
+    % of these oracles contain no critic weights at all, so the
+    % critic-projection mechanism cannot be their cause. The deferred list
+    % below therefore carries a per-test reason drawn from each oracle's
+    % ACTUAL call chain -- never from its historical name -- in four classes:
     %
-    % So the default block is the one that actually terminates. Integration
-    % oracles are NOT known-passing and are NOT silently omitted -- they are
-    % listed explicitly and reported as SKIPPED with this reason.
+    %   stalling-rl  Adaptive solver driven by RL/critic dynamics. This is
+    %                the genuine Issue K failure mode.
+    %   slow-mb      Model-based or conventional-SMC integration with NO
+    %                critic weights. Genuinely expensive, but the cause of
+    %                any observed stall is NOT established and is expressly
+    %                not attributed to Issue K.
+    %   slow-valid   Uses the production projected-RK4 path (directly or as
+    %                part of a composite). Valid and expected to pass -- it
+    %                is simply a full re-simulation.
+    %   invalidated  Targets a path the project already invalidated. Legacy,
+    %                not a current regression.
+    %
+    % Deferred oracles are NOT known-passing and are NOT silently omitted:
+    % each is listed with its class and reason, and the summary states
+    % explicitly that a green fast block is not a green full suite.
 
     if nargin < 1 || isempty(include_integration)
         include_integration = false;
@@ -41,7 +51,10 @@ function results = run_all_verifications(include_integration)
     project_root = fileparts(mfilename('fullpath'));
     addpath(genpath(project_root));
 
-    % Algebra//function-level oracles: pure evaluations, complete in seconds.
+    % Fast / no-simulation oracles: complete in seconds. Mostly pure
+    % function evaluations, plus verify_step52 which is artifact-based
+    % post-processing over the committed Phase-C result (R13 [P2]: it is
+    % not an "algebra-level" oracle, hence the renamed block).
     fast_tests = {
         'verify_step01_structure'
         'verify_step02_notation'
@@ -113,8 +126,8 @@ function results = run_all_verifications(include_integration)
         'verify_step48_exp3',                       'slow-mb',     'exp3_sat_antiwindup, model-based (no critic)'
         'verify_step49_exp4',                       'stalling-rl', 'exp4_rl_pts_mc = legacy ode45 RL path, genuine Issue K'
         'verify_step50_exp5',                       'slow-mb',     'exp5_comparison_smc, conventional SMC (no critic)'
-        'verify_step51_exp_runner',                 'stalling-rl', 'run_all_experiments includes the exp4 ode45 RL path'
-        'verify_step55_pt_validation',              'slow-mb',     'sweep_initial_conditions -- repeated trajectory sweeps'
+        'verify_step51_exp_runner',                 'slow-valid',  'COMPOSITE: run_all_experiments runs exp0/1/2/3/5 (model-based) plus exp4_rl_pts_mc_projected -- the PRODUCTION projected-RK4 path, not the legacy ode45 one (R13 [P1] corrected an earlier reason string that described code no longer called)'
+        'verify_step55_pt_validation',              'stalling-rl', 'sweep_initial_conditions integrates rhs_3auv_rl via ode15s with packed actor/critic weights -- adaptive solver + critic dynamics (R13 [P1]: the earlier slow-mb/no-critic label was wrong, inferred without following the call chain)'
         'verify_phase_b1_behavioral_sanity',        'stalling-rl', 'exp4_rl_pts_mc = legacy ode45 RL path, genuine Issue K'
         'verify_phase_b2_hybrid_behavioral_sanity', 'invalidated', 'targets exp4_rl_pts_mc_hybrid, invalidated by Steps K.5/K.6 -- legacy, not a current regression'
         'verify_phase_b3_projected_convergence',    'slow-valid',  'production projected-RK4 path -- valid and expected to pass, but a full re-simulation'
@@ -134,7 +147,7 @@ function results = run_all_verifications(include_integration)
     results = struct('name', {}, 'status', {}, 'message', {});
     n_pass = 0; n_fail = 0;
 
-    fprintf('\n--- Algebra-level oracles (%d) ---\n', numel(fast_tests));
+    fprintf('\n--- Fast / no-simulation oracles (%d) ---\n', numel(fast_tests));
     for k = 1:numel(fast_tests)
         [results, n_pass, n_fail] = local_run(fast_tests{k}, results, n_pass, n_fail);
     end
