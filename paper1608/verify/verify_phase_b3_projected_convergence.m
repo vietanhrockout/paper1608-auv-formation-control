@@ -59,8 +59,10 @@ function result = verify_phase_b3_projected_convergence(t_final, h, require_neig
         require_neighborhood = true;
     end
 
+    paths = project_paths();
     res = exp4_rl_pts_mc_projected(t_final, h);
-    save(sprintf('phase_b3_result_t%.0f.mat', t_final), 'res');
+    result_path = fullfile(paths.validation, sprintf('phase_b3_result_t%.0f.mat', t_final));
+    save(result_path, 'res');
 
     cfg = nn_config();
     sat_cfg = saturation_config();
@@ -164,7 +166,8 @@ function result = verify_phase_b3_projected_convergence(t_final, h, require_neig
     result.t = res.t; result.E_chi = E_chi; result.E_s = E_s;
     result.max_tau_act = max_tau_act; result.max_Wc_norm = max_Wc_norm; result.max_Wa_norm = max_Wa_norm;
     result.stats = res.stats;
-    save(sprintf('phase_b3_checker_result_t%.0f.mat', t_final), 'result');
+    checker_path = fullfile(paths.validation, sprintf('phase_b3_checker_result_t%.0f.mat', t_final));
+    save(checker_path, 'result');
 
     if online_actuator_checked
         fprintf('=== END PHASE B.3 (all structural asserts PASSED, INCLUDING true every-step online actuator check; see convergence verdict above) ===\n');

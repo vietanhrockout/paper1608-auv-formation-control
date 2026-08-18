@@ -92,7 +92,9 @@ function diagnose_stepP2_micro_horizon_ab_test(t_final, h)
         fprintf('Issue P hypothesis NOT supported by this closed-loop test -- do not adopt the fix based on P.1 algebra alone.\n');
     end
 
-    save(sprintf('p2_result_t%.0f.mat', t_final), 'results');
+    paths = project_paths();
+    output_path = fullfile(paths.validation, sprintf('p2_result_t%.0f.mat', t_final));
+    save(output_path, 'results');
 end
 
 function s = tern(cond, a, b)

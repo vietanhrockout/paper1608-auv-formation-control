@@ -29,7 +29,7 @@ function manifest = run_phase_c_production(t_final, h, n_target, allow_dirty_lau
 %      sample count -- catches a corrupted/incomplete save immediately,
 %      not whenever someone next happens to open the file.
 %
-% Results land in <repo_root>/phase_c_results/ (gitignored -- see
+% Results land in <repo_root>/artifacts/work/phase-c/ (gitignored -- see
 % .gitignore) -- durable on disk, but NOT tracked, so `git status` stays
 % clean for the git-fingerprint checks throughout the run (the exact
 % lesson from the round 5/6 clean-tree-evidence work: a tracked diary/
@@ -56,8 +56,8 @@ function manifest = run_phase_c_production(t_final, h, n_target, allow_dirty_lau
         allow_dirty_launch = false;
     end
     if nargin < 5 || isempty(results_dir)
-        repo_root = fileparts(fileparts(fileparts(mfilename('fullpath')))); % .../paper1608/simulation -> .../paper1608 -> repo root
-        results_dir = fullfile(repo_root, 'phase_c_results');
+        paths = project_paths();
+        results_dir = paths.phase_c_work;
     end
     if ~exist(results_dir, 'dir')
         mkdir(results_dir);

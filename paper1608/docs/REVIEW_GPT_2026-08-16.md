@@ -9,7 +9,7 @@ Reviewed baseline: `caf03cd` on `main`.
 Do not start the 100 s Phase C run yet. The memory preallocation problem is
 fixed, but the repository currently overstates Phase C.0 as complete and the
 100 s run as infrastructure-unblocked. The findings below are based on the
-current source and committed logs, not only on `handoff.md`.
+current source and committed logs, not only on `docs/HANDOFF.md`.
 
 ## Findings
 

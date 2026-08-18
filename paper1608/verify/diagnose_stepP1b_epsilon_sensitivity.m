@@ -222,8 +222,10 @@ function verdict = diagnose_stepP1b_epsilon_sensitivity(t_final, h)
         fprintf('\nINTERPRETATION: the physical closed-loop trajectory (and hence Issue O/P''s convergence claim) is NOT meaningfully sensitive to eps in this range, even though the unsaturated command and/or actuator channels are. eps=1e-6 remains a safe default for Figs.2,3,6,7,8,9. A future figure quantitatively plotting tau_cmd or the moment channel must treat eps as a documented assumption.\n');
     end
 
-    save('p1b_result.mat', 'verdict');
-    fprintf('=== END P.1b v3 (structured, per-metric-group verdict saved to p1b_result.mat) ===\n');
+    paths = project_paths();
+    output_path = fullfile(paths.validation, 'p1b_result.mat');
+    save(output_path, 'verdict');
+    fprintf('=== END P.1b v3 (structured verdict saved to %s) ===\n', output_path);
 end
 
 function s = local_pass_fail(cond)

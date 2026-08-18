@@ -36,7 +36,7 @@ Both `T1*=5 s` and `T2*=5 s` are configured. The physical tracking error is smal
 - entry into a small tracking neighborhood before 10 s;
 - qualitative agreement with the eventual small-neighborhood behavior.
 
-It does **not** support an unqualified statement that the reaching phase meets `T1*=5 s`, nor a blanket claim that Theorems 1 and 2 are quantitatively reproduced. Update `handoff.md`/status language accordingly and show both the 5 s and 10 s deadlines in any relevant analysis.
+It does **not** support an unqualified statement that the reaching phase meets `T1*=5 s`, nor a blanket claim that Theorems 1 and 2 are quantitatively reproduced. Update `docs/HANDOFF.md`/status language accordingly and show both the 5 s and 10 s deadlines in any relevant analysis.
 
 Before final wording, calculate from the 1,003-sample trajectory the first entry time and sustained-entry time for explicitly declared thresholds for both `E_s` and `E_chi`. Do not infer the crossing time from only the sparse table shown in the handoff.
 
@@ -61,7 +61,7 @@ Keep structural validity and scientific convergence as separate verdict groups r
 
 The statement “`total_retracted=641485` of 1,000,000 steps (~64%)” is not justified by the integrator's statistic. `total_retracted` accumulates retraction events across projected state blocks/RK4 stages; it is not a Boolean count of unique time steps containing at least one retraction. Earlier project documentation correctly described values greater than one event per step.
 
-Report it as `641,485 cumulative retraction events over 1,000,000 integration steps` unless a separate unique-step counter is implemented. Remove the “64% of steps” interpretation from `handoff.md`, implementation status, and figure/report prose.
+Report it as `641,485 cumulative retraction events over 1,000,000 integration steps` unless a separate unique-step counter is implemented. Remove the “64% of steps” interpretation from `docs/HANDOFF.md`, implementation status, and figure/report prose.
 
 ### [P2] Minor analysis-output corrections
 

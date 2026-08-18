@@ -19,9 +19,9 @@ function diagnose_stepO1_leader_nonconvergence()
     %      to see whether the delivered force is even large enough, in the
     %      right direction, to matter for the surge/sway/heave channels.
 
-    addpath(genpath('paper1608'));
+    paths = project_paths();
 
-    data = load('phase_b2_result.mat');
+    data = load(fullfile(paths.validation, 'phase_b2_result.mat'));
     res = data.res;
     params = res.params;
     cfg = nn_config();

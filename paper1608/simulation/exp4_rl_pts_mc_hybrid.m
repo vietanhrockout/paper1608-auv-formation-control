@@ -2,7 +2,7 @@ function res = exp4_rl_pts_mc_hybrid(t_final, t_hot, h_hot, params, sat_cfg, cfg
 % EXP4_RL_PTS_MC_HYBRID Hybrid Projected-RK4 / ode45 integrator for Paper
 % 1608's closed-loop RL PT-SMC system (Step K.5).
 %
-% Rationale (see handoff.md Issue K / Issue N / Step K.5):
+% Rationale (see docs/HANDOFF.md Issue K / Issue N / Step K.5):
 %   - Issue L/M: the raw command scale tau_cmd ~ O(10^7 N) and the
 %     resulting critic reward/gradient scale are REAL, paper-faithful
 %     behavior (matches Fig. 4's O(10^8) cost-to-go), not a bug.

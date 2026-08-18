@@ -26,7 +26,8 @@ function diagnose_stepK5_coldphase_instrumented(t_cold_final)
     addpath(fullfile(project_root, 'nn'));
     addpath(fullfile(project_root, 'simulation'));
 
-    ck = load(fullfile(fileparts(project_root), 'k5_hotphase_checkpoint.mat'));
+    paths = project_paths();
+    ck = load(fullfile(paths.diagnostics, 'k5_hotphase_checkpoint.mat'));
 
     t_hot = 0.15;
     t_final = t_hot + t_cold_final;

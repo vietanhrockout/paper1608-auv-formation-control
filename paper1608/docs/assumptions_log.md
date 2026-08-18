@@ -10,7 +10,7 @@ This document tracks all audited discrepancies, ambiguities, typos, and mathemat
 * **Equation/Figure**: Eq. (21), Page 4
 * **What paper says**: 
   $$s_i = L(\chi_i)\chi_i + \text{sig}^{\alpha_1}(\upsilon_i)$$
-* **Problem**: Secondary notes (e.g. `equation.md`) wrote $s_i = \upsilon_i + L(\chi_i)\chi_i$, which alters the power $\alpha_1$ on $\upsilon_i$ and violates the nonsingular terminal sliding surface theory of paper 1608.
+* **Problem**: Secondary notes (e.g. `docs/EQUATION_NOTES.md`) wrote $s_i = \upsilon_i + L(\chi_i)\chi_i$, which alters the power $\alpha_1$ on $\upsilon_i$ and violates the nonsingular terminal sliding surface theory of paper 1608.
 * **Implementation assumption**: Strictly implement PDF Eq. (21): $s_i = L(\chi_i)\chi_i + \text{sig}^{\alpha_1}(\upsilon_i)$.
 * **Reason**: The PDF text and proof in Theorem 1 rely on $\text{sig}^{\alpha_1}(\upsilon_i)$ to ensure nonsingularity during reaching phase.
 * **Impact**: Critical for sliding surface function `sliding_surface.m`.
@@ -103,7 +103,7 @@ This document tracks all audited discrepancies, ambiguities, typos, and mathemat
 * **Equation/Figure**: Eq. (37), Page 6
 * **What paper says**: 
   $$\dot{\hat{w}}_{ai} = -\lambda_a \tanh\left( \sum_{i=1}^n \hat{w}_{ai}\theta_{ai} + c_{0a}\hat{C} \right) \theta_{ai}$$
-* **Problem**: $\hat{w}_{ai}^T \theta_{ai}$ is scalar output for each DOF $j$, while $\hat{C}$ is scalar estimated cost. In `equation.md`, line 108 incorrectly wrote $c_{0a}\hat{w}_c$, which is a vector and causes dimension mismatch.
+* **Problem**: $\hat{w}_{ai}^T \theta_{ai}$ is scalar output for each DOF $j$, while $\hat{C}$ is scalar estimated cost. In `docs/EQUATION_NOTES.md`, line 108 incorrectly wrote $c_{0a}\hat{w}_c$, which is a vector and causes dimension mismatch.
 * **Implementation assumption**: Implement scalar argument inside $\tanh$: $h_{aij} = \hat{w}_{aij}^T \theta_{aij} + c_{0a} \hat{C}_i$.
 * **Reason**: Dimensionally consistent scalar argument for hyperbolic tangent function.
 * **Impact**: Actor weight adaptation rule `actor_update.m`.

@@ -27,7 +27,7 @@ function verify_step52_performance_criteria()
     % This is post-processing only -- it does NOT rerun Phase C.
     %
     % Criteria asserted (the ones the project actually accepts; see
-    % handoff.md's Phase C section):
+    % docs/HANDOFF.md's Phase C section):
     %   1. Tracking neighborhood entered by the COMBINED horizon
     %      T1*+T2* = 10 s -- NOT by T1* = 5 s.
     %   2. Full-tail boundedness of E_chi over [10, 100] s.
@@ -40,6 +40,7 @@ function verify_step52_performance_criteria()
     % called genpath. It reaches config/model/reference/math/control/nn
     % below, so add them explicitly rather than relying on caller state.
     project_root = fileparts(fileparts(mfilename('fullpath')));
+    addpath(project_root);
     addpath(fullfile(project_root, 'config'));
     addpath(fullfile(project_root, 'model'));
     addpath(fullfile(project_root, 'reference'));
@@ -48,10 +49,10 @@ function verify_step52_performance_criteria()
     addpath(fullfile(project_root, 'nn'));
     addpath(fullfile(project_root, 'simulation'));
 
-    repo_root = fileparts(project_root);
-    result_path   = fullfile(repo_root, 'phase_c_result_t100.mat');
-    manifest_path = fullfile(repo_root, 'phase_c_manifest_t100.mat');
-    analysis_path = fullfile(repo_root, 'phase_c_analysis_t100.mat');
+    paths = project_paths();
+    result_path   = fullfile(paths.phase_c, 'phase_c_result_t100.mat');
+    manifest_path = fullfile(paths.phase_c, 'phase_c_manifest_t100.mat');
+    analysis_path = fullfile(paths.phase_c, 'phase_c_analysis_t100.mat');
 
     for p = {result_path, manifest_path, analysis_path}
         if exist(p{1}, 'file') ~= 2

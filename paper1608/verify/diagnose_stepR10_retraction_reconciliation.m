@@ -22,11 +22,15 @@ function diagnose_stepR10_retraction_reconciliation()
 
     fprintf('=== Step R10: total_retracted / max_retraction reconciliation ===\n\n');
 
+    paths = project_paths();
+
     sources = struct('label', {}, 'path', {}, 'present', {});
-    sources(1) = struct('label', 't=15s (Phase B.3)', 'path', 'phase_b3_result_t15.mat', 'present', false);
+    sources(1) = struct('label', 't=15s (Phase B.3)', ...
+        'path', fullfile(paths.validation, 'phase_b3_result_t15.mat'), 'present', false);
     sources(2) = struct('label', 't=90.0003s (Phase C intermediate checkpoint, gitignored/disk-only)', ...
-        'path', 'projected_rk4_checkpoint.mat', 'present', false);
-    sources(3) = struct('label', 't=100s (Phase C final manifest)', 'path', 'phase_c_manifest_t100.mat', 'present', false);
+        'path', fullfile(paths.phase_c_work, 'projected_rk4_checkpoint.mat'), 'present', false);
+    sources(3) = struct('label', 't=100s (Phase C final manifest)', ...
+        'path', fullfile(paths.phase_c, 'phase_c_manifest_t100.mat'), 'present', false);
 
     rows = struct('label', {}, 'path', {}, 'sha256', {}, 't', {}, 'nsteps', {}, ...
         'total_retracted', {}, 'max_retraction', {}, 'max_tau_act_moment', {});

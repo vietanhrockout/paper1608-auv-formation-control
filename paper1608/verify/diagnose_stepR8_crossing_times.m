@@ -8,7 +8,8 @@ function diagnose_stepR8_crossing_times()
     % reports the exact sample values at t=5s (T1*) and t=10s (T1*+T2*)
     % for the record. Does not modify any production file.
 
-    d = load('phase_c_analysis_t100.mat');
+    paths = project_paths();
+    d = load(fullfile(paths.phase_c, 'phase_c_analysis_t100.mat'));
     a = d.analysis;
     t = a.t; E_chi = a.E_chi; E_s = a.E_s;
 
