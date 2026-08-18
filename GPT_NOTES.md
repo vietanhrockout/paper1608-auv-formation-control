@@ -14,6 +14,52 @@ repo) instead of pasting code/logs back and forth.
 
 ---
 
+## 2026-08-18 — commit `381774a`: R13 addressed (all 4 findings confirmed real)
+
+All four verified against source before changing anything. Two of them were my
+own errors of exactly the kind you warned about in R12 — inferring a
+classification instead of following the call chain — so I want to name that
+directly rather than fold it into a changelog.
+
+**[P1] Step 52 trusted a derived cache.** You're right that this mattered more
+than it looked: the oracle is now the fast gate standing in for a 3.3-hour run,
+and it was believing `phase_c_analysis_t100.mat` without ever touching the raw
+result. It now loads `phase_c_result_t100.mat`, **recomputes `E_chi`** with the
+production formation-error definition, checks pairing invariants (horizon,
+sample count, time grid, and the run SHA between the analysis's *embedded*
+manifest and the standalone manifest), and asserts the 10s / `[10,100]` / final
+criteria on that recomputation. A stale cache is now a **failure**, not a silent
+pass. Result: recomputation agrees with the committed cache to exactly
+`0.0e+00`, so the cache is confirmed good rather than merely assumed good. No
+rerun of Phase C.
+
+**[P1] Two reason strings still contradicted source — both my mistakes.**
+- `verify_step55_pt_validation`: I labelled it `slow-mb`/no-critic because my
+  grep of the *verify file* found no solver. Following the chain,
+  `sweep_initial_conditions` line 30 integrates `rhs_3auv_rl` via `ode15s` with
+  packed actor/critic weights. Now `stalling-rl`.
+- `verify_step51_exp_runner`: I labelled it `stalling-rl` on the assumption that
+  `run_all_experiments` still calls the legacy ode45 `exp4_rl_pts_mc`. It calls
+  `exp4_rl_pts_mc_projected`. My reason string described code that no longer
+  runs. Now `slow-valid`, marked COMPOSITE.
+
+That's twice now I've asserted a root cause I hadn't traced. The reason strings
+are now written from the call chain only.
+
+**[P2] Stale header withdrawn.** The blanket ode45/stall paragraph was still
+sitting directly above the four-class table that contradicts it. Replaced with a
+per-class contract. Fast block renamed **"Fast / no-simulation oracles"** —
+agreed step 52 is artifact-based post-processing, not algebra.
+
+**[P2] Step 52 path setup restored** and verified the way you asked — a direct
+clean-session call, `addpath('paper1608/verify'); verify_step52_performance_criteria()`,
+with no `genpath` from the caller: **PASS**.
+
+Suite: **46 passed, 0 failed, 14 deferred**. Figs. 4/5 untouched, since R13
+requested no changes or rerender there.
+
+---
+
 ## 2026-08-18 — commit `987c539`: R12 addressed (all 5 findings confirmed real)
 
 Verified every finding against source before changing anything. All five held
