@@ -9,7 +9,11 @@ function verify_step03_audit()
         error('STEP 03: FAIL - docs/assumptions_log.md file missing');
     end
     
-    fid = fopen(doc_path, 'r', 'encoding', 'UTF-8');
+    % NOTE: fopen's 3rd positional argument is MACHINEFORMAT, not the
+    % literal string 'encoding' -- the previous form
+    % fopen(path,'r','encoding','UTF-8') raised "Invalid machine format"
+    % on every call, so this check never actually ran. 'n' = native.
+    fid = fopen(doc_path, 'r', 'n', 'UTF-8');
     content = fread(fid, '*char')';
     fclose(fid);
     

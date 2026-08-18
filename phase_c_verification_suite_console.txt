@@ -1,0 +1,72 @@
+=====================================================
+  Paper 1608 Verification Suite
+=====================================================
+
+--- Algebra-level oracles (44) ---
+PASS   verify_step01_structure
+PASS   verify_step02_notation
+PASS   verify_step03_audit
+PASS   verify_step04_paper_params
+PASS   verify_step05_derived_params
+PASS   verify_step05c_simulation_branch_propagation
+PASS   verify_step06_sigpow
+PASS   verify_step07_negative_power
+PASS   verify_step08_reference
+PASS   verify_step09_initial_conditions
+PASS   verify_step10_auv_params
+PASS   verify_step11_jacobian
+PASS   verify_step12_auv_plant
+PASS   verify_step13_earth_frame_consistency
+PASS   verify_step14_disturbance
+PASS   verify_step15_formation_error
+PASS   verify_step16_gain_L
+PASS   verify_step17_Ltilde_Lambda1
+PASS   verify_step18_sliding_surface
+PASS   verify_step19_f_true
+PASS   verify_step20_reaching_term
+PASS   verify_step25_saturation
+PASS   verify_step26_sat_limits
+PASS   verify_step27_antiwindup
+PASS   verify_step28_rbf
+PASS   verify_step29_nn_config
+PASS   verify_step30_actor_basis
+PASS   verify_step31_actor_output
+PASS   verify_step32_projection
+PASS   verify_step32b_unpack_state_transparency
+PASS   verify_step33_critic_basis
+PASS   verify_step34_critic_output
+PASS   verify_step35_utility
+PASS   verify_step35b_critic_control_cost_signal
+PASS   verify_step36_bellman_error
+PASS   verify_step37_critic_update
+PASS   verify_step38_actor_error
+PASS   verify_step39_actor_update
+PASS   verify_step40_controller_rl
+PASS   verify_step42_state_packing
+PASS   verify_step43_rhs_3auv_rl
+PASS   verify_step22_controller_mb
+PASS   verify_step69_plots
+PASS   verify_step72_tuning
+
+--- Integration-level oracles (16): SKIPPED (Issue K) ---
+SKIP   verify_step23_single_auv_mb
+SKIP   verify_step24_3auv_mb
+SKIP   verify_step41_sat_antiwindup_loop
+SKIP   verify_step44_numerical_stability
+SKIP   verify_step45_exp0
+SKIP   verify_step46_exp1
+SKIP   verify_step47_exp2
+SKIP   verify_step48_exp3
+SKIP   verify_step49_exp4
+SKIP   verify_step50_exp5
+SKIP   verify_step51_exp_runner
+SKIP   verify_step52_performance_criteria
+SKIP   verify_step55_pt_validation
+SKIP   verify_phase_b1_behavioral_sanity
+SKIP   verify_phase_b2_hybrid_behavioral_sanity
+SKIP   verify_phase_b3_projected_convergence
+
+-----------------------------------------------------
+Summary: 44 passed, 0 failed, 16 skipped.
+Skipped oracles are Issue-K-gated and are NOT known-passing.
+=====================================================

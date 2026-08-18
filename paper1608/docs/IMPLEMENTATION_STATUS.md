@@ -182,15 +182,61 @@ pointer into it, updated at verified checkpoints, not every edit.
   `phase_c_result_t100.mat`, `phase_c_manifest_t100.mat`,
   `phase_c_analysis_t100.mat`, `phase_c_production_console.txt`.
 
+- **Figs. 4-5 GENERATED (PROVISIONAL)** — post-R11 pass. A feasibility
+  audit was run FIRST (`diagnose_stepS1_rl_figure_feasibility.m`) so the
+  figures state their limits rather than discovering them afterwards.
+  **Fig. 4 reproduces shape only, and only partially**: observed range
+  [-57.7, 32.2] settling to a COMMON plateau ~8.2, vs. the paper's
+  monotone rise to THREE DISTINCT plateaus 0.85e8/1.4e8/2.1e8. The scale
+  gap is structural — `|Chat| <= delta_c*sqrt(15) = 387.3` by
+  Cauchy-Schwarz for ANY trajectory, ~2.2e5x below the paper; matching it
+  needs `delta_c >= 1.1e8` vs. the ASSUMED 100 (Issue N). Independently
+  found this pass: `Chat` goes NEGATIVE although the true cost-to-go is
+  non-negative by construction (Eq.16 reward is PSD) — an approximation
+  defect consistent with Issue M/K. **Fig. 5 is in-range**: RBF
+  activations are in (0,1] so the paper's [0,1.5] axis fits; both
+  readings of "actor output" (basis activations vs. `f_RL=Wa'*theta_a`)
+  are plotted rather than silently choosing one. Also found: `f_RL`
+  drifts linearly over 100s rather than settling (`Wa` still
+  integrating; `||Wa||_F=16.86 < delta_a=50` here but trending toward
+  the bound). Gated behind an explicit opt-in and captioned as
+  provisional on the rendered image itself.
+- **Post-R11 full-project audit** — findings, all verified against code
+  before recording (details in `handoff.md`):
+  (1) `verify_step02_notation.m`/`verify_step03_audit.m` used an invalid
+  `fopen(...,'encoding','UTF-8')` call and had **never passed** —
+  fixed, both now genuinely PASS.
+  (2) `run_all_verifications.m` **does exist** (at `paper1608/`, not
+  `paper1608/verify/` — earlier handoff claims were wrong); it ran a
+  hand-picked subset and **always exited 0 even on failure**. Rewritten
+  to fail loudly, separate Issue-K-gated oracles, and guard against any
+  `verify_*.m` being silently untested.
+  (3) `verify_step69_plots.m` had rotted into dead code asserting seven
+  deleted pre-rewrite PNGs — rewritten against the current figure set.
+  (4) The oracle suite **cannot run end-to-end** (Issue K ode45 stall at
+  `verify_step23`); now explicit — 44 algebra-level oracles pass, 17
+  integration oracles reported SKIPPED with the reason, never silently
+  omitted.
+  (5) `verify_step72_tuning.m` asserted all sigmas positive while loading
+  the `paper_literal` branch, which is documented to give
+  `sigma2=-2.222` (Issue C) — i.e. it demanded the negation of a known
+  finding. Rewritten to require positivity of the PRODUCTION config
+  (`simulation_params` → `eq29_consistent`) and to explicitly assert the
+  literal branch still yields `sigma2<0`, pinning Issue C with a test.
+  (6) `controller_rl.m:77`'s odd-looking `(J')*((J')\...)` was checked
+  and **cleared** — it is the factored earth-frame form
+  `tau = J^T*M_eta*eta_ddot`, correct; recorded so it is not re-flagged.
+
 ## In progress
 
-None on the infrastructure/Issue-O/P front, and the physical plot
-pipeline (Figs. 2,3,6,7,8,9) is now COMPLETE and GPT-accepted
-(`REVIEW_GPT_2026-08-17_R11.md`, final PASS after 3 review rounds).
-Remaining open work is Figs. 4-5 (cost-to-go, actor NN output) and the
-still-open Issue M/K critic-weight-thrashing question — neither of
-which is new, both already tracked before this run and unaffected by
-it either way.
+None on the infrastructure/Issue-O/P front; the physical plot pipeline
+(Figs. 2,3,6,7,8,9) is COMPLETE and GPT-accepted
+(`REVIEW_GPT_2026-08-17_R11.md`), and Figs. 4-5 are now rendered as
+explicitly provisional. The substantive open question is unchanged and
+predates all of this: Issue M/K/N — the critic-weight projection
+thrashing, the assumed `delta_c`/`delta_a` scale, and the `tau_cmd` vs
+`tau_act` reward reading — which together are what keep Figs. 4-5 from
+being a quantitative reproduction.
 
 ## Known discrepancies / open questions
 

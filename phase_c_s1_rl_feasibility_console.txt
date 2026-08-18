@@ -1,0 +1,37 @@
+=== Step S1: Fig.4/Fig.5 reproduction feasibility ===
+
+Critic: m_c=15 nodes, delta_c=100.0
+  Cauchy-Schwarz ceiling |Chat| <= delta_c*sqrt(m_c) = 387.2983
+  Paper Fig.4 plateaus (from handoff.md, direct PDF render): 0.85e8 / 1.4e8 / 2.1e8
+  => ceiling is 2.195e+05 times SMALLER than the paper's smallest plateau (0.85e8)
+
+--- Fig.4 candidate quantity: Chat_i(t) = Wc_i' * theta_c(chi_i) ---
+  AUV0: min=-52.5145  max=17.3404  final=8.1498  (|Chat| ceiling 387.30)
+  AUV1: min=-52.4543  max=17.3139  final=8.1153  (|Chat| ceiling 387.30)
+  AUV2: min=-57.6691  max=32.2104  final=8.4552  (|Chat| ceiling 387.30)
+  max ||Wc|| over run = 100.0000 (delta_c=100.0), max ||theta_c|| = 0.7492 (sqrt(m_c)=3.8730)
+  delta_c that Fig.4's SMALLEST plateau (0.85e8) would require, at the
+  observed max ||theta_c||=0.7492: delta_c >= 1.1345e+08 (vs. assumed 100.0)
+
+--- Fig.5 candidate quantity: actor RBF activations theta_a ---
+  max single-node activation over whole run: 1.000000 (RBF range is (0,1] by construction)
+  max over-DOF sum of 25 activations:       5.837120
+  paper Fig.5 stated y-range (handoff.md): [0, 1.5]
+  => individual activations are IN RANGE; the 25-node sum is NOT necessarily.
+
+--- Actor network OUTPUT f_RL = Wa' * theta_a (the other reading of "actor output") ---
+  AUV0: max|f_RL| = 11.783633
+  AUV1: max|f_RL| = 12.012918
+  AUV2: max|f_RL| = 12.251159
+
+=== VERDICT ===
+Chat respects its analytic ceiling (consistency check PASS).
+Fig.4 CANNOT be quantitatively reproduced at the paper's 1e8 scale under the
+assumed delta_c=100: the projection bound caps the cost-to-go 2.19e+05 times below it,
+independent of trajectory quality. This is Issue N (delta_c/delta_a are NOT given
+numeric values by the paper), not a convergence or integrator defect. Fig.4 must be
+published as a SHAPE/qualitative reproduction with the scale gap stated explicitly.
+Fig.5 IS reproducible in range: RBF activations are in (0,1] by construction and
+the paper's stated [0,1.5] axis accommodates them.
+
+Saved raw series to phase_c_results/stepS1_rl_feasibility.mat
