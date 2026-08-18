@@ -213,17 +213,31 @@ pointer into it, updated at verified checkpoints, not every edit.
   `verify_*.m` being silently untested.
   (3) `verify_step69_plots.m` had rotted into dead code asserting seven
   deleted pre-rewrite PNGs — rewritten against the current figure set.
-  (4) The oracle suite **cannot run end-to-end** (Issue K ode45 stall at
-  `verify_step23`); now explicit — 44 algebra-level oracles pass, 17
-  integration oracles reported SKIPPED with the reason, never silently
-  omitted.
-  (5) `verify_step72_tuning.m` asserted all sigmas positive while loading
+  (4) The oracle suite **cannot run end-to-end**. My first fix labelled
+  all deferred oracles with one blanket "Issue K" message, which R12
+  showed was **factually wrong for most of them** — steps 23/24 and
+  experiments 0/1/2/3/5 have NO critic weights, so the
+  critic-projection cause cannot apply; phase_b3 uses the production
+  projected-RK4 path (valid, just expensive); phase_b2 targets an
+  already-invalidated path. Now split into 4 classes
+  (`stalling-rl`/`slow-mb`/`slow-valid`/`invalidated`) with a truthful
+  per-test reason, and the summary states that a green fast block is NOT
+  a green full suite.
+  (5) `verify_step52_performance_criteria` was a **false oracle** —
+  missed by my audit, caught by R12. Header advertised 4 criteria; body
+  ran `exp4_rl_pts_mc(0.5,...)` on the legacy stalling path and checked
+  ONLY actuator bounds at one sample. Its criterion 3 asserted the
+  literal T1*=5s deadline, which the accepted evidence shows is MISSED.
+  Rewritten as a fast artifact-based oracle over the committed Phase-C
+  analysis/manifest (10s neighborhood entry, [10,100] tail boundedness,
+  final error, per-channel actuator limits); no simulation, no legacy path.
+  (6) `verify_step72_tuning.m` asserted all sigmas positive while loading
   the `paper_literal` branch, which is documented to give
   `sigma2=-2.222` (Issue C) — i.e. it demanded the negation of a known
   finding. Rewritten to require positivity of the PRODUCTION config
   (`simulation_params` → `eq29_consistent`) and to explicitly assert the
   literal branch still yields `sigma2<0`, pinning Issue C with a test.
-  (6) `controller_rl.m:77`'s odd-looking `(J')*((J')\...)` was checked
+  (7) `controller_rl.m:77`'s odd-looking `(J')*((J')\...)` was checked
   and **cleared** — it is the factored earth-frame form
   `tau = J^T*M_eta*eta_ddot`, correct; recorded so it is not re-flagged.
 

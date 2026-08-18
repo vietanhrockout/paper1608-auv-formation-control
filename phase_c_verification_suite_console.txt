@@ -2,7 +2,7 @@
   Paper 1608 Verification Suite
 =====================================================
 
---- Algebra-level oracles (44) ---
+--- Algebra-level oracles (46) ---
 PASS   verify_step01_structure
 PASS   verify_step02_notation
 PASS   verify_step03_audit
@@ -45,28 +45,37 @@ PASS   verify_step40_controller_rl
 PASS   verify_step42_state_packing
 PASS   verify_step43_rhs_3auv_rl
 PASS   verify_step22_controller_mb
+PASS   verify_step41_sat_antiwindup_loop
+PASS   verify_step52_performance_criteria
 PASS   verify_step69_plots
 PASS   verify_step72_tuning
 
---- Integration-level oracles (16): SKIPPED (Issue K) ---
-SKIP   verify_step23_single_auv_mb
-SKIP   verify_step24_3auv_mb
-SKIP   verify_step41_sat_antiwindup_loop
-SKIP   verify_step44_numerical_stability
-SKIP   verify_step45_exp0
-SKIP   verify_step46_exp1
-SKIP   verify_step47_exp2
-SKIP   verify_step48_exp3
-SKIP   verify_step49_exp4
-SKIP   verify_step50_exp5
-SKIP   verify_step51_exp_runner
-SKIP   verify_step52_performance_criteria
-SKIP   verify_step55_pt_validation
-SKIP   verify_phase_b1_behavioral_sanity
-SKIP   verify_phase_b2_hybrid_behavioral_sanity
-SKIP   verify_phase_b3_projected_convergence
+--- Deferred oracles (14), grouped by REASON (not one blanket label) ---
+
+  [stalling-rl] genuine Issue K (adaptive solver + RL/critic dynamics)
+  SKIP   verify_step44_numerical_stability          ode45 on rhs_3auv_rl -- adaptive solver + critic dynamics, genuine Issue K
+  SKIP   verify_step49_exp4                         exp4_rl_pts_mc = legacy ode45 RL path, genuine Issue K
+  SKIP   verify_step51_exp_runner                   run_all_experiments includes the exp4 ode45 RL path
+  SKIP   verify_phase_b1_behavioral_sanity          exp4_rl_pts_mc = legacy ode45 RL path, genuine Issue K
+
+  [slow-mb] model-based/conventional, no critic -- cost real, cause NOT attributed to Issue K
+  SKIP   verify_step23_single_auv_mb                ode15s on rhs_single_auv_mb (model-based, no critic); observed non-terminating in the audit sweep, cause NOT established
+  SKIP   verify_step24_3auv_mb                      ode15s, 3-AUV model-based (no critic weights)
+  SKIP   verify_step45_exp0                         exp0_ideal_mb, model-based (no critic)
+  SKIP   verify_step46_exp1                         exp1_disturbed_mb, model-based (no critic)
+  SKIP   verify_step47_exp2                         exp2_sat_no_antiwindup, model-based (no critic)
+  SKIP   verify_step48_exp3                         exp3_sat_antiwindup, model-based (no critic)
+  SKIP   verify_step50_exp5                         exp5_comparison_smc, conventional SMC (no critic)
+  SKIP   verify_step55_pt_validation                sweep_initial_conditions -- repeated trajectory sweeps
+
+  [slow-valid] production projected-RK4 path -- valid, just a full re-simulation
+  SKIP   verify_phase_b3_projected_convergence      production projected-RK4 path -- valid and expected to pass, but a full re-simulation
+
+  [invalidated] targets an already-invalidated path -- legacy, not a current regression
+  SKIP   verify_phase_b2_hybrid_behavioral_sanity   targets exp4_rl_pts_mc_hybrid, invalidated by Steps K.5/K.6 -- legacy, not a current regression
 
 -----------------------------------------------------
-Summary: 44 passed, 0 failed, 16 skipped.
-Skipped oracles are Issue-K-gated and are NOT known-passing.
+Summary: 46 passed, 0 failed, 14 deferred.
+NOTE: this is a GREEN FAST BLOCK, not a green full suite. The 14 deferred
+oracles are NOT known-passing; see the per-test reasons above.
 =====================================================

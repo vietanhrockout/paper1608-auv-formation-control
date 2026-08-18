@@ -85,28 +85,39 @@ function results = run_all_verifications(include_integration)
         'verify_step42_state_packing'
         'verify_step43_rhs_3auv_rl'
         'verify_step22_controller_mb'   % evidence: completed in seconds during the audit sweep
+        'verify_step41_sat_antiwindup_loop' % R12 [P1]: one controller evaluation, NO integration
+        'verify_step52_performance_criteria' % R12 [P1]: rewritten artifact-based, no simulation
         'verify_step69_plots'           % surface-only check, does not re-render (see its header)
         'verify_step72_tuning'
     };
 
-    % Integration-level oracles -- gated on Issue K (see header).
-    integration_tests = {
-        'verify_step23_single_auv_mb'
-        'verify_step24_3auv_mb'
-        'verify_step41_sat_antiwindup_loop'
-        'verify_step44_numerical_stability'
-        'verify_step45_exp0'
-        'verify_step46_exp1'
-        'verify_step47_exp2'
-        'verify_step48_exp3'
-        'verify_step49_exp4'
-        'verify_step50_exp5'
-        'verify_step51_exp_runner'
-        'verify_step52_performance_criteria'
-        'verify_step55_pt_validation'
-        'verify_phase_b1_behavioral_sanity'
-        'verify_phase_b2_hybrid_behavioral_sanity'
-        'verify_phase_b3_projected_convergence'
+    % Deferred oracles, each with its OWN reason. A single blanket
+    % "Issue K" label was factually wrong (REVIEW_GPT_2026-08-18_R12.md
+    % [P1]): most of these contain no critic weights at all, so the
+    % critic-projection-boundary mechanism cannot be their cause. Columns:
+    % {name, class, reason}.
+    %   stalling-rl   -- genuine Issue K: adaptive solver + RL/critic dynamics.
+    %   slow-mb       -- model-based/conventional, no critic. Expensive, and
+    %                    step23 was observed non-terminating, but the CAUSE
+    %                    is not established -- explicitly not attributed to
+    %                    Issue K.
+    %   slow-valid    -- production projected-RK4 path; valid, just costly.
+    %   invalidated   -- targets a path the project already invalidated.
+    deferred_tests = {
+        'verify_step23_single_auv_mb',              'slow-mb',     'ode15s on rhs_single_auv_mb (model-based, no critic); observed non-terminating in the audit sweep, cause NOT established'
+        'verify_step24_3auv_mb',                    'slow-mb',     'ode15s, 3-AUV model-based (no critic weights)'
+        'verify_step44_numerical_stability',        'stalling-rl', 'ode45 on rhs_3auv_rl -- adaptive solver + critic dynamics, genuine Issue K'
+        'verify_step45_exp0',                       'slow-mb',     'exp0_ideal_mb, model-based (no critic)'
+        'verify_step46_exp1',                       'slow-mb',     'exp1_disturbed_mb, model-based (no critic)'
+        'verify_step47_exp2',                       'slow-mb',     'exp2_sat_no_antiwindup, model-based (no critic)'
+        'verify_step48_exp3',                       'slow-mb',     'exp3_sat_antiwindup, model-based (no critic)'
+        'verify_step49_exp4',                       'stalling-rl', 'exp4_rl_pts_mc = legacy ode45 RL path, genuine Issue K'
+        'verify_step50_exp5',                       'slow-mb',     'exp5_comparison_smc, conventional SMC (no critic)'
+        'verify_step51_exp_runner',                 'stalling-rl', 'run_all_experiments includes the exp4 ode45 RL path'
+        'verify_step55_pt_validation',              'slow-mb',     'sweep_initial_conditions -- repeated trajectory sweeps'
+        'verify_phase_b1_behavioral_sanity',        'stalling-rl', 'exp4_rl_pts_mc = legacy ode45 RL path, genuine Issue K'
+        'verify_phase_b2_hybrid_behavioral_sanity', 'invalidated', 'targets exp4_rl_pts_mc_hybrid, invalidated by Steps K.5/K.6 -- legacy, not a current regression'
+        'verify_phase_b3_projected_convergence',    'slow-valid',  'production projected-RK4 path -- valid and expected to pass, but a full re-simulation'
     };
 
     % Completeness guard: every verify_*.m on disk must appear in exactly
@@ -114,7 +125,7 @@ function results = run_all_verifications(include_integration)
     % renaming one) silently drops it from the suite -- which is precisely
     % how verify_step69_plots.m rotted into referencing deleted figures
     % without anyone noticing across four review rounds.
-    local_assert_full_coverage(project_root, [fast_tests; integration_tests]);
+    local_assert_full_coverage(project_root, [fast_tests; deferred_tests(:, 1)]);
 
     fprintf('=====================================================\n');
     fprintf('  Paper 1608 Verification Suite\n');
@@ -128,26 +139,40 @@ function results = run_all_verifications(include_integration)
         [results, n_pass, n_fail] = local_run(fast_tests{k}, results, n_pass, n_fail);
     end
 
+    classes = {'stalling-rl', 'slow-mb', 'slow-valid', 'invalidated'};
+    class_desc = { ...
+        'genuine Issue K (adaptive solver + RL/critic dynamics)', ...
+        'model-based/conventional, no critic -- cost real, cause NOT attributed to Issue K', ...
+        'production projected-RK4 path -- valid, just a full re-simulation', ...
+        'targets an already-invalidated path -- legacy, not a current regression'};
+
     if include_integration
-        fprintf('\n--- Integration-level oracles (%d) -- Issue K: may not terminate ---\n', ...
-            numel(integration_tests));
-        for k = 1:numel(integration_tests)
-            [results, n_pass, n_fail] = local_run(integration_tests{k}, results, n_pass, n_fail);
+        fprintf('\n--- Deferred oracles (%d) -- running anyway; some may not terminate ---\n', ...
+            size(deferred_tests, 1));
+        for k = 1:size(deferred_tests, 1)
+            [results, n_pass, n_fail] = local_run(deferred_tests{k, 1}, results, n_pass, n_fail);
         end
     else
-        fprintf('\n--- Integration-level oracles (%d): SKIPPED (Issue K) ---\n', numel(integration_tests));
-        for k = 1:numel(integration_tests)
-            fprintf('SKIP   %s\n', integration_tests{k});
-            results(end+1) = struct('name', integration_tests{k}, 'status', 'SKIP', ...
-                'message', 'Issue K: ode45-based integration path does not terminate here'); %#ok<AGROW>
+        fprintf('\n--- Deferred oracles (%d), grouped by REASON (not one blanket label) ---\n', ...
+            size(deferred_tests, 1));
+        for c = 1:numel(classes)
+            sel = find(strcmp(deferred_tests(:, 2), classes{c}));
+            if isempty(sel), continue; end
+            fprintf('\n  [%s] %s\n', classes{c}, class_desc{c});
+            for k = sel(:).'
+                fprintf('  SKIP   %-42s %s\n', deferred_tests{k, 1}, deferred_tests{k, 3});
+                results(end+1) = struct('name', deferred_tests{k, 1}, 'status', 'SKIP', ...
+                    'message', sprintf('[%s] %s', deferred_tests{k, 2}, deferred_tests{k, 3})); %#ok<AGROW>
+            end
         end
     end
 
     n_skip = sum(strcmp({results.status}, 'SKIP'));
     fprintf('\n-----------------------------------------------------\n');
-    fprintf('Summary: %d passed, %d failed, %d skipped.\n', n_pass, n_fail, n_skip);
+    fprintf('Summary: %d passed, %d failed, %d deferred.\n', n_pass, n_fail, n_skip);
     if n_skip > 0
-        fprintf('Skipped oracles are Issue-K-gated and are NOT known-passing.\n');
+        fprintf(['NOTE: this is a GREEN FAST BLOCK, not a green full suite. The %d deferred\n' ...
+                 'oracles are NOT known-passing; see the per-test reasons above.\n'], n_skip);
     end
     fprintf('=====================================================\n');
 

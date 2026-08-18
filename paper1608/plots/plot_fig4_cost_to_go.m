@@ -2,28 +2,39 @@ function fig = plot_fig4_cost_to_go(rl, manifest, params)
     % PLOT_FIG4_COST_TO_GO
     % Paper Fig. 4: long-term cost function (cost-to-go) Chat_i(t) per AUV.
     %
-    % *** PROVISIONAL -- NOT A QUANTITATIVE REPRODUCTION ***
-    % Established by paper1608/verify/diagnose_stepS1_rl_figure_feasibility.m:
-    %   * The paper's Fig. 4 plateaus at 0.85e8 / 1.4e8 / 2.1e8.
-    %   * This project's critic is Chat = Wc'*theta_c(chi) with ||Wc||<=delta_c
-    %     and theta_c a vector of 15 Gaussian RBFs in (0,1]. Cauchy-Schwarz
-    %     therefore caps |Chat| at delta_c*sqrt(15) = 387.3 -- about 2.2e5x
-    %     below the paper's smallest plateau -- REGARDLESS of trajectory
-    %     quality. Matching Fig. 4's scale would need delta_c >= ~1.1e8.
-    %   * delta_c/delta_a are NOT given numeric values anywhere in the paper;
-    %     delta_c=100 is this project's own assumed placeholder (Issue N).
-    % So the scale gap is a consequence of an ASSUMED parameter, not of a
-    % convergence, integrator, or control-law defect. This figure is
-    % published as-measured with the gap stated, NOT rescaled to imitate the
-    % paper's axis.
+    % *** PROVISIONAL DIAGNOSTIC -- NOT A REPRODUCTION, IN EITHER SENSE ***
+    % Wording narrowed per REVIEW_GPT_2026-08-18_R12.md [P1]: an earlier
+    % draft called this a "shape-only" reproduction, which overstated the
+    % match. BOTH the shape and the scale differ from the paper:
+    %   * Paper Fig. 4: monotone rise from zero to THREE DISTINCT positive
+    %     plateaus 0.85e8 / 1.4e8 / 2.1e8.
+    %   * Here: strongly negative excursion, oscillation, then convergence
+    %     to ONE COMMON level ~8.2.
     %
-    % Second, independent defect shown honestly here: Chat goes NEGATIVE
-    % (min ~ -58). The true cost-to-go is an integral of the Eq.(16) reward
-    % r = chi'*B*chi + tau'*R*tau with B=I, R=1e-4*I both PSD, so r>=0 and
-    % the true cost-to-go is non-negative by construction. A negative Chat
-    % is therefore an approximation defect, consistent with Issue M/K
-    % (critic weights pinned at the projection boundary and thrashing), not
-    % a plotting artifact. The zero line is drawn to make this visible.
+    % On the scale gap (quantified in
+    % paper1608/verify/diagnose_stepS1_rl_figure_feasibility.m): the critic
+    % is Chat = Wc'*theta_c(chi) with ||Wc||<=delta_c and theta_c a vector
+    % of 15 Gaussian RBFs in (0,1], so Cauchy-Schwarz caps |Chat| at
+    % delta_c*sqrt(15) = 387.3 -- ~2.2e5x below the paper's smallest
+    % plateau, for ANY trajectory. delta_c=100 is this project's own
+    % assumed placeholder (Issue N; the paper gives no numeric
+    % delta_c/delta_a).
+    %
+    % CAUSAL SCOPE, stated carefully: that bound makes the assumed delta_c
+    % a SUFFICIENT obstruction to reaching 1e8. It does NOT prove delta_c
+    % is the only obstruction, and it does NOT show that raising delta_c
+    % alone would recover the paper's curves. The assumed reward weights
+    % B/R, the basis normalization, the tau_cmd-vs-tau_act reward choice
+    % (Issue M) and the learning dynamics are all unexcluded contributors.
+    % No delta_c sweep is implied or recommended by this figure.
+    %
+    % Separately: Chat goes NEGATIVE (min ~ -58). The true cost-to-go is an
+    % integral of the Eq.(16) reward r = chi'*B*chi + tau'*R*tau with B=I,
+    % R=1e-4*I both PSD, so r>=0 and the true value is non-negative by
+    % construction. The negative excursion is therefore genuine
+    % approximation invalidity, not a plotting artifact. Projection
+    % thrashing (Issue M/K) is CONSISTENT with it but is not established as
+    % its unique cause. The zero line is drawn to keep this visible.
 
     fig = figure('Visible', 'off', 'Position', [100 100 1300 700]);
     colors = {[0.85 0.10 0.10], [0.10 0.45 0.85], [0.10 0.65 0.30]};
@@ -50,15 +61,14 @@ function fig = plot_fig4_cost_to_go(rl, manifest, params)
     xlabel('t (s)');
     title('Zoomed transient [0,15]s');
 
-    sgtitle('Fig. 4 (PROVISIONAL): Cost-to-Go $\hat{C}_i(t)$ -- shape only, NOT the paper''s $10^8$ scale', ...
+    sgtitle('Fig. 4 (PROVISIONAL DIAGNOSTIC): Cost-to-Go $\hat{C}_i(t)$ -- qualitative AND quantitative MISMATCH vs. the paper', ...
         'Interpreter', 'latex');
 
     reserve_bottom_margin(fig, 0.14, 0.05);
 
-    caveat = sprintf(['PROVISIONAL: observed range [%.1f, %.1f], settling to a COMMON plateau ~%.1f; ' ...
-        'paper Fig.4 rises monotonically from 0 to THREE DISTINCT plateaus 0.85e8/1.4e8/2.1e8. ' ...
-        'Scale gap is forced by the ASSUMED delta_c=100 (|Chat| <= delta_c*sqrt(15) = 387.3); matching Fig.4 would need delta_c >= 1.1e8 (Issue N). ' ...
-        'Negative Chat is an approximation defect (true cost-to-go >= 0 since the Eq.16 reward is PSD), consistent with Issue M/K.'], ...
+    caveat = sprintf(['PROVISIONAL DIAGNOSTIC -- NOT a reproduction. Observed [%.1f, %.1f]: strongly negative, oscillating, then ONE COMMON level ~%.1f. Paper Fig.4: monotone rise from 0 to THREE DISTINCT plateaus 0.85e8/1.4e8/2.1e8 -- BOTH shape and scale differ. ' ...
+        'The assumed delta_c=100 is a SUFFICIENT scale obstruction (|Chat| <= delta_c*sqrt(15) = 387.3, Issue N), but is NOT shown to be the only one: assumed reward weights B/R, basis normalization, the tau_cmd/tau_act reward choice (Issue M) and learning dynamics are unexcluded, and nothing here shows raising delta_c alone would recover the paper. ' ...
+        'Negative Chat IS invalid for a cost-to-go (Eq.16 reward is PSD so the true value is >=0); projection thrashing (Issue M/K) is consistent with it but not established as its unique cause.'], ...
         min(rl.Chat(:)), max(rl.Chat(:)), mean(rl.Chat(end, :)));
     annotation('textbox', [0.02 0.035 0.96 0.075], 'String', caveat, ...
         'EdgeColor', [0.6 0.2 0.2], 'FontSize', 7.5, 'HorizontalAlignment', 'center', ...

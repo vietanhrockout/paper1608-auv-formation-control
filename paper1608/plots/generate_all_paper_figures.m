@@ -78,7 +78,7 @@ function generate_all_paper_figures(result_path, manifest_path, include_provisio
 
     if ~include_provisional_rl
         fprintf(['Figs. 4-5 (cost-to-go, actor NN output) NOT generated -- provisional. ' ...
-            'Call generate_all_paper_figures(res, man, true) to render them.\n']);
+            'Call generate_all_paper_figures([], [], true) to render them.\n']);
         return;
     end
 
