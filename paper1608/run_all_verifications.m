@@ -17,7 +17,7 @@ function results = run_all_verifications(include_integration)
     %   3. It now returns a structured per-test result instead of only
     %      printing, so callers can inspect what ran.
     %
-    % WHY DEFERRED ORACLES ARE DEFERRED -- FOUR DISTINCT REASONS
+    % WHY DEFERRED ORACLES ARE DEFERRED -- FIVE DISTINCT REASONS
     % -------------------------------------------------------------------
     % An earlier revision of this header claimed that every trajectory
     % oracle invokes an ode45-based path and that ode45/hybrid/ode15s all
@@ -26,7 +26,7 @@ function results = run_all_verifications(include_integration)
     % of these oracles contain no critic weights at all, so the
     % critic-projection mechanism cannot be their cause. The deferred list
     % below therefore carries a per-test reason drawn from each oracle's
-    % ACTUAL call chain -- never from its historical name -- in four classes:
+    % ACTUAL call chain -- never from its historical name -- in five classes:
     %
     %   stalling-rl  Adaptive solver driven by RL/critic dynamics. This is
     %                the genuine Issue K failure mode.
@@ -34,9 +34,11 @@ function results = run_all_verifications(include_integration)
     %                critic weights. Genuinely expensive, but the cause of
     %                any observed stall is NOT established and is expressly
     %                not attributed to Issue K.
-    %   slow-valid   Uses the production projected-RK4 path (directly or as
-    %                part of a composite). Valid and expected to pass -- it
-    %                is simply a full re-simulation.
+    %   slow-valid   Uses the production projected-RK4 path. Valid and
+    %                expected to pass -- it is simply a full re-simulation.
+    %   slow-mixed   Composite: bundles model-based experiments together
+    %                with the production projected-RK4 one, so it belongs to
+    %                neither slow-mb nor slow-valid cleanly (R14).
     %   invalidated  Targets a path the project already invalidated. Legacy,
     %                not a current regression.
     %
@@ -115,6 +117,7 @@ function results = run_all_verifications(include_integration)
     %                    is not established -- explicitly not attributed to
     %                    Issue K.
     %   slow-valid    -- production projected-RK4 path; valid, just costly.
+    %   slow-mixed    -- composite of model-based + projected-RK4 experiments.
     %   invalidated   -- targets a path the project already invalidated.
     deferred_tests = {
         'verify_step23_single_auv_mb',              'slow-mb',     'ode15s on rhs_single_auv_mb (model-based, no critic); observed non-terminating in the audit sweep, cause NOT established'
@@ -126,7 +129,7 @@ function results = run_all_verifications(include_integration)
         'verify_step48_exp3',                       'slow-mb',     'exp3_sat_antiwindup, model-based (no critic)'
         'verify_step49_exp4',                       'stalling-rl', 'exp4_rl_pts_mc = legacy ode45 RL path, genuine Issue K'
         'verify_step50_exp5',                       'slow-mb',     'exp5_comparison_smc, conventional SMC (no critic)'
-        'verify_step51_exp_runner',                 'slow-valid',  'COMPOSITE: run_all_experiments runs exp0/1/2/3/5 (model-based) plus exp4_rl_pts_mc_projected -- the PRODUCTION projected-RK4 path, not the legacy ode45 one (R13 [P1] corrected an earlier reason string that described code no longer called)'
+        'verify_step51_exp_runner',                 'slow-mixed',  'COMPOSITE: run_all_experiments runs exp0/1/2/3/5 (model-based) plus exp4_rl_pts_mc_projected -- the PRODUCTION projected-RK4 path, not the legacy ode45 one (R13 [P1] corrected an earlier reason string that described code no longer called; R14 gave it its own slow-mixed class rather than filing it under the projected-RK4-only heading)'
         'verify_step55_pt_validation',              'stalling-rl', 'sweep_initial_conditions integrates rhs_3auv_rl via ode15s with packed actor/critic weights -- adaptive solver + critic dynamics (R13 [P1]: the earlier slow-mb/no-critic label was wrong, inferred without following the call chain)'
         'verify_phase_b1_behavioral_sanity',        'stalling-rl', 'exp4_rl_pts_mc = legacy ode45 RL path, genuine Issue K'
         'verify_phase_b2_hybrid_behavioral_sanity', 'invalidated', 'targets exp4_rl_pts_mc_hybrid, invalidated by Steps K.5/K.6 -- legacy, not a current regression'
@@ -152,11 +155,12 @@ function results = run_all_verifications(include_integration)
         [results, n_pass, n_fail] = local_run(fast_tests{k}, results, n_pass, n_fail);
     end
 
-    classes = {'stalling-rl', 'slow-mb', 'slow-valid', 'invalidated'};
+    classes = {'stalling-rl', 'slow-mb', 'slow-valid', 'slow-mixed', 'invalidated'};
     class_desc = { ...
         'genuine Issue K (adaptive solver + RL/critic dynamics)', ...
         'model-based/conventional, no critic -- cost real, cause NOT attributed to Issue K', ...
         'production projected-RK4 path -- valid, just a full re-simulation', ...
+        'composite: model-based experiments PLUS the production projected-RK4 one', ...
         'targets an already-invalidated path -- legacy, not a current regression'};
 
     if include_integration

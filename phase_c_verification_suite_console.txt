@@ -68,8 +68,10 @@ PASS   verify_step72_tuning
   SKIP   verify_step50_exp5                         exp5_comparison_smc, conventional SMC (no critic)
 
   [slow-valid] production projected-RK4 path -- valid, just a full re-simulation
-  SKIP   verify_step51_exp_runner                   COMPOSITE: run_all_experiments runs exp0/1/2/3/5 (model-based) plus exp4_rl_pts_mc_projected -- the PRODUCTION projected-RK4 path, not the legacy ode45 one (R13 [P1] corrected an earlier reason string that described code no longer called)
   SKIP   verify_phase_b3_projected_convergence      production projected-RK4 path -- valid and expected to pass, but a full re-simulation
+
+  [slow-mixed] composite: model-based experiments PLUS the production projected-RK4 one
+  SKIP   verify_step51_exp_runner                   COMPOSITE: run_all_experiments runs exp0/1/2/3/5 (model-based) plus exp4_rl_pts_mc_projected -- the PRODUCTION projected-RK4 path, not the legacy ode45 one (R13 [P1] corrected an earlier reason string that described code no longer called; R14 gave it its own slow-mixed class rather than filing it under the projected-RK4-only heading)
 
   [invalidated] targets an already-invalidated path -- legacy, not a current regression
   SKIP   verify_phase_b2_hybrid_behavioral_sanity   targets exp4_rl_pts_mc_hybrid, invalidated by Steps K.5/K.6 -- legacy, not a current regression
