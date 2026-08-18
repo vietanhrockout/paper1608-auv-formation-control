@@ -10,16 +10,21 @@ page_10.png
 # Periodic safety-snapshot checkpoints written by projected_rk4_integrate.m
 # during long runs -- transient, regenerable, overwritten every run, no
 # standalone diagnostic value (unlike the p*_result.mat / phase_b*_result.mat
-# files, which ARE evidence cited in handoff.md and should stay tracked).
+# files, which ARE evidence cited in docs/HANDOFF.md and should stay tracked).
 projected_rk4_checkpoint.mat
 c0_checkpoint_test.mat
 
 # Phase C production run output (Phase C.0 gate round 6 close-out, GPT
 # audit): the durable run-and-save wrapper (run_phase_c.m ->
 # paper1608/simulation/run_phase_c_production.m) writes its result,
-# manifest, and console log here. Kept OUTSIDE git tracking on purpose
+# manifest, and console log under artifacts/work/phase-c/. Kept OUTSIDE
+# git tracking on purpose
 # so `git status` stays clean while the wrapper's own git_fingerprint()
 # checks are sampled during a multi-hour run -- durable on disk (not
 # deleted), just not committed. Review and selectively copy/commit
 # specific files (e.g. the manifest) after the run, if wanted.
+artifacts/work/
+
+# Legacy working-output location retained so older local launch commands do
+# not accidentally add generated production data to version control.
 phase_c_results/

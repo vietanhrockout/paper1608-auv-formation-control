@@ -1,7 +1,7 @@
 # Implementation Status
 
 Quick-glance status for anyone (human or LLM) picking up this project cold.
-`handoff.md` is the authoritative, detailed log — this file is a compressed
+`docs/HANDOFF.md` is the authoritative, detailed log — this file is a compressed
 pointer into it, updated at verified checkpoints, not every edit.
 
 ## Completed
@@ -26,7 +26,7 @@ pointer into it, updated at verified checkpoints, not every edit.
   shortly after the paper's own claimed `T1*=5s`.
 - **Phase C.0 Gate, round 1** (first GPT audit pass): stale
   `exp4_rl_pts_mc_hybrid`/`exp4_rl_pts_mc` (ode45) references removed from
-  `handoff.md` and `run_all_experiments.m` in favor of the sole production
+  `docs/HANDOFF.md` and `run_all_experiments.m` in favor of the sole production
   path `exp4_rl_pts_mc_projected`; integrator made memory-safe (decimated
   storage + checkpointing, was ~4.4GB at h=1e-4/100s); Phase B.3's
   convergence-neighborhood check upgraded from a print to a real assert;
@@ -69,7 +69,7 @@ pointer into it, updated at verified checkpoints, not every edit.
   `tau_act` trajectories with a separate PASS/FAIL verdict per metric
   group (physical/command/actuator/retraction) instead of one blended
   number.
-- **P.1b v3 final result** (per-metric-group verdict, see `handoff.md`
+- **P.1b v3 final result** (per-metric-group verdict, see `docs/HANDOFF.md`
   for full numbers): **PHYSICAL STATE (E_chi, E_s): PASS** (rel spread
   ~2-3e-7) — this is what Issue O/P's convergence claim and Figs.
   2,3,6,7,8,9 depend on. COMMAND (tau_cmd): FAIL (5.4% rel spread).
@@ -138,7 +138,7 @@ pointer into it, updated at verified checkpoints, not every edit.
   unavailable/dirty-mismatch at both checkpoint-time and resume-time
   correctly abort/reject with the last valid checkpoint provably
   untouched; the unmocked happy path remains bit-exact. Also captured
-  genuine `dirty=0` clean-tree evidence (see `handoff.md`) by keeping
+  genuine `dirty=0` clean-tree evidence (see `docs/HANDOFF.md`) by keeping
   diagnostic output outside the repo during the actual test run,
   addressing round 5's own honestly-flagged diary-logging nuance.
   **Clean-tree evidence captured and satisfies GPT's full Round 6
@@ -165,7 +165,7 @@ pointer into it, updated at verified checkpoints, not every edit.
   for the ~2.4hr compute commitment. Scientific scope of this greenlight
   is infrastructure/recovery only -- Issue M/K, Figs. 4-5, and the plot
   pipeline rewrite remain open per GPT's explicit framing (see
-  `handoff.md`).
+  `docs/HANDOFF.md`).
 - **PHASE C 100s RUN COMPLETE** — user gave explicit go-ahead, launched
   via `run_phase_c.m`. First launch attempt was correctly REJECTED by
   the fail-closed guard (a stray untracked file from the shell's own
@@ -178,9 +178,9 @@ pointer into it, updated at verified checkpoints, not every edit.
   short transient) -- global min 2.56e-3 at t=10.79s, end value 0.0146.
   All 3 AUVs converge individually. All structural checks PASS (finite,
   NN bounds, actuator limits respected exactly at saturation). Full
-  writeup with per-timestep table in `handoff.md`. Evidence committed:
-  `phase_c_result_t100.mat`, `phase_c_manifest_t100.mat`,
-  `phase_c_analysis_t100.mat`, `phase_c_production_console.txt`.
+  writeup with per-timestep table in `docs/HANDOFF.md`. Evidence committed:
+  `artifacts/phase-c/phase_c_result_t100.mat`, `artifacts/phase-c/phase_c_manifest_t100.mat`,
+  `artifacts/phase-c/phase_c_analysis_t100.mat`, `artifacts/phase-c/phase_c_production_console.txt`.
 
 - **Figs. 4-5 GENERATED (PROVISIONAL)** — post-R11 pass. A feasibility
   audit was run FIRST (`diagnose_stepS1_rl_figure_feasibility.m`) so the
@@ -202,7 +202,7 @@ pointer into it, updated at verified checkpoints, not every edit.
   the bound). Gated behind an explicit opt-in and captioned as
   provisional on the rendered image itself.
 - **Post-R11 full-project audit** — findings, all verified against code
-  before recording (details in `handoff.md`):
+  before recording (details in `docs/HANDOFF.md`):
   (1) `verify_step02_notation.m`/`verify_step03_audit.m` used an invalid
   `fopen(...,'encoding','UTF-8')` call and had **never passed** —
   fixed, both now genuinely PASS.
@@ -292,9 +292,9 @@ being a quantitative reproduction.
   *plotting* needed the actual leader-relative quantity, which is now done
   (`compute_phase_c_series.m` computes `η₁-η₀`/`η₂-η₀` directly, verified
   to converge to the configured `[3,4,2]`/`[6,1,4]` offsets — see
-  `handoff.md`'s "Plot pipeline rewrite" subsection).
+  `docs/HANDOFF.md`'s "Plot pipeline rewrite" subsection).
 - **`paper1608/plots/*.m` Figs. 2,3,6,7,8,9 — REWRITTEN and generated from
-  the real `phase_c_result_t100.mat` dataset** (see `handoff.md`'s "Plot
+  the real `artifacts/phase-c/phase_c_result_t100.mat` dataset** (see `docs/HANDOFF.md`'s "Plot
   pipeline rewrite" subsection). `generate_all_paper_figures.m` no longer
   needs the old stale-pipeline guard for these 6. Figs. 4/5
   (`plot_fig4_attitude_errors.m`/`plot_fig5_control_inputs.m`) remain the
@@ -326,7 +326,7 @@ being a quantitative reproduction.
 Plot pipeline rewrite COMPLETE and smoke-tested. `paper1608/plots/*.m`
 rewritten per the R8/R9 GO (5 stated conditions all satisfied, verified
 by direct inspection of the rendered PNGs): Figs. 2,3,6,7,8,9 regenerated
-from the real `phase_c_result_t100.mat`/`phase_c_manifest_t100.mat`
+from the real `artifacts/phase-c/phase_c_result_t100.mat`/`artifacts/phase-c/phase_c_manifest_t100.mat`
 dataset, ran end-to-end with no errors
 (`plot_smoke_test_console.txt`). Also this checkpoint: reconciled R9's
 flagged `total_retracted` coincidence — confirmed genuine (not a

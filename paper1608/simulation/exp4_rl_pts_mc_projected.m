@@ -18,7 +18,7 @@ function res = exp4_rl_pts_mc_projected(t_final, h, params, sat_cfg, cfg, n_targ
 % max|d_eta|=3.2e-7, max|d_nu|=1.7e-5 vs h=1e-5 (far tighter than the
 % stale K.7-era numbers this comment used to cite, which were measured
 % under the old frozen/non-convergent dynamics and are no longer valid --
-% see handoff.md's Phase C.0 Gate section). Critic weights remain
+% see docs/HANDOFF.md's Phase C.0 Gate section). Critic weights remain
 % step-size-sensitive (max|d_Wc|~11% of delta_c) -- expected, tied to the
 % still-open Issue M/K critic-projection-thrashing question.
 %
@@ -118,8 +118,11 @@ function res = exp4_rl_pts_mc_projected(t_final, h, params, sat_cfg, cfg, n_targ
     % the same ambiguity class as the git-fingerprint CWD bug (recovery
     % after a crash shouldn't depend on remembering which directory
     % MATLAB happened to be launched from).
-    repo_root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
-    checkpoint_path = fullfile(repo_root, 'projected_rk4_checkpoint.mat');
+    paths = project_paths();
+    if ~exist(paths.phase_c_work, 'dir')
+        mkdir(paths.phase_c_work);
+    end
+    checkpoint_path = fullfile(paths.phase_c_work, 'projected_rk4_checkpoint.mat');
     fprintf('exp4_rl_pts_mc_projected: checkpoint path = %s\n', checkpoint_path);
 
     opts = struct();

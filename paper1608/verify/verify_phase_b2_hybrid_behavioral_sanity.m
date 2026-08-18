@@ -4,7 +4,7 @@ function verify_phase_b2_hybrid_behavioral_sanity(t_final)
     % ode45 integrator (exp4_rl_pts_mc_hybrid.m), which replaces
     % standalone ode45 (exp4_rl_pts_mc.m) as Phase B.1 demonstrated that
     % standalone ode45 cannot survive the fast initial transient (Issue
-    % K/L/M/N chain, see handoff.md). Same PASS criteria as
+    % K/L/M/N chain, see docs/HANDOFF.md). Same PASS criteria as
     % verify_phase_b1_behavioral_sanity.m, restated here for the hybrid
     % integrator's output.
 

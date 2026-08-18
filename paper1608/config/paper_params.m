@@ -110,7 +110,7 @@ function params = paper_params()
     % theoretical justification"), this documentation plus diagnose_stepP1/P2
     % constitute that justification; user (project owner) explicitly confirmed
     % promoting this to the default. 'paper_signed' remains available for
-    % literal-reading comparison/ablation. See Issue P in handoff.md.
+    % literal-reading comparison/ablation. See Issue P in docs/HANDOFF.md.
     params.inverse_lambda_mode = 'proof_consistent_unsigned';
 
     % Issue P.1b: regularization epsilon for the above (both branches use

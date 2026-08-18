@@ -1,7 +1,7 @@
 function fig = plot_fig5_actor_nn_output(rl, manifest, params)
     % PLOT_FIG5_ACTOR_NN_OUTPUT
     % Paper Fig. 5: actor RBF network output theta_a(xbar_a), paper y-range
-    % [0,1.5] (recorded in handoff.md from a direct render of the source PDF).
+    % [0,1.5] (recorded in docs/HANDOFF.md from a direct render of the source PDF).
     %
     % *** PROVISIONAL *** -- Figs. 4-5 remain outside the accepted
     % physical-state figure set (Issue M/K unresolved; see

@@ -7,13 +7,15 @@ function analysis = analyze_phase_c_result(result_path, manifest_path)
     % actuator saturation checks, WITHOUT re-running the (very expensive)
     % simulation. Does not modify any production file.
 
-    addpath(genpath('paper1608'));
+    project_root = fileparts(fileparts(mfilename('fullpath')));
+    addpath(genpath(project_root));
+    paths = project_paths();
 
     if nargin < 1 || isempty(result_path)
-        result_path = 'phase_c_results/phase_c_result.mat';
+        result_path = fullfile(paths.phase_c_work, 'phase_c_result.mat');
     end
     if nargin < 2 || isempty(manifest_path)
-        manifest_path = 'phase_c_results/phase_c_manifest.mat';
+        manifest_path = fullfile(paths.phase_c_work, 'phase_c_manifest.mat');
     end
 
     dr = load(result_path);
@@ -145,6 +147,7 @@ function analysis = analyze_phase_c_result(result_path, manifest_path)
     analysis.max_tau_act_force_decimated = max_tau_act_force_decimated;
     analysis.max_tau_act_moment_decimated = max_tau_act_moment_decimated;
     analysis.manifest = manifest;
-    save('phase_c_results/phase_c_analysis.mat', 'analysis');
-    fprintf('\nSaved analysis to phase_c_results/phase_c_analysis.mat\n');
+    analysis_path = fullfile(paths.phase_c_work, 'phase_c_analysis.mat');
+    save(analysis_path, 'analysis');
+    fprintf('\nSaved analysis to %s\n', analysis_path);
 end

@@ -2,7 +2,7 @@ function generate_all_paper_figures(result_path, manifest_path, include_provisio
     % GENERATE_ALL_PAPER_FIGURES
     % Renders the 6 physical-state figures (Figs. 2, 3, 6, 7, 8, 9) from a
     % real Phase C production dataset, per the correct paper mapping in
-    % EQUATION_MAPPING.md / handoff.md and the GO given in
+    % EQUATION_MAPPING.md / docs/HANDOFF.md and the GO given in
     % REVIEW_GPT_2026-08-17_R8.md and R9.md:
     %   Fig. 2 = 3D operational trajectory
     %   Fig. 3 = 2D planar (x-y) trajectory
@@ -30,18 +30,19 @@ function generate_all_paper_figures(result_path, manifest_path, include_provisio
     % both the full 100s horizon and a zoomed [0,15]s transient with both
     % deadline markers so this is visible, not hidden.
 
+    project_root = fileparts(fileparts(mfilename('fullpath')));
+    addpath(genpath(project_root));
+    paths = project_paths();
+
     if nargin < 1 || isempty(result_path)
-        result_path = fullfile(fileparts(fileparts(mfilename('fullpath'))), '..', 'phase_c_result_t100.mat');
+        result_path = fullfile(paths.phase_c, 'phase_c_result_t100.mat');
     end
     if nargin < 2 || isempty(manifest_path)
-        manifest_path = fullfile(fileparts(fileparts(mfilename('fullpath'))), '..', 'phase_c_manifest_t100.mat');
+        manifest_path = fullfile(paths.phase_c, 'phase_c_manifest_t100.mat');
     end
     if nargin < 3 || isempty(include_provisional_rl)
         include_provisional_rl = false;
     end
-
-    project_root = fileparts(fileparts(mfilename('fullpath')));
-    addpath(genpath(project_root));
 
     dr = load(result_path);
     dm = load(manifest_path);

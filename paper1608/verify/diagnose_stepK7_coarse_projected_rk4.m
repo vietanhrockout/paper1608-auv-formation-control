@@ -36,7 +36,8 @@ function diagnose_stepK7_coarse_projected_rk4(t_span, h)
     addpath(fullfile(project_root, 'nn'));
     addpath(fullfile(project_root, 'simulation'));
 
-    ck = load(fullfile(fileparts(project_root), 'k5_hotphase_checkpoint.mat'));
+    paths = project_paths();
+    ck = load(fullfile(paths.diagnostics, 'k5_hotphase_checkpoint.mat'));
 
     fprintf('\n============================================================\n');
     fprintf(' STEP K.7 -- COARSE FIXED-STEP PROJECTED RK4 (from checkpoint)\n');

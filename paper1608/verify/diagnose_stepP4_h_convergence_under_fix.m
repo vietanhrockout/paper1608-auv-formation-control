@@ -72,7 +72,9 @@ function diagnose_stepP4_h_convergence_under_fix(t_span, h_coarse, h_fine)
     result.max_d_eta = max(d_eta(:)); result.max_d_nu = max(d_nu(:)); result.max_d_Wc = max(d_Wc(:));
     result.rel_eta = rel_eta; result.rel_nu = rel_nu;
     result.stats_coarse = stats_c; result.stats_fine = stats_f;
-    save('p4_result.mat', 'result');
+    paths = project_paths();
+    output_path = fullfile(paths.validation, 'p4_result.mat');
+    save(output_path, 'result');
 
-    fprintf('\n=== END P.4 (result saved to p4_result.mat) ===\n');
+    fprintf('\n=== END P.4 (result saved to %s) ===\n', output_path);
 end

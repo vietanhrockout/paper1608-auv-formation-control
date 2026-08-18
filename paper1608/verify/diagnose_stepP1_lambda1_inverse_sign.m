@@ -5,7 +5,7 @@ function diagnose_stepP1_lambda1_inverse_sign()
     % whether Eq.(31)'s literal reaching-law term
     %     -sig^{1-alpha1}(v)/alpha1 * F        (F = q(s)+k1*s+omega)
     % correctly cancels against Eq.(23)'s Lambda1 = diag{|v|^{alpha1-1}}
-    % (UNSIGNED, confirmed against the raw PDF text at pdf_extracted_text.txt
+    % (UNSIGNED, confirmed against the raw PDF text at docs/reference/paper_extracted_text.txt
     % lines 558-584) when substituted into ds/dt = (L+Ltilde)*v + alpha1*Lambda1*vdot.
     %
     % Algebraic claim under test:

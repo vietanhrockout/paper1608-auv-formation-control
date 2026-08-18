@@ -15,9 +15,9 @@ This repository has reached the **physical-state reproduction milestone**, but i
 | Area | Status | Evidence |
 | --- | --- | --- |
 | 6-DOF AUV dynamics, formation controller, anti-windup, actor–critic structure | Implemented and audited | [`paper1608/docs/EQUATION_MAPPING.md`](paper1608/docs/EQUATION_MAPPING.md) |
-| Phase C production simulation | Complete: 100 s, 1,000,000 fixed RK4 steps | [`phase_c_production_console.txt`](phase_c_production_console.txt) |
+| Phase C production simulation | Complete: 100 s, 1,000,000 fixed RK4 steps | [`artifacts/phase-c/phase_c_production_console.txt`](artifacts/phase-c/phase_c_production_console.txt) |
 | Physical-state Figs. 2, 3, 6, 7, 8, 9 | Accepted | [`paper1608/docs/REVIEW_GPT_2026-08-17_R11.md`](paper1608/docs/REVIEW_GPT_2026-08-17_R11.md) |
-| Fast verification suite | 46 passed, 0 failed, 14 integration oracles deferred | [`phase_c_verification_suite_console.txt`](phase_c_verification_suite_console.txt) |
+| Fast verification suite | 46 passed, 0 failed, 14 integration oracles deferred | [`artifacts/phase-c/phase_c_verification_suite_console.txt`](artifacts/phase-c/phase_c_verification_suite_console.txt) |
 | Figs. 4–5 and quantitative RL/critic claims | Provisional mismatch diagnostics, not accepted reproductions | [`paper1608/docs/IMPLEMENTATION_STATUS.md`](paper1608/docs/IMPLEMENTATION_STATUS.md) |
 
 The committed Phase C dataset reaches the accepted tracking neighborhood by the combined 10 s horizon and remains bounded through 100 s. It **does not reproduce the literal 5 s reaching deadline**: the observed small-neighborhood entry is approximately 7.1–7.5 s. This boundary is intentional and is enforced by the verification suite.
@@ -64,7 +64,7 @@ Do not present those two figures as quantitative reproductions; their rendered i
 
 ## Production simulation
 
-The accepted Phase C output is already committed as `phase_c_result_t100.mat`, with its paired manifest and analysis artifacts. Re-running it is expensive and is not required for normal verification.
+The accepted Phase C output is already committed under `artifacts/phase-c/`, with its paired manifest and analysis artifacts. Re-running it is expensive and is not required for normal verification.
 
 To deliberately launch a fresh 100 s run from a clean Git tree:
 
@@ -76,6 +76,7 @@ The recorded run took about 200 minutes. The runner checkpoints, refuses dirty-t
 
 ## Repository layout
 
+- `paper1608/` — maintained MATLAB implementation, verification suite, plots, and implementation documentation.
 - `paper1608/config/` — paper, simulation, saturation, and neural-network parameters.
 - `paper1608/model/` — 6-DOF AUV model and earth/body-frame transformations.
 - `paper1608/control/` — model-based and RL predefined-time control laws.
@@ -83,8 +84,11 @@ The recorded run took about 200 minutes. The runner checkpoints, refuses dirty-t
 - `paper1608/simulation/` — experiment runners and projected-RK4 production path.
 - `paper1608/verify/` — fast oracles, deferred integration tests, and diagnostics.
 - `paper1608/plots/` — accepted physical plots and provisional RL diagnostics.
-- `paper1608/docs/` — equation mapping, assumptions, audit trail, and current status.
-- `handoff.md` — detailed chronological engineering and scientific record.
+- `paper1608/docs/` — maintained equation mapping, assumptions, audit trail, and current status.
+- `artifacts/` — organized production, validation, and historical diagnostic evidence.
+- `scripts/` — validation and diagnostic launchers moved out of the repository root.
+- `docs/` — documentation index, chronological handoff, reviewer notes, and paper-reference notes.
+- `run_phase_c.m` — the single root-level production launcher.
 
 ## Reproduction boundaries
 

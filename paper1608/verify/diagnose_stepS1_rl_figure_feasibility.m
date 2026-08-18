@@ -8,7 +8,7 @@ function diagnose_stepS1_rl_figure_feasibility()
     % the fact or silently rescaling to make the plot "look right".
     %
     % Central question: the paper's own Fig. 4 shows the cost-to-go
-    % plateauing at 0.85e8 / 1.4e8 / 2.1e8 (recorded in handoff.md from a
+    % plateauing at 0.85e8 / 1.4e8 / 2.1e8 (recorded in docs/HANDOFF.md from a
     % direct render of the source PDF). This project's critic uses
     % Chat = Wc' * theta_c(chi) with ||Wc|| <= delta_c and theta_c a
     % vector of m_c Gaussian RBFs each in (0,1]. Cauchy-Schwarz therefore
@@ -19,10 +19,10 @@ function diagnose_stepS1_rl_figure_feasibility()
     %
     % Does not modify any production file.
 
-    addpath(genpath('paper1608'));
+    paths = project_paths();
 
     cfg = nn_config();
-    d = load('phase_c_result_t100.mat');
+    d = load(fullfile(paths.phase_c, 'phase_c_result_t100.mat'));
     res = d.res;
     params = res.params;
     N = numel(res.t);
@@ -33,7 +33,7 @@ function diagnose_stepS1_rl_figure_feasibility()
     ceiling = cfg.delta_c * sqrt(cfg.critic_n_nodes);
     fprintf('Critic: m_c=%d nodes, delta_c=%.1f\n', cfg.critic_n_nodes, cfg.delta_c);
     fprintf('  Cauchy-Schwarz ceiling |Chat| <= delta_c*sqrt(m_c) = %.4f\n', ceiling);
-    fprintf('  Paper Fig.4 plateaus (from handoff.md, direct PDF render): 0.85e8 / 1.4e8 / 2.1e8\n');
+    fprintf('  Paper Fig.4 plateaus (from docs/HANDOFF.md, direct PDF render): 0.85e8 / 1.4e8 / 2.1e8\n');
     fprintf('  => ceiling is %.3e times SMALLER than the paper''s smallest plateau (0.85e8)\n\n', ...
         0.85e8 / ceiling);
 
@@ -89,7 +89,7 @@ function diagnose_stepS1_rl_figure_feasibility()
     fprintf('  max single-node activation over whole run: %.6f (RBF range is (0,1] by construction)\n', ...
         max(theta_a_max(:)));
     fprintf('  max over-DOF sum of 25 activations:       %.6f\n', max(theta_a_sum_max(:)));
-    fprintf('  paper Fig.5 stated y-range (handoff.md): [0, 1.5]\n');
+    fprintf('  paper Fig.5 stated y-range (docs/HANDOFF.md): [0, 1.5]\n');
     fprintf('  => individual activations are IN RANGE; the 25-node sum is NOT necessarily.\n\n');
 
     fprintf('--- Actor network OUTPUT f_RL = Wa'' * theta_a (the other reading of "actor output") ---\n');
@@ -112,7 +112,11 @@ function diagnose_stepS1_rl_figure_feasibility()
     fprintf(['Fig.5 IS reproducible in range: RBF activations are in (0,1] by construction and\n' ...
         'the paper''s stated [0,1.5] axis accommodates them.\n']);
 
-    save('phase_c_results/stepS1_rl_feasibility.mat', 'Chat', 'theta_c_norm', 'Wc_norm', ...
+    if ~exist(paths.phase_c_work, 'dir')
+        mkdir(paths.phase_c_work);
+    end
+    output_path = fullfile(paths.phase_c_work, 'stepS1_rl_feasibility.mat');
+    save(output_path, 'Chat', 'theta_c_norm', 'Wc_norm', ...
         'theta_a_max', 'theta_a_sum_max', 'f_rl_absmax', 'ceiling');
-    fprintf('\nSaved raw series to phase_c_results/stepS1_rl_feasibility.mat\n');
+    fprintf('\nSaved raw series to %s\n', output_path);
 end
