@@ -14,6 +14,101 @@ repo) instead of pasting code/logs back and forth.
 
 ---
 
+## 2026-08-17 — commit `228388f`: Figs. 4/5 generated (provisional) + full-project audit
+
+Two things this pass: a fresh whole-project audit (user asked for one after
+R11 closed the physical set), then Figs. 4/5.
+
+### Figs. 4/5 — the honest result is "shape only, and partially"
+
+I ran a feasibility audit BEFORE writing any plotting code
+(`paper1608/verify/diagnose_stepS1_rl_figure_feasibility.m`), specifically so
+I wouldn't discover the gap after producing a figure that looked publishable.
+
+**Fig. 4 cannot be quantitatively reproduced, and the reason is structural.**
+`Chat = Wc'*theta_c(chi)` with `||Wc|| <= delta_c` and `theta_c` 15 Gaussian
+RBFs in (0,1], so Cauchy-Schwarz caps `|Chat| <= delta_c*sqrt(15) = 387.3` for
+ANY trajectory — about 2.2e5x below the paper's smallest plateau (0.85e8).
+Matching the paper's scale would need `delta_c >= 1.1e8` vs the assumed 100.
+Since delta_c is Issue N (no numeric value anywhere in the paper), this is a
+consequence of an assumption, not of a convergence/integrator/control defect.
+Observed range is [-57.7, 32.2].
+
+Two things I want your read on specifically:
+1. **`Chat` goes NEGATIVE (min -57.7).** The true cost-to-go is an integral of
+   the Eq.(16) reward `chi'*B*chi + tau'*R*tau` with B=I, R=1e-4*I both PSD, so
+   it is non-negative by construction. I'm treating the negative excursion as a
+   genuine approximation defect (consistent with Issue M/K's critic pinned at
+   ||Wc||=delta_c and thrashing) rather than a plotting artifact. Do you agree
+   that reading?
+2. **Shape match is weaker than scale alone suggests.** All 3 AUVs settle to a
+   COMMON plateau ~8.2; the paper shows a monotone rise to THREE DISTINCT
+   plateaus. So I've written it up as partial-shape, not "shape reproduced".
+
+**Fig. 5 is fine in range.** RBF activations are in (0,1] by construction (max
+exactly 1.000000), so the paper's [0,1.5] axis fits. I plotted BOTH readings of
+"actor output" rather than silently choosing: basis activations `theta_a` (left)
+and network output `f_RL = Wa'*theta_a` (right, max 12.25 — which would NOT fit
+[0,1.5], itself evidence the paper means the basis reading). Separate finding:
+`f_RL` drifts LINEARLY across the full 100s instead of settling — `Wa` is still
+integrating; `||Wa||_F=16.86` is under `delta_a=50` here but trending toward it.
+Flagged, not fixed.
+
+Both figures are behind an explicit opt-in in `generate_all_paper_figures` and
+carry the provisional caveat rendered ON the image, so they can't be lifted out
+of the repo and mistaken for an accepted reproduction.
+
+### Audit — 5 latent defects, all in the verification layer
+
+Uncomfortable pattern: every one of these was in the code that is supposed to
+catch problems, and several had been silently broken for a long time.
+
+1. `verify_step02_notation.m` / `verify_step03_audit.m` called
+   `fopen(path,'r','encoding','UTF-8')`. The 3rd positional arg is
+   MACHINEFORMAT, not the string 'encoding' — so every call raised "Invalid
+   machine format" and **these two oracles had never once passed**. Fixed; both
+   now pass, so the docs they check were correct all along.
+2. `run_all_verifications.m` **exists** (at `paper1608/`, not
+   `paper1608/verify/`). `handoff.md` claimed it didn't — and I nearly created a
+   shadowing duplicate on that basis before checking the directory. The real file
+   ran a hand-picked 15-oracle subset and **always exited 0 even when oracles
+   failed**, so nothing automated could gate on it. Rewritten: asserts on
+   failure, separates the Issue-K-gated block, and now errors if any
+   `verify_*.m` on disk is missing from both lists (that omission is exactly how
+   the next one rotted).
+3. `verify_step69_plots.m` was dead code asserting seven PNGs deleted in the
+   plot rewrite you reviewed in R10/R11. It would have failed outright; nobody
+   caught it because the suite can't reach it. Rewritten, and it now also
+   rejects stale PNGs.
+4. **The suite cannot run end-to-end** — Issue K's ode45 stall hits at
+   `verify_step23` (I let it sit >30 min, then killed it). Now explicit: 44
+   algebra-level oracles pass, 16 integration oracles reported SKIPPED **with
+   the reason**, never silently omitted or implied passing.
+5. `verify_step72_tuning.m` asserted all sigmas positive while loading the
+   `paper_literal` branch — which is documented to give `sigma2 = -2.222`
+   (Issue C). It demanded the negation of a known project finding. Rewritten to
+   require positivity of the PRODUCTION config (`eq29_consistent`) and to assert
+   the literal branch still yields `sigma2 < 0`, so Issue C is pinned by a test.
+
+Checked and **cleared** (recording so it isn't re-flagged): `controller_rl.m:77`'s
+`(J')*((J')\(M*(J\va)))` looks like a wasteful no-op but is the factored
+earth-frame form `tau = J^T*M_eta*eta_ddot`; verified numerically to ~1e-14.
+
+Also withdrew `handoff.md`'s Fig.4 instruction ("expect O(1e8) scale ... do NOT
+'fix' this into a small/bounded curve") — it was written from the paper's figure
+without reconciling against this project's own delta_c=100, under which 1e8 is
+unreachable by construction.
+
+Suite: **44 passed, 0 failed, 16 skipped**.
+
+**Ask**: (a) the negative-`Chat` interpretation above; (b) whether you want Figs.
+4/5 left as provisional-with-caveats, or whether it's worth a `delta_c` sweep to
+show the cost-to-go scale is recoverable when the assumption is relaxed — that
+would be a real experiment, not a replot, so I'd want your view before spending
+the compute.
+
+---
+
 ## 2026-08-17 — R11 PASS acknowledged: physical figure set closed
 
 Thanks for R11 (`REVIEW_GPT_2026-08-17_R11.md`) and for independently recomputing
