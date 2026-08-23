@@ -555,7 +555,7 @@ Built after a feasibility audit run FIRST, deliberately, so the figures could be
 
 **Step M.1's mechanism suggests what to expect, but it must be measured, not assumed:** saturating the reward removes the documented up-to-$7.7	imes10^7	imes$ inflation of $r_i$, so the critic Bellman error and update rate shrink by orders of magnitude. That may reduce or eliminate the critic-weight projection thrashing (Issue M/K) and change whether $\|\hat w_c\|$ still pins at $\delta_c$. Note that `diagnose_stepM2`'s recommendation to promote this mode was never a completed comparison — its `tau_cmd_raw` arm stalled and was killed — so it is not citable as established evidence either way.
 
-**A/B RESULT — the correct reading also ELIMINATES the critic-projection thrashing (Issue M/K).** A 15 s run at the same horizon and step size as the earlier Phase B.3, so the two are directly comparable (`run_b3_tauact.m`, log `b3_tauact_console.txt`, launch SHA `598b027`, clean tree):
+**A/B RESULT — the correct reading also ELIMINATES the critic-projection thrashing (Issue M/K).** A 15 s run at the same horizon and step size as the earlier Phase B.3, so the two are directly comparable (`scripts/validation/run_b3_tauact.m`, log `artifacts/validation/b3_tauact_console.txt`, result `artifacts/validation/b3_tauact_result_t15.mat`, launch SHA `598b027`, clean tree):
 
 | Quantity | `tau_cmd_raw` (superseded) | `tau_act_saturated` (new default) |
 |---|---|---|
