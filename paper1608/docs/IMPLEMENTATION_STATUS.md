@@ -254,10 +254,20 @@ being a quantitative reproduction.
 
 ## Known discrepancies / open questions
 
-- **Issue M** (critic reward `τ_cmd` vs `τ_act` in Eq. 16): unresolved
-  reproduction choice. Fig. 4's `O(10^8)` cost-to-go magnitude favors raw
-  `τ_cmd`, but that argument is conditioned on this project's own assumed
-  `R=1e-4·I`. Default remains `'tau_cmd_raw'`.
+- **Issue M** (critic reward `τ_cmd` vs `τ_act` in Eq. 16): **RESOLVED
+  2026-08-18 by the project owner's academic supervisor** — Eq. (16)'s `τᵢ`
+  is the physically applied, actuator-saturated input `τ_act` (Eq. 2/3's
+  practical input), not the pre-saturation virtual command. Production
+  default changed to `'tau_act_saturated'`; `'tau_cmd_raw'` kept as an
+  opt-in for comparison. The historical argument for `τ_cmd` (Fig. 4's
+  `O(10^8)` scale) is **void**: `diagnose_stepS1_*` proved
+  `|Ĉ| ≤ δ_c·√15 = 387.3` regardless of reward magnitude, so `O(10^8)` is
+  unreachable in EITHER mode under `δ_c=100` — the reward mode was never
+  the binding constraint on Fig. 4's scale.
+  **CONSEQUENCE: this changes closed-loop dynamics** (`Wc` → `actor_update`
+  → `Wa` → `f_RL` → control law), so the accepted 100 s Phase-C dataset and
+  the six accepted figures were all produced under the SUPERSEDED reward
+  mode and are not valid for this configuration. See `handoff.md`.
 - **Issue M/K critic-weight projection thrashing — RECONCILED (not a
   copy-paste artifact; a genuine, verified early-transient-only effect)**:
   `total_retracted=641,485` / `max_retraction=3.8237e4` are **byte-identical**

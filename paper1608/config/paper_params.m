@@ -62,7 +62,39 @@ function params = paper_params()
     %                        failure. Phi_i (Eq. 17) is provably independent of
     %                        tau_i, so this mode only rescales r_i/c_e magnitude,
     %                        not the critic update direction.
-    params.critic_reward_tau_mode = 'tau_cmd_raw';
+    %
+    % DEFAULT CHANGED to 'tau_act_saturated' (2026-08-18) on the explicit
+    % determination of the project owner's academic supervisor: Eq. (16)'s
+    % tau_i denotes the PHYSICALLY APPLIED, actuator-saturated input, i.e.
+    % Eq. (2)/(3)'s practical input tau_act = sat(tau_cmd, tau_max), not the
+    % pre-saturation virtual command. This resolves Issue M, which this
+    % project had left explicitly OPEN as an unresolved reproduction choice.
+    %
+    % Why the earlier evidence does NOT contradict this:
+    %   The historical argument for keeping 'tau_cmd_raw' was that the
+    %   paper's Fig. 4 shows a cost-to-go of O(1e8), a scale reachable only
+    %   with the un-saturated tau (saturating caps r_i at O(300)). That
+    %   argument is now VOID: diagnose_stepS1_rl_figure_feasibility.m proved
+    %   Chat = wc'*theta_c is bounded by delta_c*sqrt(15) = 387.3 by
+    %   Cauchy-Schwarz REGARDLESS of the reward magnitude, so O(1e8) is
+    %   unreachable under delta_c=100 in EITHER mode. The reward mode was
+    %   never the binding constraint on Fig. 4's scale, so it never
+    %   constituted evidence for 'tau_cmd_raw'. A later audit had already
+    %   softened that argument on separate grounds (it was conditioned on
+    %   this project's own ASSUMED R=1e-4*I).
+    %
+    % Expected consequences, to be measured rather than assumed: saturating
+    % the reward removes the ~7.7e7x inflation of r_i documented in Step M.1,
+    % so the critic Bellman error and dWc/dt shrink by orders of magnitude.
+    % That may reduce or remove the critic-weight projection thrashing
+    % (Issue M/K) and change whether ||wc|| still pins at delta_c. It also
+    % changes the closed-loop trajectory, because Wc feeds actor_update ->
+    % Wa -> f_RL -> the control law. Any dataset produced under
+    % 'tau_cmd_raw' is therefore NOT valid for this configuration.
+    %
+    % 'tau_cmd_raw' remains available as an explicit opt-in for comparison
+    % with the earlier literal-reading results.
+    params.critic_reward_tau_mode = 'tau_act_saturated';
 
     % Issue P: Reaching-law Lambda1^{-1} sign mode in controller_rl.m's F-term
     % (F = q(s)+k1*s+omega_aw), Eq.(31)'s "-sig^{1-alpha1}(v)/alpha1 * F".
