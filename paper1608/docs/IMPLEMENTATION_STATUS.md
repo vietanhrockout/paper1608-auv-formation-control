@@ -264,10 +264,22 @@ being a quantitative reproduction.
   `|Ĉ| ≤ δ_c·√15 = 387.3` regardless of reward magnitude, so `O(10^8)` is
   unreachable in EITHER mode under `δ_c=100` — the reward mode was never
   the binding constraint on Fig. 4's scale.
-  **CONSEQUENCE: this changes closed-loop dynamics** (`Wc` → `actor_update`
-  → `Wa` → `f_RL` → control law), so the accepted 100 s Phase-C dataset and
-  the six accepted figures were all produced under the SUPERSEDED reward
-  mode and are not valid for this configuration. See `handoff.md`.
+  **100 s PRODUCTION RERUN COMPLETE** under the corrected reward (SHA
+  `8d5798e`, clean tree, 138.2 min vs. 200.7 min before). Issue M/K is
+  **eliminated, not merely reduced**: `total_retracted` 641,485 → **0**
+  across 1,000,000 steps, `max_retraction` 3.82e4 → **0.000**, and
+  `max||Wc||` 100.0 (pinned at δ_c) → **14.33**. Convergence is slightly
+  better (E_chi at 100 s: 0.0146 → 0.0122). All 8 figures regenerated;
+  the six physical ones are unchanged in character.
+  **Fig. 4 changed qualitatively**: Ĉ now starts at exactly 0 and settles
+  to THREE DISTINCT stable plateaus (−5.79/−5.02/−3.95), matching the
+  paper's three-level structure, where the superseded reward gave chaotic
+  ±50 swings collapsing to one common level. Sign is still inverted,
+  scale still off by ~1e7, per-AUV ordering still differs — a clean
+  systematic sign discrepancy, deliberately NOT patched.
+  **The δ_c explanation for Fig. 4's scale is retired**: `||Wc||` peaks at
+  14.33, far inside δ_c=100, so the projection bound is demonstrably not
+  what limits this run. See `docs/HANDOFF.md`.
 - **Issue M/K critic-weight projection thrashing — RECONCILED (not a
   copy-paste artifact; a genuine, verified early-transient-only effect)**:
   `total_retracted=641,485` / `max_retraction=3.8237e4` are **byte-identical**

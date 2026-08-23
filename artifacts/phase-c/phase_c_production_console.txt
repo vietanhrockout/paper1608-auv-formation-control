@@ -1,12 +1,12 @@
-run_phase_c_production: launch fingerprint: available=1 sha=1d8e1f8f403ee791f13a292e236f3c2ae2dc834a dirty=0
-run_phase_c_production: t_final=100.0000 h=1.00e-04 n_target=1001 results_dir=C:\Users\ADMIN\Documents\Control\1608 simulation\phase_c_results
-run_phase_c_production: params.inverse_lambda_mode=proof_consistent_unsigned params.inverse_lambda_eps=1.0e-06 params.critic_reward_tau_mode=tau_cmd_raw
-exp4_rl_pts_mc_projected: launch git fingerprint sha=1d8e1f8f403ee791f13a292e236f3c2ae2dc834a (clean tree) -- bound into every checkpoint for this run.
+run_phase_c_production: launch fingerprint: available=1 sha=8d5798e90ec1a86423fbea022f643c4ed02076f6 dirty=0
+run_phase_c_production: t_final=100.0000 h=1.00e-04 n_target=1001 results_dir=C:\Users\ADMIN\Documents\Control\1608 simulation\artifacts\work\phase-c
+run_phase_c_production: params.inverse_lambda_mode=proof_consistent_unsigned params.inverse_lambda_eps=1.0e-06 params.critic_reward_tau_mode=tau_act_saturated
+exp4_rl_pts_mc_projected: launch git fingerprint sha=8d5798e90ec1a86423fbea022f643c4ed02076f6 (clean tree) -- bound into every checkpoint for this run.
 exp4_rl_pts_mc_projected: integrating [0, 100.0000]s at h=1.00e-04 (1000000 steps, storing every 999-th step -> ~1002 samples) ...
-exp4_rl_pts_mc_projected: checkpoint path = C:\Users\ADMIN\Documents\Control\1608 simulation\projected_rk4_checkpoint.mat
-exp4_rl_pts_mc_projected: done, 1000000 steps, 12039.0s wall, max_retraction=3.824e+04, 1003 stored samples
-exp4_rl_pts_mc_projected: max|tau_act| force=150.0000 N (limit 150.0), moment=30.0000 Nm (limit 30.0) -- tracked online at EVERY step, not just decimated samples
-run_phase_c_production: saved result to C:\Users\ADMIN\Documents\Control\1608 simulation\phase_c_results\phase_c_result.mat
-run_phase_c_production: saved manifest to C:\Users\ADMIN\Documents\Control\1608 simulation\phase_c_results\phase_c_manifest.mat
+exp4_rl_pts_mc_projected: checkpoint path = C:\Users\ADMIN\Documents\Control\1608 simulation\artifacts\work\phase-c\projected_rk4_checkpoint.mat
+exp4_rl_pts_mc_projected: done, 1000000 steps, 8295.0s wall, max_retraction=0.000e+00, 1003 stored samples
+exp4_rl_pts_mc_projected: max|tau_act| force=150.0000 N (limit 150.0), moment=24.8925 Nm (limit 30.0) -- tracked online at EVERY step, not just decimated samples
+run_phase_c_production: saved result to C:\Users\ADMIN\Documents\Control\1608 simulation\artifacts\work\phase-c\phase_c_result.mat
+run_phase_c_production: saved manifest to C:\Users\ADMIN\Documents\Control\1608 simulation\artifacts\work\phase-c\phase_c_manifest.mat
 run_phase_c_production: VERIFIED -- reloaded artifact is finite, covers [0,100.0000], 1003 samples.
-run_phase_c_production: DONE. wall time 200.7 min.
+run_phase_c_production: DONE. wall time 138.2 min.

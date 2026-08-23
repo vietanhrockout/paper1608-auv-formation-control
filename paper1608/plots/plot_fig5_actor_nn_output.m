@@ -4,8 +4,12 @@ function fig = plot_fig5_actor_nn_output(rl, manifest, params)
     % [0,1.5] (recorded in docs/HANDOFF.md from a direct render of the source PDF).
     %
     % *** PROVISIONAL *** -- Figs. 4-5 remain outside the accepted
-    % physical-state figure set (Issue M/K unresolved; see
-    % REVIEW_GPT_2026-08-17_R9/R11.md). Unlike Fig. 4, Fig. 5 has NO scale
+    % physical-state figure set (see REVIEW_GPT_2026-08-17_R9/R11.md).
+    % REGENERATED under the corrected Eq.(16) reward (Issue M resolved:
+    % critic_reward_tau_mode = 'tau_act_saturated'). Note the behaviour of
+    % f_RL changed materially: under the superseded 'tau_cmd_raw' reward it
+    % drifted linearly negative with no sign of settling, whereas it now
+    % rises and plateaus. Unlike Fig. 4, Fig. 5 has NO scale
     % obstruction: paper1608/verify/diagnose_stepS1_rl_figure_feasibility.m
     % confirms the individual RBF activations are in (0,1] by construction
     % (observed max exactly 1.000000), so the paper's [0,1.5] axis
@@ -19,9 +23,11 @@ function fig = plot_fig5_actor_nn_output(rl, manifest, params)
     %            paper's [0,1.5] axis.
     %   RIGHT -- f_RL = Wa'*theta_a: the actor NETWORK output, i.e. the
     %            estimated drift actually fed into the control law (Eq. 32).
-    %            Observed |f_RL| <= ~12.3, which would NOT fit a [0,1.5]
-    %            axis -- evidence that the paper's Fig. 5 is the basis
-    %            activation reading, not this one.
+    %            Observed |f_RL| ~ 11.4 under the corrected reward, which
+    %            would NOT fit a [0,1.5] axis -- evidence that the paper's
+    %            Fig. 5 is the basis-activation reading, not this one. The
+    %            exact figure is printed from the data in the caption, so it
+    %            cannot go stale when the dataset is regenerated.
     %
     % REPRODUCTION ASSUMPTION: the actor RBF is defined per DOF (input
     % xbar_aij = [chi_ij, upsilon_ij]), so a Fig. 5 rendering must select
@@ -66,10 +72,11 @@ function fig = plot_fig5_actor_nn_output(rl, manifest, params)
 
     reserve_bottom_margin(fig, 0.12, 0.03);
 
-    caveat = sprintf(['PROVISIONAL (Issue M/K). LEFT: RBF activations, range (0,1] by construction -- fits the paper''s [0,1.5] axis; they freeze once chi/upsilon converge (constant RBF input). ' ...
-        'RIGHT: actor network output f_RL, observed max|f_RL|=%.2f -- would not fit [0,1.5], and is still DRIFTING at t=100s rather than settling (Wa still integrating; ||Wa||_F=16.86 stays under delta_a=50 over the whole observed run). Whether that drift persists past 100s is NOT established by this trace. ' ...
-        'DOF %s for the basis panels is a reproduction assumption (paper does not state which DOF).'], ...
-        max(abs(rl.f_rl(:))), dof_label);
+    cfg_a = nn_config();
+    caveat = sprintf(['PROVISIONAL (Issue M/K), regenerated under the corrected Eq.16 reward (tau_act_saturated). LEFT: RBF activations, range (0,1] by construction -- fits the paper''s [0,1.5] axis; they freeze once chi/upsilon converge (constant RBF input). ' ...
+        'RIGHT: actor network output f_RL, observed max|f_RL|=%.2f -- would not fit [0,1.5]. Under the SUPERSEDED tau_cmd_raw reward this drifted linearly negative with no sign of settling; it now rises and visibly PLATEAUS (AUV1 and AUV2 flatten before t=100s; AUV0 is still curving over at the horizon). ' ...
+        'max ||Wa||_F = %.4f over the run, well inside delta_a = %.0f. DOF %s for the basis panels is a reproduction assumption (paper does not state which DOF).'], ...
+        max(abs(rl.f_rl(:))), max(rl.Wa_norm(:)), cfg_a.delta_a, dof_label);
     annotation('textbox', [0.02 0.03 0.96 0.065], 'String', caveat, ...
         'EdgeColor', [0.6 0.2 0.2], 'FontSize', 7.5, 'HorizontalAlignment', 'center', ...
         'Interpreter', 'none', 'BackgroundColor', [1 0.96 0.96], 'FitBoxToText', 'off');
