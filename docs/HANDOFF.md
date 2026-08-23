@@ -555,6 +555,21 @@ Built after a feasibility audit run FIRST, deliberately, so the figures could be
 
 **Step M.1's mechanism suggests what to expect, but it must be measured, not assumed:** saturating the reward removes the documented up-to-$7.7	imes10^7	imes$ inflation of $r_i$, so the critic Bellman error and update rate shrink by orders of magnitude. That may reduce or eliminate the critic-weight projection thrashing (Issue M/K) and change whether $\|\hat w_c\|$ still pins at $\delta_c$. Note that `diagnose_stepM2`'s recommendation to promote this mode was never a completed comparison — its `tau_cmd_raw` arm stalled and was killed — so it is not citable as established evidence either way.
 
+**A/B RESULT — the correct reading also ELIMINATES the critic-projection thrashing (Issue M/K).** A 15 s run at the same horizon and step size as the earlier Phase B.3, so the two are directly comparable (`run_b3_tauact.m`, log `b3_tauact_console.txt`, launch SHA `598b027`, clean tree):
+
+| Quantity | `tau_cmd_raw` (superseded) | `tau_act_saturated` (new default) |
+|---|---|---|
+| $E_\chi$: $0	o15$ s | $16.0 	o 0.0037$ | $16.0 	o \mathbf{0.0020}$ |
+| $\max\|\hat w_c\|$ | $100.0000$ — **pinned at $\delta_c$** | $\mathbf{14.3340}$ — far inside the bound |
+| $\max\|\hat w_a\|_F$ | $2.0616$ | $2.5123$ |
+| `total_retracted` | $641{,}485$ events | $\mathbf{0}$ |
+| `max_retraction` | $3.8237	imes10^{4}$ | $\mathbf{0.000	imes10^{0}}$ |
+| $\max|	au_{	ext{act}}|$ moment | $30.0$ Nm (at the limit) | $24.89$ Nm (inside) |
+
+**Zero retraction events across 150,000 steps**, against 641,485 before. Issue M/K — the critic-weight projection thrashing that consumed a large part of this project, defeated `ode45`/`ode15s`/the K.5 hybrid, and forced the fixed-step Projected RK4 integrator — **does not occur at all under the correct reward reading**. The Eq. (20) projection operator becomes what the theory intends: a safety net that never fires, instead of a permanently-active clamp. Convergence is also slightly better. This is strong independent corroboration of the supervisor's determination: the pathology was a consequence of feeding the critic an un-saturated reward inflated by up to $7.7	imes10^7	imes$ (Step M.1), exactly as that step's mechanism predicted.
+
+**Consequence for Fig. 4:** with $\|\hat w_c\|$ now peaking at $14.33$ rather than pinned at $100$, the cost-to-go bound tightens to $|\hat C|\lesssim 14.33	imes\max\|	heta_c\|pprox 11$. The paper's $O(10^8)$ scale therefore becomes *further* out of reach, not closer — but the critic is no longer saturated, so $\hat C$ may now be a meaningful approximation (possibly non-negative and rise-then-plateau, i.e. matching the paper's SHAPE). **Not yet measured** — the 15 s checker saves only summary series, not the raw trajectory needed to recompute $\hat C(t)$. This requires the regenerated production dataset.
+
 **Verification status after the change:** fast oracle suite re-run under the new default — **46 passed, 0 failed, 14 deferred**, unchanged. `verify_step35b`'s misleading "tau_cmd cost path verified" print was corrected; that oracle is mode-agnostic and asserts both cost paths plus the $r_{	ext{cmd}}>r_{	ext{act}}$ inequality, so it did not need a logic change.
 
 ### Post-R11 full-project audit — findings

@@ -1,0 +1,25 @@
+critic_reward_tau_mode = tau_act_saturated
+inverse_lambda_mode    = proof_consistent_unsigned
+exp4_rl_pts_mc_projected: launch git fingerprint sha=598b027982ecf53653515e272b0b0228f4e880f8 (clean tree) -- bound into every checkpoint for this run.
+exp4_rl_pts_mc_projected: integrating [0, 15.0000]s at h=1.00e-04 (150000 steps, storing every 149-th step -> ~1007 samples) ...
+exp4_rl_pts_mc_projected: checkpoint path = C:\Users\ADMIN\Documents\Control\1608 simulation\projected_rk4_checkpoint.mat
+exp4_rl_pts_mc_projected: done, 150000 steps, 1242.8s wall, max_retraction=0.000e+00, 1008 stored samples
+exp4_rl_pts_mc_projected: max|tau_act| force=150.0000 N (limit 150.0), moment=24.8925 Nm (limit 30.0) -- tracked online at EVERY step, not just decimated samples
+params.inverse_lambda_mode = proof_consistent_unsigned
+
+=== PHASE B.3 SUMMARY (Issue P fix, t_final=15.00, h=1.0e-04) ===
+nsteps=150000, wall=1242.8s, max_retraction=0.0000e+00, total_retracted=0
+max tau_act (decimated-sample, per-AUV recompute) = 150.0000 N/Nm (limit 150/30)
+max tau_act (TRUE online, every RK4 step, per channel group) = force 150.0000 N (limit 150.0), moment 24.8925 Nm (limit 30.0)
+max ||Wc|| = 14.3340 (limit 100.0, enforced exactly by construction every RK4 stage), max ||Wa||_F = 2.5123 (limit 50.0, same)
+t=  0.000  E_chi=   16.0000  E_s=   3492.0473
+t=  1.505  E_chi=   13.1696  E_s=   2563.3940
+t=  3.755  E_chi=    7.8578  E_s=   1132.2917
+t=  5.006  E_chi=    4.9067  E_s=    537.8145
+t=  7.495  E_chi=    0.0091  E_s=      0.0074
+t= 11.249  E_chi=    0.0020  E_s=      0.0058
+t= 15.000  E_chi=    0.0020  E_s=      0.0056
+
+E_chi(0)=16.0000 -> E_chi(end)=0.0020
+PASS: E_chi(end)=0.0020 is within the 2.0-unit convergence neighborhood.
+=== END PHASE B.3 (all structural asserts PASSED, INCLUDING true every-step online actuator check; see convergence verdict above) ===
