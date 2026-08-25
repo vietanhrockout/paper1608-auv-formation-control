@@ -6,7 +6,7 @@ function diagnose_stepK5_hotphase_throughput(t_hot_final, h)
 % integrator before committing to a full Phase B.2 (15s) run.
 %
 % NO controller/model modification. Uses unchanged production defaults
-% (tau_cmd_raw reward, delta_c=100, delta_a=50 per Step M/N conclusions).
+% (tau_cmd_raw reward -- SUPERSEDED 2026-08-18 by tau_act_saturated; delta_c=100, delta_a=50).
 
     if nargin < 1 || isempty(t_hot_final)
         t_hot_final = 0.02;

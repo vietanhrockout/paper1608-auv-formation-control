@@ -3,7 +3,7 @@ function diagnose_stepN1_single_delta(delta_c_val, t_horizon)
 %
 % Single-case variant of Step N.1: integrate rhs_3auv_rl over a short
 % horizon with a given cfg.delta_c (and delta_a = 0.5*delta_c), under the
-% UNCHANGED tau_cmd_raw critic reward default. Run each delta_c value as
+% tau_cmd_raw critic reward default AS IT STOOD WHEN WRITTEN (SUPERSEDED 2026-08-18). Run each delta_c value as
 % its OWN OS process (see run_n1_single.m) so a pathological case (e.g.
 % delta_c=100, already suspected from Issue K/M.2 to hang under ode45)
 % can be killed by an external wall-clock timeout without blocking the

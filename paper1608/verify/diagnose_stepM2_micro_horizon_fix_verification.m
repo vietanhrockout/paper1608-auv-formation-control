@@ -2,8 +2,8 @@ function diagnose_stepM2_micro_horizon_fix_verification()
 % DIAGNOSE_STEPM2_MICRO_HORIZON_FIX_VERIFICATION
 %
 % Step M.2: Re-run the Step K.2-style micro-horizon ode45 boundary-crossing
-% audit under BOTH critic_reward_tau_mode candidates ('tau_cmd_raw' current
-% default vs 'tau_act_saturated' candidate fix, Issue M / config/paper_params.m)
+% audit under BOTH critic_reward_tau_mode candidates ('tau_cmd_raw' SUPERSEDED
+% vs 'tau_act_saturated', the CURRENT DEFAULT since 2026-08-18; Issue M RESOLVED)
 % to empirically confirm whether the candidate fix resolves Issue K's
 % critic-weight projection-ball boundary crossing, using the SAME production
 % ode45 tolerances as exp4_rl_pts_mc and Step K.2.
