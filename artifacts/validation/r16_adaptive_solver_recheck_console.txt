@@ -1,0 +1,27 @@
+=== R16 [P1]: adaptive-solver oracles rerun under critic_reward_tau_mode='tau_act_saturated' ===
+Date: 2026-08-25
+Baseline: main @ 7a09d20 (Eq.16 correction merged), production default tau_act_saturated
+Method: each oracle invoked directly, wall time measured, bounded by an external timeout.
+
+  verify_step44_numerical_stability   PASS   18.4 s   ode45 on rhs_3auv_rl, tspan [0,0.5]
+  verify_step49_exp4                  PASS   13.5 s   exp4_rl_pts_mc(0.5)  -- legacy ode45 RL path
+  verify_step55_pt_validation         PASS   88.1 s   sweep_initial_conditions(3), ode15s + RL
+  verify_phase_b1_behavioral_sanity   PASS  247.2 s   exp4_rl_pts_mc(15.0) -- legacy ode45 RL path
+
+All four were previously classified 'stalling-rl' ("genuine Issue K"): under the
+superseded tau_cmd_raw reward the ode45 path stalled near t=0.017-0.019 s and was
+never observed to complete. Under the corrected reward all four run to completion
+and pass their own assertions, including a full 15 s simulation on the legacy
+ode45 path.
+
+SCOPE OF THIS EVIDENCE -- stated deliberately:
+  * Verified at the horizons these oracles actually use (0.5 s, 15 s, and the
+    3-case initial-condition sweep). A 100 s run on the legacy ode45 path was
+    NOT attempted.
+  * This is direct evidence that the Issue K stiffness failure mode is absent
+    under the corrected reward, which is consistent with its documented
+    mechanism (Step M.1: the un-saturated reward inflated r_i by up to 7.7e7x,
+    slamming the critic onto the projection boundary and making the vector
+    field discontinuous for an adaptive solver).
+  * It does NOT retroactively invalidate the fixed-step Projected RK4
+    production path, which remains the supported production entry point.

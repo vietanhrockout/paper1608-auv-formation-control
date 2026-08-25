@@ -2,7 +2,7 @@
   Paper 1608 Verification Suite
 =====================================================
 
---- Fast / no-simulation oracles (46) ---
+--- Fast / no-simulation oracles (47) ---
 PASS   verify_step01_structure
 PASS   verify_step02_notation
 PASS   verify_step03_audit
@@ -47,16 +47,17 @@ PASS   verify_step43_rhs_3auv_rl
 PASS   verify_step22_controller_mb
 PASS   verify_step41_sat_antiwindup_loop
 PASS   verify_step52_performance_criteria
+PASS   verify_step53_reward_mode_binding
 PASS   verify_step69_plots
 PASS   verify_step72_tuning
 
 --- Deferred oracles (14), grouped by REASON (not one blanket label) ---
 
-  [stalling-rl] genuine Issue K (adaptive solver + RL/critic dynamics)
-  SKIP   verify_step44_numerical_stability          ode45 on rhs_3auv_rl -- adaptive solver + critic dynamics, genuine Issue K
-  SKIP   verify_step49_exp4                         exp4_rl_pts_mc = legacy ode45 RL path, genuine Issue K
-  SKIP   verify_step55_pt_validation                sweep_initial_conditions integrates rhs_3auv_rl via ode15s with packed actor/critic weights -- adaptive solver + critic dynamics (R13 [P1]: the earlier slow-mb/no-critic label was wrong, inferred without following the call chain)
-  SKIP   verify_phase_b1_behavioral_sanity          exp4_rl_pts_mc = legacy ode45 RL path, genuine Issue K
+  [rl-adaptive-ok] adaptive solver + RL/critic dynamics. RERUN 2026-08-25 under the corrected tau_act reward: ALL PASS. Deferred for runtime only
+  SKIP   verify_step44_numerical_stability          ode45 on rhs_3auv_rl. WAS stalling-rl; RERUN 2026-08-25 under tau_act_saturated: PASS in 18.4s. Deferred only for runtime, not because it is unknown -- see artifacts/validation/r16_adaptive_solver_recheck_console.txt
+  SKIP   verify_step49_exp4                         exp4_rl_pts_mc(0.5), legacy ode45 RL path. WAS stalling-rl; RERUN 2026-08-25 under tau_act_saturated: PASS in 13.5s
+  SKIP   verify_step55_pt_validation                sweep_initial_conditions(3), ode15s + packed actor/critic weights. WAS stalling-rl; RERUN 2026-08-25: PASS in 88.1s
+  SKIP   verify_phase_b1_behavioral_sanity          exp4_rl_pts_mc(15.0), legacy ode45 RL path over a FULL 15s horizon. WAS stalling-rl; RERUN 2026-08-25: PASS in 247.2s
 
   [slow-mb] model-based/conventional, no critic -- cost real, cause NOT attributed to Issue K
   SKIP   verify_step23_single_auv_mb                ode15s on rhs_single_auv_mb (model-based, no critic); observed non-terminating in the audit sweep, cause NOT established
@@ -77,7 +78,7 @@ PASS   verify_step72_tuning
   SKIP   verify_phase_b2_hybrid_behavioral_sanity   targets exp4_rl_pts_mc_hybrid, invalidated by Steps K.5/K.6 -- legacy, not a current regression
 
 -----------------------------------------------------
-Summary: 46 passed, 0 failed, 14 deferred.
+Summary: 47 passed, 0 failed, 14 deferred.
 NOTE: this is a GREEN FAST BLOCK, not a green full suite. The 14 deferred
 oracles are NOT known-passing; see the per-test reasons above.
 =====================================================

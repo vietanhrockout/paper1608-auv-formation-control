@@ -582,7 +582,12 @@ Built after a feasibility audit run FIRST, deliberately, so the figures could be
 | global min $E_\chi$ | 2.562e-3 @ t=10.79 | 1.548e-3 @ t=16.88 |
 | wall time | 200.7 min | 138.2 min |
 
-**Issue M/K is eliminated at full scale, not merely reduced**: zero projection events across 1,000,000 RK4 steps. The run is also ~30% faster, consistent with the projection work disappearing.
+**Issue M/K: eliminated on the production projected-RK4 run, and the adaptive-solver failure is gone too -- with the scope of each claim stated separately.**
+
+1. *Production integrator*: zero projection events across 1,000,000 RK4 steps (was 641,485). The run is also ~30% faster, consistent with the projection work disappearing.
+2. *Adaptive solvers* (added after `REVIEW_GPT_2026-08-25_R16.md` [P1] correctly objected that claim 1 alone does not close Issue K): all four oracles previously classified `stalling-rl` were **rerun under the corrected reward and now PASS** -- `verify_step44_numerical_stability` (ode45 on `rhs_3auv_rl`) 18.4s, `verify_step49_exp4` 13.5s, `verify_step55_pt_validation` (ode15s + RL sweep) 88.1s, and `verify_phase_b1_behavioral_sanity` **a full 15s run on the legacy ode45 path** 247.2s. Under `tau_cmd_raw` that path stalled near t=0.017s and was never observed to complete. Evidence: `artifacts/validation/r16_adaptive_solver_recheck_console.txt`.
+
+So the Issue K stiffness failure mode is genuinely absent under the corrected reward, which matches its documented mechanism exactly (Step M.1: the un-saturated reward inflated $r_i$ by up to $7.7	imes10^7$, pinning the critic on the projection boundary and making the vector field discontinuous for an adaptive solver). **Scope**: verified at the horizons those oracles use (0.5s, 15s, a 3-case sweep). A 100s run on the legacy ode45 path was **not** attempted, and the fixed-step Projected RK4 path remains the supported production entry point.
 
 **Fig. 4 changed qualitatively — the plateau STRUCTURE is now reproduced.** Under the superseded reward $\hat C$ swung between $-57.7$ and $+32.2$ and collapsed to a single common level near $+8.2$. It now starts at exactly $0$, dips through the reaching transient, and settles to **three distinct, stable plateaus** ($-5.79$, $-5.02$, $-3.95$ at $t=100$ s) — the same three-level structure the paper's Fig. 4 shows. Three things still do not match, stated plainly: the **sign is inverted** (ours is non-positive throughout, max exactly $0$), the **scale differs by $\sim10^7$**, and the **per-AUV ordering differs** (ours $|\hat C|$: AUV0 > AUV1 > AUV2; paper: AUV2 > AUV0 > AUV1).
 

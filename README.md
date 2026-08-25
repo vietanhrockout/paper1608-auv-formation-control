@@ -16,7 +16,7 @@ This repository has reached the **physical-state reproduction milestone**, but i
 | --- | --- | --- |
 | 6-DOF AUV dynamics, formation controller, anti-windup, actor–critic structure | Implemented and audited | [`paper1608/docs/EQUATION_MAPPING.md`](paper1608/docs/EQUATION_MAPPING.md) |
 | Phase C production simulation | Complete: 100 s, 1,000,000 fixed RK4 steps | [`artifacts/phase-c/phase_c_production_console.txt`](artifacts/phase-c/phase_c_production_console.txt) |
-| Physical-state Figs. 2, 3, 6, 7, 8, 9 | Accepted | [`paper1608/docs/REVIEW_GPT_2026-08-17_R11.md`](paper1608/docs/REVIEW_GPT_2026-08-17_R11.md) |
+| Physical-state Figs. 2, 3, 6, 7, 8, 9 | Accepted for the **superseded** `tau_cmd_raw` dataset; the regenerated render is **not yet independently re-accepted** | [`paper1608/docs/REVIEW_GPT_2026-08-17_R11.md`](paper1608/docs/REVIEW_GPT_2026-08-17_R11.md) |
 | Fast verification suite | 46 passed, 0 failed, 14 integration oracles deferred | [`artifacts/phase-c/phase_c_verification_suite_console.txt`](artifacts/phase-c/phase_c_verification_suite_console.txt) |
 | Figs. 4–5 and quantitative RL/critic claims | Provisional mismatch diagnostics, not accepted reproductions | [`paper1608/docs/IMPLEMENTATION_STATUS.md`](paper1608/docs/IMPLEMENTATION_STATUS.md) |
 
@@ -72,7 +72,7 @@ To deliberately launch a fresh 100 s run from a clean Git tree:
 matlab -batch "run('run_phase_c.m')"
 ```
 
-The recorded run took about 200 minutes. The runner checkpoints, refuses dirty-tree launches by default, detects repository drift during execution, saves atomically, and verifies the saved result.
+The recorded run took 138.2 minutes under the corrected Eq. (16) reward; the superseded `tau_cmd_raw` run took 200.7 min. The runner checkpoints, refuses dirty-tree launches by default, detects repository drift during execution, saves atomically, and verifies the saved result.
 
 ## Repository layout
 
@@ -94,7 +94,6 @@ The recorded run took about 200 minutes. The runner checkpoints, refuses dirty-t
 
 The main unresolved items are tracked in [GitHub Issues](https://github.com/vietanhrockout/paper1608-auv-formation-control/issues):
 
-- the `tau_cmd` versus `tau_act` interpretation of the critic reward;
 - paper-unspecified numerical values for `R`, `B`, `delta_c`, `delta_a`, and actuator limits;
 - early-transient critic projection sensitivity;
 - quantitative mismatch of Figs. 4–5;

@@ -243,14 +243,23 @@ pointer into it, updated at verified checkpoints, not every edit.
 
 ## In progress
 
-None on the infrastructure/Issue-O/P front; the physical plot pipeline
-(Figs. 2,3,6,7,8,9) is COMPLETE and GPT-accepted
-(`REVIEW_GPT_2026-08-17_R11.md`), and Figs. 4-5 are now rendered as
-explicitly provisional. The substantive open question is unchanged and
-predates all of this: Issue M/K/N — the critic-weight projection
-thrashing, the assumed `delta_c`/`delta_a` scale, and the `tau_cmd` vs
-`tau_act` reward reading — which together are what keep Figs. 4-5 from
-being a quantitative reproduction.
+CURRENT STATE (2026-08-25) -- this block supersedes the older statements
+further down this file; read it first.
+
+- **Issue M is RESOLVED**: Eq. (16) uses the saturated `tau_act`
+  (supervisor determination). Production default `'tau_act_saturated'`.
+- **Critic projection thrashing is eliminated ON THE PRODUCTION
+  PROJECTED-RK4 RUN** (`total_retracted` 641,485 -> 0 over 1e6 steps).
+  Scope is stated deliberately: a single-integrator result, NOT a blanket
+  closure of every adaptive-solver behaviour grouped under Issue K. See
+  the deferred-oracle table in `run_all_verifications.m` for exactly
+  which oracles were rerun under the corrected reward and which were not.
+- **Figs. 2,3,6,7,8,9 were accepted (R11) against the SUPERSEDED
+  `tau_cmd_raw` dataset.** They have been regenerated from the corrected
+  dataset and are NOT yet independently re-accepted.
+- **Still genuinely open**: Issue N (assumed `delta_c`/`delta_a`) and the
+  Fig. 4 sign/scale/ordering mismatch. Figs. 4-5 remain provisional
+  diagnostics, not reproductions.
 
 ## Known discrepancies / open questions
 

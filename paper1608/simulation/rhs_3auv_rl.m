@@ -55,7 +55,7 @@ function dX = rhs_3auv_rl(t, X, params, sat_cfg, cfg)
                 strcmp(params.critic_reward_tau_mode, 'tau_act_saturated')
             tau_reward = tau_act;
         else
-            tau_reward = tau_cmd; % 'tau_cmd_raw': literal Eq. 16 reading (default)
+            tau_reward = tau_cmd; % 'tau_cmd_raw': superseded literal reading, opt-in only
         end
         dWc_i = critic_update(chi, vel_err, Wc_i, tau_reward, params, cfg);
         
