@@ -1,0 +1,47 @@
+=== Step S2: is Chat a valid Eq.(15) cost-to-go? ===
+
+dataset: C:\Users\ADMIN\Documents\Control\1608 simulation\artifacts\phase-c\phase_c_result_t100.mat
+samples=1003  horizon=[0.000, 100.000]s  mean dt=0.099800s  lambda=10.0000
+reward mode=tau_act_saturated  (B=I6, R=1e-4*I6, both ASSUMED -- Issue N)
+
+--- Chat vs the backward discounted return, at selected times ---
+   t (s)       AUV0  Chat / C_trunc       AUV1  Chat / C_trunc       AUV2  Chat / C_trunc
+   0.000       0.0000 /   636.9879       0.0000 /   271.8387       0.0000 /   125.9128
+   0.999      -0.0041 /   392.9861      -0.4674 /   150.1289      -5.2157 /    47.8895
+   4.995      -9.4304 /    20.9020      -6.8032 /     1.5697      -4.6310 /     0.0298
+   9.990      -6.7417 /     0.0299      -5.8516 /     0.0286      -4.5940 /     0.0374
+  24.975      -6.5813 /     0.0567      -5.7113 /     0.0530      -4.4848 /     0.0745
+  50.050      -6.3197 /     0.1048      -5.4813 /     0.0948      -4.3036 /     0.1046
+  75.025      -6.0585 /     0.3298      -5.2584 /     0.2841      -4.1278 /     0.1050
+ 100.000      -5.7916 /     0.0000      -5.0234 /     0.0000      -3.9543 /     0.0000
+
+--- Verdict per AUV ---
+AUV0: Chat range [-10.0103, 0.0000]; 1002/1003 samples NEGATIVE (99.9%)
+      C_trunc(0)=636.9879 (strict LOWER bound on the true return)
+      C_tail(0) =636.9880 (with constant-r tail past t=100s)
+      Chat(0)=0.0000  =>  signed error vs lower bound = -636.9879
+AUV1: Chat range [-8.3014, 0.0000]; 1002/1003 samples NEGATIVE (99.9%)
+      C_trunc(0)=271.8387 (strict LOWER bound on the true return)
+      C_tail(0) =271.8387 (with constant-r tail past t=100s)
+      Chat(0)=0.0000  =>  signed error vs lower bound = -271.8387
+AUV2: Chat range [-5.5540, 0.0000]; 1002/1003 samples NEGATIVE (99.9%)
+      C_trunc(0)=125.9128 (strict LOWER bound on the true return)
+      C_tail(0) =125.9128 (with constant-r tail past t=100s)
+      Chat(0)=0.0000  =>  signed error vs lower bound = -125.9128
+
+--- Late-horizon trend over [50,100]s (is it a plateau?) ---
+AUV0: Chat 50s=-6.3197 -> 100s=-5.7916, slope=+0.010465/s (+8.36% over 50s)
+AUV1: Chat 50s=-5.4813 -> 100s=-5.0234, slope=+0.009315/s (+8.35% over 50s)
+AUV2: Chat 50s=-4.3036 -> 100s=-3.9543, slope=+0.006987/s (+8.12% over 50s)
+
+=== CONCLUSION ===
+Chat is NEGATIVE over most of the run while the true Eq.(15) return is
+bounded BELOW by a large positive number. Chat therefore does not
+approximate the cost-to-go of the executed trajectory: it has the wrong
+SIGN, not merely the wrong scale. Fig. 4 must stay a provisional
+diagnostic. Root cause and the Phi'*theta mechanism: R17.
+This script does NOT propose a fix -- a positivity-preserving critic
+would be an experimental deviation from Eqs.(14)/(20) and would need
+fresh closed-loop validation, because Chat feeds actor_update.
+
+Saved series to C:\Users\ADMIN\Documents\Control\1608 simulation\artifacts\work\phase-c\stepS2_cost_to_go_validity.mat

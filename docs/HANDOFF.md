@@ -601,6 +601,29 @@ A non-positive $\hat C$ remains **invalid** for a cost-to-go, since the Eq. (16)
 
 **Verification status after the change:** fast oracle suite re-run under the new default — **49 passed, 0 failed, 12 deferred** (after R16 moved verify_step44 and verify_step49 into the CI-verified fast block and added verify_step53). `verify_step35b`'s misleading "tau_cmd cost path verified" print was corrected; that oracle is mode-agnostic and asserts both cost paths plus the $r_{\text{cmd}}>r_{\text{act}}$ inequality, so it did not need a logic change.
 
+### R17 — Fig. 4's negative cost-to-go: ROOT-CAUSED, not patched
+
+GPT's R17 review (`paper1608/docs/REVIEW_GPT_2026-08-25_R17.md`) traced the negative $\hat C$ to a specific mechanism, and independently reproducing it confirmed two things — including that a claim I had written was wrong.
+
+**Mechanism.** $\Phi^T\theta = -\|\theta\|^2/\lambda + \theta^T\dot\theta$. During the fast initial reaching transient the basis-motion term $\theta^T\dot\theta$ exceeds $\|\theta\|^2/\lambda$, so $\Phi^T\theta$ turns POSITIVE. With $\hat w_c(0)=0$ we have $\hat C(0)=0$ and $c_e(0)=r(0)>0$, so $\dot{\hat C}(0) = -\lambda_c r(0)\,\Phi^T\theta(0)$ goes negative — the positive immediate cost drives the estimate DOWN. Eq. (20) bounds only $\|\hat w_c\|$, never the sign, and $\|\hat w_c\|=14.33$ here is far inside $\delta_c=100$, so the projection is not involved. The implementation of Eqs. (17)–(19) is paper-literal; being paper-literal simply does not guarantee a valid non-negative value function.
+
+**A wording error of mine, corrected.** The Fig. 4 caption and header said the curves settle to "THREE DISTINCT, STABLE plateaus". Measured from the committed artifact, they are still recovering upward over $[50,100]$s at $+0.010465$, $+0.009315$, $+0.006987$ per second — about $+8.4\%$, $+8.4\%$, $+8.1\%$ of their own values across those 50 s. They are **slowly recovering negative tails, not converged plateaus**. I had inferred stability from how flat the full-horizon plot looks on a $[-12,0]$ axis instead of measuring the slope. The caption now computes the slope from the data so the claim cannot drift again.
+
+**New diagnostic** `paper1608/verify/diagnose_stepS2_cost_to_go_validity.m` (log: `artifacts/phase-c/phase_c_s2_cost_to_go_validity_console.txt`) answers the question the existing critic oracles never asked — does $\hat C$ approximate the Eq. (15) return of the trajectory actually executed? It backward-accumulates the discounted reward on the committed run:
+
+| AUV | $\hat C(0)$ | $C_{\text{trunc}}(0)$ (strict lower bound) | signed error | samples negative |
+|---|---|---|---|---|
+| 0 | $0.0000$ | $636.99$ | $-636.99$ | 1002/1003 (99.9%) |
+| 1 | $0.0000$ | $271.84$ | $-271.84$ | 1002/1003 (99.9%) |
+| 2 | $0.0000$ | $125.91$ | $-125.91$ | 1002/1003 (99.9%) |
+
+Because $r\ge0$, truncating at $T=100$s can only UNDER-estimate the true return, so $C_{\text{trunc}}$ is a strict lower bound; adding a constant-$r$ tail changes it by $<10^{-4}$. These corroborate R17's independent state-only bound ($612.7/256.9/109.1$) — mine are slightly larger because they also include the $\tau^TR\tau$ term R17 deliberately omitted. **So $\hat C$ has the wrong SIGN, not merely the wrong scale.**
+
+**Deliberately NOT patched.** Negating the series, flipping Eq. (19)'s sign, or plotting $|\hat C|$ would hide a failed value estimate rather than repair or explain it. A positivity-preserving critic (non-negative weights, or a softplus output map) would be an *experimental deviation* from Eqs. (14)/(20), not a reproduction — and it would need fresh closed-loop validation, because $\hat C$ feeds `actor_update` through $\tanh(\hat w_a^T\theta_a + c^0_a\hat C)$ and therefore changes the physical trajectory.
+
+**Still open from R17, needing input this project cannot supply itself**: the paper reports no numeric $B$, $R$, $m_c$, critic centres, $\hat w_c(0)$, or $\delta_c$, and its Fig. 4 caption does not say whether it plots Eq. (15)'s future return, the online estimate $\hat C$, or a forward cumulative past cost. A monotone rise from zero is characteristic of the last of those, which would be a different quantity entirely. Author/supervisor clarification is required.
+
+
 ### Post-R11 full-project audit — findings
 
 A fresh full-project pass (not a re-run of R8–R11's scope) after the physical figures were accepted. Everything below was verified against code/data before being recorded.
