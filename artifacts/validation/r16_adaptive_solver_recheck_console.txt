@@ -1,32 +1,39 @@
 === R16 [P1] RAW TRANSCRIPT: adaptive-solver oracles under tau_act_saturated ===
-Generated: 2026-08-25T09:02:27Z UTC
-Repo SHA at capture : 8aba23ca25a8a710901c619c9c571db571b2a95e
+Generated: 2026-08-25T09:17:35Z UTC
+Repo SHA at capture : 318696bc41f0dad2df7b486d397c214671c9e658
 Working tree dirty  : 0  (0 = clean)
 MATLAB binary       : /f/MATLAB/bin/matlab
 External timeout    : 900s (GNU coreutils timeout)
 Host OS             : MINGW64_NT-10.0-19045 3.4.10-2e2ef940.x86_64
 
+NOTE ON CAPTURE METHOD: this transcript is written to a path OUTSIDE the
+repository while MATLAB runs, and copied in only afterwards. Writing it
+directly to its tracked location would modify the working tree before
+MATLAB samples git_fingerprint(), making the run self-report dirty=1 and
+contradicting the clean state recorded above. (Same self-referential trap
+the Phase C launcher hit in the round-6 review.)
+
 Exact command executed (verbatim, single MATLAB session):
-  timeout 900 /f/MATLAB/bin/matlab -batch "<script below>"
+  timeout 900 /f/MATLAB/bin/matlab -batch "<script reproduced below>"
 
 --------------------------- BEGIN RAW STDOUT/STDERR ---------------------------
 MATLAB version: 24.1.0.2537033 (R2024a)
 MATLAB release: 2024a
 critic_reward_tau_mode = tau_act_saturated
 inverse_lambda_mode    = proof_consistent_unsigned
-git_fingerprint: sha=8aba23ca25a8a710901c619c9c571db571b2a95e dirty=1 available=1
+git_fingerprint: sha=318696bc41f0dad2df7b486d397c214671c9e658 dirty=0 available=1
 
 ===== RUN verify_step44_numerical_stability =====
 STEP 44: PASS (Numerical ODE Step Stability verified on simulation_params branch)
-VERDICT verify_step44_numerical_stability: PASS wall=16.8s
+VERDICT verify_step44_numerical_stability: PASS wall=14.5s
 
 ===== RUN verify_step49_exp4 =====
 STEP 49: PASS
-VERDICT verify_step49_exp4: PASS wall=5.7s
+VERDICT verify_step49_exp4: PASS wall=5.1s
 
 ===== RUN verify_step55_pt_validation =====
 STEP 55: PASS
-VERDICT verify_step55_pt_validation: PASS wall=102.7s
+VERDICT verify_step55_pt_validation: PASS wall=61.2s
 
 ===== RUN verify_phase_b1_behavioral_sanity =====
 === PHASE B.1: Running 15-Second Closed-Loop Behavioral Sanity Simulation ===
@@ -49,7 +56,7 @@ Actuator Saturation Statistics:
   Tail Medians (t >= 13.5s): E_chi=0.0019, E_upsilon=0.0035, E_s=0.0060
 
 PHASE B.1: PASS (15s ODE integration finite, weight & actuator bounds satisfied, tracking error non-divergent)
-VERDICT verify_phase_b1_behavioral_sanity: PASS wall=175.2s
+VERDICT verify_phase_b1_behavioral_sanity: PASS wall=212.3s
 
 TOTAL FAILURES: 0
 ---------------------------- END RAW STDOUT/STDERR ----------------------------
@@ -61,5 +68,6 @@ SCOPE OF THIS EVIDENCE -- stated deliberately:
     a 3-case initial-condition sweep (step55), and 15 s (phase_b1).
   * A 100 s run on the legacy ode45 path was NOT attempted.
   * The fixed-step Projected RK4 path remains the supported production entry point.
-  * step44 and step49 are additionally run in the CI fast block, so their
-    status is machine-verified on every push, not only by this transcript.
+  * step44 and step49 additionally run in the CI fast block, so their status is
+    machine-verified on every push rather than resting on this transcript alone.
+  * Wall times vary run to run; treat them as magnitudes, not fixed constants.
