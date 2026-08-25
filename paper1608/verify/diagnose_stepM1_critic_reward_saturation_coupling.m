@@ -194,7 +194,7 @@ function diagnose_stepM1_critic_reward_saturation_coupling()
     p('   integration (Phase B.1 ode45 boundary crossing near t=0).\n');
     p('3. RECOMMENDATION: implement candidate fix under a new documented flag\n');
     p('   params.critic_reward_tau_mode in paper_params.m (values:\n');
-    p('   ''tau_cmd_raw'' [current/literal] vs ''tau_act_saturated'' [candidate]),\n');
+    p('   ''tau_cmd_raw'' [SUPERSEDED literal reading] vs ''tau_act_saturated'' [CURRENT DEFAULT since 2026-08-18]),\n');
     p('   wire rhs_3auv_rl.m to pass the selected quantity into critic_update,\n');
     p('   and re-run a Step K.2-style micro-horizon boundary-crossing check\n');
     p('   under both modes before altering the production default.\n');

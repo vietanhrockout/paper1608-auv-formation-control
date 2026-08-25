@@ -28,8 +28,15 @@ function results = run_all_verifications(include_integration)
     % below therefore carries a per-test reason drawn from each oracle's
     % ACTUAL call chain -- never from its historical name -- in five classes:
     %
-    %   stalling-rl  Adaptive solver driven by RL/critic dynamics. This is
-    %                the genuine Issue K failure mode.
+    %   rl-adaptive-ok  Adaptive solver driven by RL/critic dynamics. These
+    %                were the genuine Issue K failure mode under the
+    %                SUPERSEDED tau_cmd_raw reward. All four were rerun on
+    %                2026-08-25 under the corrected tau_act_saturated reward
+    %                and now PASS (18.4s / 13.5s / 88.1s / 247.2s), including
+    %                a full 15s run on the legacy ode45 path. They stay
+    %                deferred ONLY because of runtime, not because their
+    %                status is unknown. Evidence:
+    %                artifacts/validation/r16_adaptive_solver_recheck_console.txt
     %   slow-mb      Model-based or conventional-SMC integration with NO
     %                critic weights. Genuinely expensive, but the cause of
     %                any observed stall is NOT established and is expressly
@@ -42,9 +49,9 @@ function results = run_all_verifications(include_integration)
     %   invalidated  Targets a path the project already invalidated. Legacy,
     %                not a current regression.
     %
-    % Deferred oracles are NOT known-passing and are NOT silently omitted:
-    % each is listed with its class and reason, and the summary states
-    % explicitly that a green fast block is not a green full suite.
+    % Deferred oracles are NOT silently omitted -- each is listed with its
+    % class and reason. Most are NOT known-passing; the rl-adaptive-ok class
+    % IS known-passing (rerun 2026-08-25) and is deferred for runtime only.
 
     if nargin < 1 || isempty(include_integration)
         include_integration = false;
@@ -102,6 +109,9 @@ function results = run_all_verifications(include_integration)
         'verify_step22_controller_mb'   % evidence: completed in seconds during the audit sweep
         'verify_step41_sat_antiwindup_loop' % R12 [P1]: one controller evaluation, NO integration
         'verify_step52_performance_criteria' % R12 [P1]: rewritten artifact-based, no simulation
+        'verify_step53_reward_mode_binding'  % R16 [P2]: fail-closed Eq.16 reward-mode binding
+        'verify_step44_numerical_stability'  % R16 [P1]: ode45 on rhs_3auv_rl. Was 'stalling-rl'; passes under tau_act. Now CI-verified every push, not merely claimed.
+        'verify_step49_exp4'                 % R16 [P1]: legacy ode45 RL path. Was 'stalling-rl'; passes under tau_act. Now CI-verified every push.
         'verify_step69_plots'           % surface-only check, does not re-render (see its header)
         'verify_step72_tuning'
     };
@@ -111,7 +121,7 @@ function results = run_all_verifications(include_integration)
     % [P1]): most of these contain no critic weights at all, so the
     % critic-projection-boundary mechanism cannot be their cause. Columns:
     % {name, class, reason}.
-    %   stalling-rl   -- genuine Issue K: adaptive solver + RL/critic dynamics.
+    %   rl-adaptive-ok -- adaptive solver + RL/critic; rerun 2026-08-25, all PASS.
     %   slow-mb       -- model-based/conventional, no critic. Expensive, and
     %                    step23 was observed non-terminating, but the CAUSE
     %                    is not established -- explicitly not attributed to
@@ -122,16 +132,14 @@ function results = run_all_verifications(include_integration)
     deferred_tests = {
         'verify_step23_single_auv_mb',              'slow-mb',     'ode15s on rhs_single_auv_mb (model-based, no critic); observed non-terminating in the audit sweep, cause NOT established'
         'verify_step24_3auv_mb',                    'slow-mb',     'ode15s, 3-AUV model-based (no critic weights)'
-        'verify_step44_numerical_stability',        'stalling-rl', 'ode45 on rhs_3auv_rl -- adaptive solver + critic dynamics, genuine Issue K'
         'verify_step45_exp0',                       'slow-mb',     'exp0_ideal_mb, model-based (no critic)'
         'verify_step46_exp1',                       'slow-mb',     'exp1_disturbed_mb, model-based (no critic)'
         'verify_step47_exp2',                       'slow-mb',     'exp2_sat_no_antiwindup, model-based (no critic)'
         'verify_step48_exp3',                       'slow-mb',     'exp3_sat_antiwindup, model-based (no critic)'
-        'verify_step49_exp4',                       'stalling-rl', 'exp4_rl_pts_mc = legacy ode45 RL path, genuine Issue K'
         'verify_step50_exp5',                       'slow-mb',     'exp5_comparison_smc, conventional SMC (no critic)'
         'verify_step51_exp_runner',                 'slow-mixed',  'COMPOSITE: run_all_experiments runs exp0/1/2/3/5 (model-based) plus exp4_rl_pts_mc_projected -- the PRODUCTION projected-RK4 path, not the legacy ode45 one (R13 [P1] corrected an earlier reason string that described code no longer called; R14 gave it its own slow-mixed class rather than filing it under the projected-RK4-only heading)'
-        'verify_step55_pt_validation',              'stalling-rl', 'sweep_initial_conditions integrates rhs_3auv_rl via ode15s with packed actor/critic weights -- adaptive solver + critic dynamics (R13 [P1]: the earlier slow-mb/no-critic label was wrong, inferred without following the call chain)'
-        'verify_phase_b1_behavioral_sanity',        'stalling-rl', 'exp4_rl_pts_mc = legacy ode45 RL path, genuine Issue K'
+        'verify_step55_pt_validation',              'rl-adaptive-ok', 'sweep_initial_conditions(3), ode15s + packed actor/critic weights. WAS stalling-rl; reruns PASS under tau_act (~90-105s). Deferred for runtime only. Raw transcript: artifacts/validation/r16_adaptive_solver_recheck_console.txt'
+        'verify_phase_b1_behavioral_sanity',        'rl-adaptive-ok', 'exp4_rl_pts_mc(15.0), legacy ode45 RL path over a FULL 15s horizon. WAS stalling-rl; reruns PASS under tau_act (~175-250s). Deferred for runtime only. Raw transcript: artifacts/validation/r16_adaptive_solver_recheck_console.txt'
         'verify_phase_b2_hybrid_behavioral_sanity', 'invalidated', 'targets exp4_rl_pts_mc_hybrid, invalidated by Steps K.5/K.6 -- legacy, not a current regression'
         'verify_phase_b3_projected_convergence',    'slow-valid',  'production projected-RK4 path -- valid and expected to pass, but a full re-simulation'
     };
@@ -155,9 +163,9 @@ function results = run_all_verifications(include_integration)
         [results, n_pass, n_fail] = local_run(fast_tests{k}, results, n_pass, n_fail);
     end
 
-    classes = {'stalling-rl', 'slow-mb', 'slow-valid', 'slow-mixed', 'invalidated'};
+    classes = {'rl-adaptive-ok', 'slow-mb', 'slow-valid', 'slow-mixed', 'invalidated'};
     class_desc = { ...
-        'genuine Issue K (adaptive solver + RL/critic dynamics)', ...
+        'adaptive solver + RL/critic dynamics. RERUN 2026-08-25 under the corrected tau_act reward: ALL PASS. Deferred for runtime only', ...
         'model-based/conventional, no critic -- cost real, cause NOT attributed to Issue K', ...
         'production projected-RK4 path -- valid, just a full re-simulation', ...
         'composite: model-based experiments PLUS the production projected-RK4 one', ...
@@ -188,8 +196,10 @@ function results = run_all_verifications(include_integration)
     fprintf('\n-----------------------------------------------------\n');
     fprintf('Summary: %d passed, %d failed, %d deferred.\n', n_pass, n_fail, n_skip);
     if n_skip > 0
-        fprintf(['NOTE: this is a GREEN FAST BLOCK, not a green full suite. The %d deferred\n' ...
-                 'oracles are NOT known-passing; see the per-test reasons above.\n'], n_skip);
+        fprintf(['NOTE: this is a GREEN FAST BLOCK, not a green full suite. The %d oracles below\n' ...
+                 'are deferred for the per-test reasons shown. Most are NOT known-passing; the\n' ...
+                 'rl-adaptive-ok class WAS rerun on 2026-08-25 and passed, and is deferred for\n' ...
+                 'runtime only -- see artifacts/validation/r16_adaptive_solver_recheck_console.txt.\n'], n_skip);
     end
     fprintf('=====================================================\n');
 

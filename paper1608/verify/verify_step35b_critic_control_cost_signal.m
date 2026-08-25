@@ -34,5 +34,5 @@ function verify_step35b_critic_control_cost_signal()
         error('STEP 35b: FAIL - Control command cost r_cmd must be strictly greater than saturated cost r_act');
     end
     
-    fprintf('STEP 35b: PASS (r_cmd=%.4f, r_act=%.4f, tau_cmd cost path verified)\n', r_cmd, r_act);
+    fprintf('STEP 35b: PASS (r_cmd=%.4f, r_act=%.4f; both Eq.16 cost paths checked, mode-agnostic)\n', r_cmd, r_act);
 end

@@ -10,6 +10,10 @@ addpath(genpath(fullfile(repo_root, 'paper1608')));
 paths = project_paths();
 
 p = simulation_params();
+% R16 [P2]: assert the mode rather than merely printing a mutable default,
+% so this launcher cannot silently produce a tau_cmd_raw dataset.
+assert(strcmp(p.critic_reward_tau_mode, 'tau_act_saturated'), ...
+    'run_b3_tauact: expected tau_act_saturated, got %s', p.critic_reward_tau_mode);
 fprintf('critic_reward_tau_mode = %s\n', p.critic_reward_tau_mode);
 fprintf('inverse_lambda_mode    = %s\n', p.inverse_lambda_mode);
 

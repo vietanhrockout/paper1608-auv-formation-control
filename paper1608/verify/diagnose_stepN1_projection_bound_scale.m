@@ -12,7 +12,7 @@ function diagnose_stepN1_projection_bound_scale()
 % is meant to explain an O(10^8) cost-to-go.
 %
 % This script sweeps delta_c across orders of magnitude and, using the
-% UNCHANGED tau_cmd_raw reward default (Issue M closed: do not change),
+% tau_cmd_raw reward default AS IT STOOD WHEN WRITTEN -- SUPERSEDED 2026-08-18,
 % integrates rhs_3auv_rl over a SHORT horizon (<=2s, NOT a full Phase B/C
 % run, per audit Rule 5) to see whether a larger delta_c removes the
 % ode45 stiffness/boundary-crossing pathology identified in Issue K.
@@ -33,7 +33,7 @@ function diagnose_stepN1_projection_bound_scale()
     addpath(fullfile(project_root, 'nn'));
     addpath(fullfile(project_root, 'simulation'));
 
-    params  = simulation_params(); % critic_reward_tau_mode default = tau_cmd_raw (unchanged)
+    params  = simulation_params(); % NOTE: default is now tau_act_saturated (Issue M resolved 2026-08-18)
     sat_cfg = saturation_config();
 
     out_file = fullfile(fileparts(project_root), 'n1_results.txt');
@@ -50,7 +50,7 @@ function diagnose_stepN1_projection_bound_scale()
     p('============================================================\n');
     p(' STEP N.1 -- delta_c / delta_a PROJECTION BOUND SCALE SWEEP\n');
     p('============================================================\n');
-    p('critic_reward_tau_mode = %s (unchanged production default)\n', params.critic_reward_tau_mode);
+    p('critic_reward_tau_mode = %s (current production default)\n', params.critic_reward_tau_mode);
 
     t_horizon = 2.0; % seconds -- short horizon, NOT a Phase B/C full run
     max_steps = 20000; % hard abort ceiling per run (safety, avoids hangs)

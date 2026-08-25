@@ -16,8 +16,8 @@ This repository has reached the **physical-state reproduction milestone**, but i
 | --- | --- | --- |
 | 6-DOF AUV dynamics, formation controller, anti-windup, actor–critic structure | Implemented and audited | [`paper1608/docs/EQUATION_MAPPING.md`](paper1608/docs/EQUATION_MAPPING.md) |
 | Phase C production simulation | Complete: 100 s, 1,000,000 fixed RK4 steps | [`artifacts/phase-c/phase_c_production_console.txt`](artifacts/phase-c/phase_c_production_console.txt) |
-| Physical-state Figs. 2, 3, 6, 7, 8, 9 | Accepted | [`paper1608/docs/REVIEW_GPT_2026-08-17_R11.md`](paper1608/docs/REVIEW_GPT_2026-08-17_R11.md) |
-| Fast verification suite | 46 passed, 0 failed, 14 integration oracles deferred | [`artifacts/phase-c/phase_c_verification_suite_console.txt`](artifacts/phase-c/phase_c_verification_suite_console.txt) |
+| Physical-state Figs. 2, 3, 6, 7, 8, 9 | Accepted for the **superseded** `tau_cmd_raw` dataset; the regenerated render is **not yet independently re-accepted** | [`paper1608/docs/REVIEW_GPT_2026-08-17_R11.md`](paper1608/docs/REVIEW_GPT_2026-08-17_R11.md) |
+| Fast verification suite | 49 passed, 0 failed, 12 oracles deferred (runtime only for the adaptive-solver ones) | [`artifacts/phase-c/phase_c_verification_suite_console.txt`](artifacts/phase-c/phase_c_verification_suite_console.txt) |
 | Figs. 4–5 and quantitative RL/critic claims | Provisional mismatch diagnostics, not accepted reproductions | [`paper1608/docs/IMPLEMENTATION_STATUS.md`](paper1608/docs/IMPLEMENTATION_STATUS.md) |
 
 The committed Phase C dataset reaches the accepted tracking neighborhood by the combined 10 s horizon and remains bounded through 100 s. It **does not reproduce the literal 5 s reaching deadline**: the observed small-neighborhood entry is approximately 7.1–7.5 s. This boundary is intentional and is enforced by the verification suite.
@@ -42,10 +42,10 @@ results = run_all_verifications(false);
 The expected summary is:
 
 ```text
-46 passed, 0 failed, 14 deferred
+49 passed, 0 failed, 12 deferred
 ```
 
-The 14 deferred integration oracles are listed with individual reasons. They are not silently treated as passing, and some legacy adaptive-solver paths are known to stall or have been invalidated.
+The 12 deferred oracles are listed with individual reasons. They are not silently treated as passing, and some legacy adaptive-solver paths are known to stall or have been invalidated.
 
 To regenerate the six accepted physical-state figures from the committed 100 s artifacts:
 
@@ -72,7 +72,7 @@ To deliberately launch a fresh 100 s run from a clean Git tree:
 matlab -batch "run('run_phase_c.m')"
 ```
 
-The recorded run took about 200 minutes. The runner checkpoints, refuses dirty-tree launches by default, detects repository drift during execution, saves atomically, and verifies the saved result.
+The recorded run took 138.2 minutes under the corrected Eq. (16) reward; the superseded `tau_cmd_raw` run took 200.7 min. The runner checkpoints, refuses dirty-tree launches by default, detects repository drift during execution, saves atomically, and verifies the saved result.
 
 ## Repository layout
 
@@ -94,11 +94,10 @@ The recorded run took about 200 minutes. The runner checkpoints, refuses dirty-t
 
 The main unresolved items are tracked in [GitHub Issues](https://github.com/vietanhrockout/paper1608-auv-formation-control/issues):
 
-- the `tau_cmd` versus `tau_act` interpretation of the critic reward;
 - paper-unspecified numerical values for `R`, `B`, `delta_c`, `delta_a`, and actuator limits;
 - early-transient critic projection sensitivity;
 - quantitative mismatch of Figs. 4–5;
-- disposition of the 14 deferred integration oracles.
+- disposition of the 12 deferred oracles (the `rl-adaptive-ok` ones are known-passing, deferred for runtime only).
 
 See [`paper1608/docs/IMPLEMENTATION_STATUS.md`](paper1608/docs/IMPLEMENTATION_STATUS.md) before making scientific claims from this repository.
 

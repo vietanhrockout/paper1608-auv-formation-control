@@ -32,12 +32,12 @@ jobs:
           release: R2025b
           cache: true
 
-      - name: Run 46 fast verification oracles
+      - name: Run 49 fast verification oracles
         uses: matlab-actions/run-command@v3
         with:
           command: >-
             cd('paper1608');
             results = run_all_verifications(false);
-            assert(sum(strcmp({results.status}, 'PASS')) == 46, 'CI expected exactly 46 passing fast oracles');
+            assert(sum(strcmp({results.status}, 'PASS')) == 49, 'CI expected exactly 49 passing fast oracles');
             assert(sum(strcmp({results.status}, 'FAIL')) == 0, 'CI found a failing oracle');
-            assert(sum(strcmp({results.status}, 'SKIP')) == 14, 'CI expected exactly 14 explicitly deferred integration oracles');
+            assert(sum(strcmp({results.status}, 'SKIP')) == 12, 'CI expected exactly 12 explicitly deferred oracles (see run_all_verifications.m for per-test class and reason)');

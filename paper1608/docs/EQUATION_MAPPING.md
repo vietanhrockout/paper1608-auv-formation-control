@@ -24,7 +24,7 @@ superseded by the Issue O/P work below).
 | Eq. (6) | Formation velocity error `υᵢ=η̇ᵢ-η̇_d0` | `control/formation_error.m` | Verified literal |
 | Eq. (7) | True unknown drift `f_i` (used only for model-based baseline, not the model-free RL path) | `control/f_true_drift.m` | Verified, not used by production `rhs_3auv_rl.m` |
 | Eq. (14) | RBF Gaussian basis / Critic value estimate `V̂ᵢ(Zᵢ)=ŵ_c^Tθ_c(χᵢ)` | `math/rbf_gaussian.m`, `nn/critic_basis.m`, `nn/critic_output.m` | Verified |
-| Eq. (16) | Instantaneous reward `r(t)=χᵀBχ+τᵀRτ` | `control/strategic_utility.m` | `B=I₆`, `R=1e-4·I₆` **ASSUMED** (not paper-specified). `τ` argument mode controlled by `params.critic_reward_tau_mode` (Issue M — reopened/unresolved, see docs/HANDOFF.md) |
+| Eq. (16) | Instantaneous reward `r(t)=χᵀBχ+τᵀRτ` | `control/strategic_utility.m` | `B=I₆`, `R=1e-4·I₆` **ASSUMED** (not paper-specified). `τ` argument mode controlled by `params.critic_reward_tau_mode` (Issue M **RESOLVED 2026-08-18**: supervisor determination that Eq. (16)'s tau is the SATURATED tau_act; production default `'tau_act_saturated'`) |
 | Eq. (17) | Bellman residual `c_ei` | `nn/bellman_error.m` | Verified |
 | Eq. (19) | Raw critic gradient-descent update | `nn/critic_update.m` | Verified |
 | Eq. (20) | Critic weight parameter-projection operator | `nn/projection_operator.m`, `nn/critic_update.m` | Verified structurally; `δc=100` **ASSUMED** (Issue N — evidence against bound-size as primary stiffness cause, not fully closed) |
@@ -56,5 +56,5 @@ superseded by the Issue O/P work below).
 ## Known reproduction gaps / ambiguities (see `docs/HANDOFF.md` for full detail)
 
 - `τ_max`, `R`, `B`, `δc`, `δa` are **not given numeric values by the paper** — all are project-chosen.
-- Issue M: whether the Eq.(16) reward uses `τ_cmd` (raw) or `τ_act` (saturated) is unresolved as a reproduction choice (Fig.4 magnitude argument favors raw, but is itself conditioned on the assumed `R`).
+- Issue M: **RESOLVED 2026-08-18** by supervisor determination -- Eq.(16) uses the SATURATED `τ_act`. The former Fig.4-magnitude argument for `τ_cmd` is void: the `δ_c` bound caps `Ĉ` regardless of reward magnitude, so it was never the binding constraint. Production default is `'tau_act_saturated'`.
 - Step L.3a: whether follower `χᵢ` should use the virtual reference `η_d0` (paper-literal, Eq.5) or the actual leader `η₀` is a live reproduction-fidelity question for Fig. 7/8, independent of Issue P.
