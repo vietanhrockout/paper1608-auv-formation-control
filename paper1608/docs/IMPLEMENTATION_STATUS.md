@@ -254,10 +254,32 @@ being a quantitative reproduction.
 
 ## Known discrepancies / open questions
 
-- **Issue M** (critic reward `τ_cmd` vs `τ_act` in Eq. 16): unresolved
-  reproduction choice. Fig. 4's `O(10^8)` cost-to-go magnitude favors raw
-  `τ_cmd`, but that argument is conditioned on this project's own assumed
-  `R=1e-4·I`. Default remains `'tau_cmd_raw'`.
+- **Issue M** (critic reward `τ_cmd` vs `τ_act` in Eq. 16): **RESOLVED
+  2026-08-18 by the project owner's academic supervisor** — Eq. (16)'s `τᵢ`
+  is the physically applied, actuator-saturated input `τ_act` (Eq. 2/3's
+  practical input), not the pre-saturation virtual command. Production
+  default changed to `'tau_act_saturated'`; `'tau_cmd_raw'` kept as an
+  opt-in for comparison. The historical argument for `τ_cmd` (Fig. 4's
+  `O(10^8)` scale) is **void**: `diagnose_stepS1_*` proved
+  `|Ĉ| ≤ δ_c·√15 = 387.3` regardless of reward magnitude, so `O(10^8)` is
+  unreachable in EITHER mode under `δ_c=100` — the reward mode was never
+  the binding constraint on Fig. 4's scale.
+  **100 s PRODUCTION RERUN COMPLETE** under the corrected reward (SHA
+  `8d5798e`, clean tree, 138.2 min vs. 200.7 min before). Issue M/K is
+  **eliminated, not merely reduced**: `total_retracted` 641,485 → **0**
+  across 1,000,000 steps, `max_retraction` 3.82e4 → **0.000**, and
+  `max||Wc||` 100.0 (pinned at δ_c) → **14.33**. Convergence is slightly
+  better (E_chi at 100 s: 0.0146 → 0.0122). All 8 figures regenerated;
+  the six physical ones are unchanged in character.
+  **Fig. 4 changed qualitatively**: Ĉ now starts at exactly 0 and settles
+  to THREE DISTINCT stable plateaus (−5.79/−5.02/−3.95), matching the
+  paper's three-level structure, where the superseded reward gave chaotic
+  ±50 swings collapsing to one common level. Sign is still inverted,
+  scale still off by ~1e7, per-AUV ordering still differs — a clean
+  systematic sign discrepancy, deliberately NOT patched.
+  **The δ_c explanation for Fig. 4's scale is retired**: `||Wc||` peaks at
+  14.33, far inside δ_c=100, so the projection bound is demonstrably not
+  what limits this run. See `docs/HANDOFF.md`.
 - **Issue M/K critic-weight projection thrashing — RECONCILED (not a
   copy-paste artifact; a genuine, verified early-transient-only effect)**:
   `total_retracted=641,485` / `max_retraction=3.8237e4` are **byte-identical**

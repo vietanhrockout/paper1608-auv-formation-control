@@ -1,0 +1,39 @@
+=== Phase C result: t_final=100.0000, 1003 samples, git_sha=8d5798e90ec1a86423fbea022f643c4ed02076f6, git_dirty=0 ===
+wall time: 138.2 min, nsteps=1000000, max_retraction=0.0000e+00, total_retracted=0
+max|tau_act| (online, every step): force=150.0000 N (limit 150), moment=24.8925 Nm (limit 30)
+
+max ||Wc|| = 14.3324 (limit 100.0), max ||Wa||_F = 15.7554 (limit 50.0)
+max tau_act (decimated-sample recompute): force=150.0000 N (limit 150), moment=19.6055 Nm (limit 30)
+
+=== E_chi / E_s over the full 100s (max across all 3 AUVs) ===
+t=  0.000  E_chi=   16.000000  E_s=   3492.047344  (AUV0=16.0000 AUV1=12.0000 AUV2=8.0000)
+t=  0.999  E_chi=   14.332962  E_s=   2931.182221  (AUV0=14.3330 AUV1=10.3275 AUV2=6.3284)
+t=  2.997  E_chi=    9.643992  E_s=   1565.497198  (AUV0=9.6440 AUV1=5.6264 AUV2=1.6783)
+t=  4.995  E_chi=    4.933565  E_s=    542.479809  (AUV0=4.9336 AUV1=0.9159 AUV2=0.0026)
+t=  7.492  E_chi=    0.009228  E_s=      0.007380  (AUV0=0.0092 AUV1=0.0023 AUV2=0.0022)
+t=  9.990  E_chi=    0.002116  E_s=      0.006321  (AUV0=0.0021 AUV1=0.0020 AUV2=0.0019)
+t= 14.985  E_chi=    0.001973  E_s=      0.005643  (AUV0=0.0016 AUV1=0.0020 AUV2=0.0014)
+t= 19.980  E_chi=    0.002644  E_s=      0.012883  (AUV0=0.0016 AUV1=0.0019 AUV2=0.0026)
+t= 29.970  E_chi=    0.004712  E_s=      0.017278  (AUV0=0.0031 AUV1=0.0047 AUV2=0.0029)
+t= 50.050  E_chi=    0.007106  E_s=      0.030565  (AUV0=0.0052 AUV1=0.0053 AUV2=0.0071)
+t= 75.025  E_chi=    0.010517  E_s=      0.052005  (AUV0=0.0080 AUV1=0.0105 AUV2=0.0082)
+t=100.000  E_chi=    0.012209  E_s=      0.064217  (AUV0=0.0122 AUV1=0.0073 AUV2=0.0076)
+
+E_chi(0)=16.0000 -> E_chi(end)=0.012209
+min E_chi over [T1*+T2*=10, 100] = 1.548408e-03 at t=16.8831 (index of the actual minimum, not first t>=10)
+global min E_chi = 1.548408e-03 at t=16.8831
+max E_chi over [10, 100] (post-transient) = 1.471443e-02
+
+NOTE: T1*=5s is the paper's configured predefined-time reaching deadline, but the
+sliding-surface/tracking-error data does NOT reach a small neighborhood by t=5s
+(see t=5 row above). The combined horizon T1*+T2*=10s is the earliest declared
+deadline consistent with the observed data; entry into a small neighborhood is
+observed empirically around t~7.1-7.5s. See diagnose_stepR8_crossing_times.m for
+exact first-entry/sustained-entry crossing times -- do not infer them from this
+sparse table alone.
+
+=== STRUCTURAL ASSERTS PASSED (finite, NN bounds, actuator limits) ===
+=== CONVERGENCE ASSERTS PASSED (neighborhood entry by 10s, bounded post-transient, bounded final; tol=0.02) ===
+NOTE: these asserts do NOT establish the unqualified T1*=5s exact reaching-deadline claim -- see REVIEW_GPT_2026-08-17_R8.md.
+
+Saved analysis to C:\Users\ADMIN\Documents\Control\1608 simulation\artifacts\work\phase-c\phase_c_analysis.mat

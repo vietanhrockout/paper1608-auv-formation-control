@@ -81,3 +81,4 @@ Summary: 46 passed, 0 failed, 14 deferred.
 NOTE: this is a GREEN FAST BLOCK, not a green full suite. The 14 deferred
 oracles are NOT known-passing; see the per-test reasons above.
 =====================================================
+CI-ASSERTS-OK

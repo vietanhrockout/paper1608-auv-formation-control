@@ -21,6 +21,7 @@ function rl = compute_phase_c_rl_series(res, actor_dof)
     %   .theta_a    [N x 25 x 3]   actor RBF activations for DOF actor_dof
     %   .f_rl       [N x 6 x 3]    actor network output Wa_i'*theta_a       (Eq. 32)
     %   .Wc_norm    [N x 3]        ||Wc_i||  (to show projection-boundary pinning)
+    %   .Wa_norm    [N x 3]        ||Wa_i||_F (same, for the actor bound)
     %   .actor_dof  scalar         the DOF used for .theta_a
 
     if nargin < 2 || isempty(actor_dof)
@@ -34,6 +35,7 @@ function rl = compute_phase_c_rl_series(res, actor_dof)
     theta_a = zeros(N, cfg.actor_n_nodes, 3);
     f_rl = zeros(N, 6, 3);
     Wc_norm = zeros(N, 3);
+    Wa_norm = zeros(N, 3);
 
     for k = 1:N
         Xk = res.X(k, :).';
@@ -45,6 +47,7 @@ function rl = compute_phase_c_rl_series(res, actor_dof)
 
             Chat(k, i) = critic_output(chi_i, Wc_m(:, i), cfg);
             Wc_norm(k, i) = norm(Wc_m(:, i));
+            Wa_norm(k, i) = norm(Wa_l{i}, 'fro');
             theta_a(k, :, i) = actor_basis(chi_i(actor_dof), vel_err_i(actor_dof), cfg).';
             f_rl(k, :, i) = actor_output(chi_i, vel_err_i, Wa_l{i}, cfg).';
         end
@@ -56,5 +59,6 @@ function rl = compute_phase_c_rl_series(res, actor_dof)
     rl.theta_a = theta_a;
     rl.f_rl = f_rl;
     rl.Wc_norm = Wc_norm;
+    rl.Wa_norm = Wa_norm;
     rl.actor_dof = actor_dof;
 end

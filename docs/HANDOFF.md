@@ -227,7 +227,7 @@ An independent audit of the prior session's Issue K–O work (performed by the u
 
 - **Phase B.2**: relabel **EXECUTED / FAIL**, not "completed successfully" — the run itself is real and NaN/Inf-free, but the actual control objective (convergence) failed. The ad-hoc checker in `run_phase_b2.m` never asserted on this, only printed it.
 - **Step L.3d (near-zero velocity singularity)**: relabel **NOT RE-VERIFIED**, not CLOSED/PASS. `out_l3d.txt` shows `tauReach_literal[N] = NaN` for every sample in the delta sweep, and the script's `assert(abs(pp_lit(1) + 0.2) < 5e-3)` would fail against `pp_lit(1) = NaN`. File timestamps show `sigpow_negative.m`/`gain_matrix_Ltilde.m` were edited *after* this failing run, but no successful re-run log exists in the archive. Needs a clean re-run before trusting it again.
-- **Issue M (critic reward tau_cmd vs tau_act)**: relabel **UNRESOLVED reproduction choice**, not "CLOSED, candidate fix REJECTED". The Fig. 4 magnitude argument ($O(10^8)$ only reachable with raw $\tau_{\text{cmd}}$) is real evidence but is conditioned on this project's own **assumed** $R=10^{-4}I$, $B=I$ (Eq. 16 gives no numeric values) — a different assumed $R$ changes the achievable scale under `tau_act_saturated` too, so the argument is not as load-bearing as previously stated. `tau_cmd_raw` remains the literal reading of Eq. 16 and stays the default, but "the reproduction question" is open, not closed.
+- **Issue M (critic reward tau_cmd vs tau_act)**: **RESOLVED 2026-08-18 — see the "Issue M resolved" section below.** The historical text that follows is kept for the record of how the question stood before the supervisor's determination. Previously relabelled **UNRESOLVED reproduction choice**, not "CLOSED, candidate fix REJECTED". The Fig. 4 magnitude argument ($O(10^8)$ only reachable with raw $\tau_{\text{cmd}}$) is real evidence but is conditioned on this project's own **assumed** $R=10^{-4}I$, $B=I$ (Eq. 16 gives no numeric values) — a different assumed $R$ changes the achievable scale under `tau_act_saturated` too, so the argument is not as load-bearing as previously stated. `tau_cmd_raw` remains the literal reading of Eq. 16 and stays the default, but "the reproduction question" is open, not closed.
 - **Issue N ($\delta_c/\delta_a$ scale)**: relabel **evidence against bound-size as primary stiffness cause, not fully closed**. None of the three delta_c sweep runs (100, 1e6, 1e8) actually completed to their 2s target — all three logs end mid-run at $t\approx0.017$–$0.019$s with no final result table. The conclusion "delta-independent stiffness" is well-supported by the consistent stall point, but $\delta_a$ was varied simultaneously with $\delta_c$ (confounded), and no run reached completion.
 - **Step K.7 / Projected RK4 "validated for accuracy"**: overstated. `res.stats` from the actual `artifacts/validation/phase_b2_result.mat` shows `max_retraction=1.521e6` and `total_retracted=919719` over 150,000 steps (~6.1 retraction events/step just counting stage-level; both AUVs and both NN weight types included) — the projection is firing constantly, not as a rare correction. `‖Wc‖≤δc` is guaranteed by construction (the projection is exact regardless of step size), but this says nothing about whether the *smooth* physical states ($\eta,\nu$) are accurately integrated when the critic-weight RHS is this violently discontinuous every step. The $h=10^{-4}$ vs $h=10^{-5}$ convergence check quoted in earlier handoff passes ($\Delta\eta=4.4\times10^{-4}$, $\Delta\nu=1.37\times10^{-2}$) has **no corresponding script/log/result file in the repo** — it is not independently auditable from current artifacts and should be re-run and saved properly before being cited again.
 - **K.5/K.6 stall root cause**: the "critic-projection-boundary non-smooth kink" explanation is plausible but not proven exclusive. Step L.3d's own finding (a $\sim10^7$-scale control-torque jump across $\upsilon=0$ from the regularized negative-power singularity) is at least as strong a candidate for defeating adaptive step-size control, and L.3d itself is now NOT RE-VERIFIED (see above). Treat "it's the projection boundary" as one of (at least) two live candidates, not a settled fact.
@@ -542,6 +542,59 @@ Built after a feasibility audit run FIRST, deliberately, so the figures could be
 - Reproduction assumption: the actor RBF is per-DOF, so a Fig. 5 rendering must pick one DOF; the paper does not state which. Default $z$ (largest initial error), recorded in `rl.actor_dof`.
 
 **Gating**: `generate_all_paper_figures()` does NOT render these by default — pass `include_provisional_rl=true`. Both PNGs carry the provisional caveat **on the rendered image itself**, so the figure cannot be lifted out of the repo and mistaken for an accepted reproduction.
+
+### Issue M RESOLVED — Eq. (16) uses the SATURATED input tau_act
+
+**Determination (2026-08-18):** the project owner's academic supervisor established that Eq. (16)'s $\tau_i$ denotes the **physically applied, actuator-saturated** input — Eq. (2)/(3)'s practical input $\tau_{\text{act}}=\text{sat}(\tau_{\text{cmd}},\tau_{\max})$ — not the pre-saturation virtual command. This is an authoritative reading of the paper, and it closes Issue M, which this project had deliberately left open as an unresolved reproduction choice.
+
+**Change:** `paper1608/config/paper_params.m` → `params.critic_reward_tau_mode = 'tau_act_saturated'` (was `'tau_cmd_raw'`). The flag was already wired end-to-end — verified, not assumed, at `paper1608/simulation/rhs_3auv_rl.m:54-58`, where it selects `tau_reward` before `critic_update`. `'tau_cmd_raw'` is retained as an explicit opt-in.
+
+**The evidence that had favoured `tau_cmd_raw` was already void.** The historical argument was that the paper's Fig. 4 plateaus at $O(10^8)$, a scale only the un-saturated $\tau$ can produce (saturating caps $r_i$ at $O(300)$). But `diagnose_stepS1_rl_figure_feasibility.m` had already proven $|\hat C|\le\delta_c\sqrt{15}=387.3$ by Cauchy–Schwarz **regardless of reward magnitude** — so $O(10^8)$ is unreachable under $\delta_c=100$ in *either* mode. The reward mode was never the binding constraint on Fig. 4's scale, so it never constituted evidence for `tau_cmd_raw`. An earlier audit had independently softened that argument on separate grounds (it was conditioned on this project's own assumed $R=10^{-4}I$). The supervisor's determination therefore does not contradict any surviving evidence.
+
+**This changes the closed loop, and invalidates the accepted dataset for the new configuration.** $r_i$ feeds the Bellman error → $d\hat w_c/dt$ → $\hat w_c$, and $\hat w_c$ feeds `actor_update` → $\hat w_a$ → $f_{RL}$ → the control law (`rhs_3auv_rl.m:47`). So this is a dynamics change, not a diagnostic relabel. **Every result produced under `tau_cmd_raw` — the 100 s Phase-C dataset, the six accepted figures, the provisional Figs. 4/5 — was produced under the SUPERSEDED reward mode.** They are not wrong as records of that configuration, but they no longer describe the production default.
+
+**Step M.1's mechanism suggests what to expect, but it must be measured, not assumed:** saturating the reward removes the documented up-to-$7.7\times10^7\times$ inflation of $r_i$, so the critic Bellman error and update rate shrink by orders of magnitude. That may reduce or eliminate the critic-weight projection thrashing (Issue M/K) and change whether $\|\hat w_c\|$ still pins at $\delta_c$. Note that `diagnose_stepM2`'s recommendation to promote this mode was never a completed comparison — its `tau_cmd_raw` arm stalled and was killed — so it is not citable as established evidence either way.
+
+**A/B RESULT — the correct reading also ELIMINATES the critic-projection thrashing (Issue M/K).** A 15 s run at the same horizon and step size as the earlier Phase B.3, so the two are directly comparable (`scripts/validation/run_b3_tauact.m`, log `artifacts/validation/b3_tauact_console.txt`, result `artifacts/validation/b3_tauact_result_t15.mat`, launch SHA `598b027`, clean tree):
+
+| Quantity | `tau_cmd_raw` (superseded) | `tau_act_saturated` (new default) |
+|---|---|---|
+| $E_\chi$: $0\to15$ s | $16.0 \to 0.0037$ | $16.0 \to \mathbf{0.0020}$ |
+| $\max\|\hat w_c\|$ | $100.0000$ — **pinned at $\delta_c$** | $\mathbf{14.3340}$ — far inside the bound |
+| $\max\|\hat w_a\|_F$ | $2.0616$ | $2.5123$ |
+| `total_retracted` | $641{,}485$ events | $\mathbf{0}$ |
+| `max_retraction` | $3.8237\times10^{4}$ | $\mathbf{0.000\times10^{0}}$ |
+| $\max|\tau_{\text{act}}|$ moment | $30.0$ Nm (at the limit) | $24.89$ Nm (inside) |
+
+**Zero retraction events across 150,000 steps**, against 641,485 before. Issue M/K — the critic-weight projection thrashing that consumed a large part of this project, defeated `ode45`/`ode15s`/the K.5 hybrid, and forced the fixed-step Projected RK4 integrator — **does not occur at all under the correct reward reading**. The Eq. (20) projection operator becomes what the theory intends: a safety net that never fires, instead of a permanently-active clamp. Convergence is also slightly better. This is strong independent corroboration of the supervisor's determination: the pathology was a consequence of feeding the critic an un-saturated reward inflated by up to $7.7\times10^7\times$ (Step M.1), exactly as that step's mechanism predicted.
+
+**FULL 100 s PRODUCTION RERUN COMPLETE under the corrected reward** (launch SHA `8d5798e`, clean tree, 1,000,000 steps, **138.2 min** wall vs. 200.7 min for the superseded run, 1003 samples, self-verified). All structural and convergence asserts PASS. The 15 s finding holds at full scale, and the RL-side behaviour changed qualitatively:
+
+| Quantity | `tau_cmd_raw` (superseded) | `tau_act_saturated` (current) |
+|---|---|---|
+| `total_retracted` / 1e6 steps | 641,485 events | **0** |
+| `max_retraction` | $3.8237\times10^{4}$ | **0.000** |
+| $\max\|\hat w_c\|$ | 100.0000 (pinned at $\delta_c$) | **14.3324** |
+| $\max\|\hat w_a\|_F$ | 16.8602 | 15.7554 |
+| $\max|\tau_{\text{act}}|$ moment | 30.00 Nm (at cap) | 24.89 Nm |
+| $E_\chi$ at 10 s | 0.002583 | 0.002116 |
+| $E_\chi$ at 100 s | 0.014602 | 0.012209 |
+| global min $E_\chi$ | 2.562e-3 @ t=10.79 | 1.548e-3 @ t=16.88 |
+| wall time | 200.7 min | 138.2 min |
+
+**Issue M/K is eliminated at full scale, not merely reduced**: zero projection events across 1,000,000 RK4 steps. The run is also ~30% faster, consistent with the projection work disappearing.
+
+**Fig. 4 changed qualitatively — the plateau STRUCTURE is now reproduced.** Under the superseded reward $\hat C$ swung between $-57.7$ and $+32.2$ and collapsed to a single common level near $+8.2$. It now starts at exactly $0$, dips through the reaching transient, and settles to **three distinct, stable plateaus** ($-5.79$, $-5.02$, $-3.95$ at $t=100$ s) — the same three-level structure the paper's Fig. 4 shows. Three things still do not match, stated plainly: the **sign is inverted** (ours is non-positive throughout, max exactly $0$), the **scale differs by $\sim10^7$**, and the **per-AUV ordering differs** (ours $|\hat C|$: AUV0 > AUV1 > AUV2; paper: AUV2 > AUV0 > AUV1).
+
+A non-positive $\hat C$ remains **invalid** for a cost-to-go, since the Eq. (16) reward is PSD. But this is now a *clean, systematic sign discrepancy* rather than the chaotic oscillation seen before — a distinct and far more diagnosable open question. **Deliberately not patched**: flipping a sign without evidence is exactly the symptom-patching this project forbids.
+
+**The Fig. 4 causal story has also changed, and the wording was narrowed accordingly.** The Cauchy–Schwarz bound $|\hat C|\le\delta_c\sqrt{15}=387.3$ still holds, so $\delta_c=100$ remains a *sufficient* obstruction to $10^8$ (Issue N) — but it is now demonstrably **not the operative one**: $\|\hat w_c\|$ peaks at just $14.33$, far inside $\delta_c$. Whatever sets the $O(1)$ scale here, it is not the projection radius. This retires the earlier framing that pointed at $\delta_c$ as the explanation.
+
+**Fig. 5 also changed materially:** $f_{RL}$ previously drifted linearly negative to $-12$ with no sign of settling; it now rises and **visibly plateaus** (AUV1 and AUV2 flatten before $t=100$ s). The stale "would reach $\delta_a$ on a longer horizon" concern is moot under the corrected reward. Both figure captions now read $\|\hat w_a\|_F$ and $\max|f_{RL}|$ **from the data** rather than hardcoding them, so they cannot go stale again on a future regeneration.
+
+**All 8 figures regenerated** from the new dataset. The six physical figures are unchanged in character (Fig. 7 still converges to exactly the configured offsets `[3,4,2]`/`[6,1,4]`).
+
+**Verification status after the change:** fast oracle suite re-run under the new default — **46 passed, 0 failed, 14 deferred**, unchanged. `verify_step35b`'s misleading "tau_cmd cost path verified" print was corrected; that oracle is mode-agnostic and asserts both cost paths plus the $r_{\text{cmd}}>r_{\text{act}}$ inequality, so it did not need a logic change.
 
 ### Post-R11 full-project audit — findings
 
